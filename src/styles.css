@@ -1,0 +1,95 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  * {
+    box-sizing: border-box;
+  }
+
+  body {
+    margin: 0;
+    overflow: hidden;
+    background: #121212;
+    color: #e3e3e3;
+    font-family: Inter, sans-serif;
+  }
+
+  ::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background: #121212;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background: #444444;
+    border-radius: 3px;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    background: #888888;
+  }
+}
+
+@layer components {
+  .glass-panel {
+    background: rgb(30 30 30 / 70%);
+    border: 1px solid rgb(68 68 68 / 50%);
+    backdrop-filter: blur(12px);
+  }
+
+  .material-symbols-outlined {
+    font-family: 'Material Symbols Outlined';
+    font-weight: normal;
+    font-style: normal;
+    font-size: 22px;
+    line-height: 1;
+    letter-spacing: normal;
+    text-transform: none;
+    display: inline-block;
+    white-space: nowrap;
+    word-wrap: normal;
+    direction: ltr;
+    -webkit-font-feature-settings: 'liga';
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .label-caps {
+    @apply font-label-caps text-label-caps uppercase;
+  }
+
+  .tactical-button {
+    @apply rounded font-label-caps text-label-caps transition-colors;
+  }
+
+  body.deployment-editor-active nav.fixed.left-0 {
+    transform: translateX(-260px);
+    transition: transform 240ms ease-in-out;
+  }
+
+  body:not(.deployment-editor-active) nav.fixed.left-0 {
+    transition: transform 240ms ease-in-out;
+  }
+
+  body.deployment-editor-active header.fixed.top-0 {
+    left: 0 !important;
+    transition: left 240ms ease-in-out;
+  }
+
+  body:not(.deployment-editor-active) header.fixed.top-0 {
+    transition: left 240ms ease-in-out;
+  }
+
+  body.deployment-editor-active main {
+    padding-left: 0 !important;
+    transition: padding-left 240ms ease-in-out;
+  }
+
+  body.deployment-editor-active footer.fixed {
+    transform: translateY(32px);
+    transition: transform 200ms ease-in-out;
+  }
+}

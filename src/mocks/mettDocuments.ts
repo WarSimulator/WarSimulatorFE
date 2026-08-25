@@ -1,0 +1,55 @@
+import type { MettDocument } from '../types';
+
+export const mettDocuments: MettDocument[] = [
+  {
+    id: 'op-alpha-primary',
+    name: 'Op. Alpha - Primary',
+    status: 'ACTIVE',
+    author: 'Cmdr. Vance',
+    lastModified: '2023-10-24 14:32Z',
+    progressLabel: 'M, E, T Completed',
+    progress: 50,
+    sections: {
+      mission: 'Secure the northern approach and establish defensive control before H-hour.',
+      enemy: 'Mechanized reconnaissance elements observed along Route Iron. Enemy indirect fire capability remains unconfirmed.',
+      terrainWeather: 'Mixed urban and low ridge terrain. Visibility reduced after 1800Z with intermittent rain forecast.',
+      troopsSupport: 'Two infantry platoons available with limited engineer support and priority mortar allocation.',
+      timeAvailable: 'Planning window closes at 1900Z. Movement preparation must complete within 90 minutes.',
+      civilConsiderations: 'Civilian traffic remains active near the market district. Medical and municipal facilities must remain accessible.',
+    },
+  },
+  {
+    id: 'border-recon-v2',
+    name: 'Border Recon V2',
+    status: 'DRAFT',
+    author: 'Lt. Reyes',
+    lastModified: '2023-10-23 09:15Z',
+    progressLabel: 'Review Pending',
+    progress: 85,
+    sections: {
+      mission: '',
+      enemy: '',
+      terrainWeather: '',
+      troopsSupport: '',
+      timeAvailable: '',
+      civilConsiderations: '',
+    },
+  },
+  {
+    id: 'sector-7-defense',
+    name: 'Sector 7 Defense',
+    status: 'ARCHIVED',
+    author: 'Cmdr. Vance',
+    lastModified: '2023-09-12 18:00Z',
+    progressLabel: 'Mission Complete',
+    progress: 100,
+    sections: {
+      mission: 'Hold Sector 7 defensive line and protect logistics corridor.',
+      enemy: 'Hostile force assessed as light infantry with limited mobility.',
+      terrainWeather: 'Open industrial terrain with limited cover between structures.',
+      troopsSupport: 'Defensive squad positions supported by observation posts.',
+      timeAvailable: 'Operation closed.',
+      civilConsiderations: 'Archived civil impact notes retained for after-action review.',
+    },
+  },
+];
