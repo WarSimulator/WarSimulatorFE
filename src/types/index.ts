@@ -82,6 +82,21 @@ export type SimulationRuntimeState = {
   tacticalLayers: TacticalLayers;
 };
 
+export type SimulationStatus = 'planning' | 'running' | 'completed' | 'failed';
+
+export type SimulationRun = {
+  id: string;
+  displayId: string;
+  mettTcId: string;
+  mettTcName: string;
+  mettTcFileName: string;
+  deploymentId: string;
+  deploymentName: string;
+  createdAt: string;
+  status: SimulationStatus;
+  coaCount: number | null;
+};
+
 export type DeploymentAffiliation = 'friendly' | 'enemy';
 
 export type DeploymentUnitType = 'infantry' | 'mechanized_infantry' | 'armor' | 'recon' | 'artillery';
