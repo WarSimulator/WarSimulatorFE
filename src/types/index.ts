@@ -63,6 +63,9 @@ export type SimulationUnit = {
   mobility: string;
   position: { x: number; y: number };
   icon: string;
+  sidc?: string;
+  symbolScale?: number;
+  geographicPosition?: SimulationResultPosition;
   log: string[];
   timeline: string[];
 };
@@ -95,6 +98,70 @@ export type SimulationRun = {
   createdAt: string;
   status: SimulationStatus;
   coaCount: number | null;
+};
+
+export type SimulationResultPosition = {
+  longitude: number;
+  latitude: number;
+};
+
+export type SimulationKeyframe = {
+  time: number;
+  position: SimulationResultPosition;
+};
+
+export type SimulationTrackSegment = {
+  actionSequence: number;
+  action: string;
+  startTime: number;
+  endTime: number;
+  source: string;
+  destination: string;
+  keyframes: SimulationKeyframe[];
+};
+
+export type SimulationUnitTrack = {
+  unitId: string;
+  actor: string;
+  startTime: number;
+  endTime: number;
+  segments: SimulationTrackSegment[];
+};
+
+export type SimulationResultEvent = {
+  time: number;
+  type: 'ACTION_STARTED' | 'ACTION_COMPLETED' | string;
+  actionSequence: number;
+  actor: string;
+  action: string;
+};
+
+export type ObservationEffect = {
+  actionSequence: number;
+  action: 'Observe';
+  actor: string;
+  target: string;
+  startTime: number;
+  endTime: number;
+  origin: SimulationResultPosition;
+  targetPoint: SimulationResultPosition;
+  direction: number;
+  fovDegrees: number;
+  rangeMeters: number;
+  targetDistanceMeters: number;
+  targetInRange: boolean;
+  displayRangeMeters: number;
+};
+
+export type SimulationResult = {
+  schemaVersion: '1.0';
+  planIndex: number;
+  deploymentId: string | null;
+  startTime: number;
+  endTime: number;
+  unitTracks: SimulationUnitTrack[];
+  observationEffects?: ObservationEffect[];
+  events: SimulationResultEvent[];
 };
 
 export type DeploymentAffiliation = 'friendly' | 'enemy';

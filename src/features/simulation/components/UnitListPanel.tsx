@@ -1,15 +1,15 @@
 import { Icon } from '../../../components/layout/Icon';
-import { simulationUnits } from '../../../mocks/units';
-import type { SimulationRuntimeState, TacticalLayers } from '../../../types';
+import type { SimulationRuntimeState, SimulationUnit, TacticalLayers } from '../../../types';
 
 type UnitListPanelProps = {
+  units: SimulationUnit[];
   selectedUnitId: string;
   tacticalLayers: TacticalLayers;
   onSelectUnit: (unitId: string) => void;
   onLayerChange: (layers: TacticalLayers) => void;
 };
 
-export function UnitListPanel({ selectedUnitId, tacticalLayers, onSelectUnit, onLayerChange }: UnitListPanelProps) {
+export function UnitListPanel({ units, selectedUnitId, tacticalLayers, onSelectUnit, onLayerChange }: UnitListPanelProps) {
   const setLayer = (key: keyof SimulationRuntimeState['tacticalLayers'], value: boolean) => {
     onLayerChange({ ...tacticalLayers, [key]: value });
   };
@@ -41,7 +41,7 @@ export function UnitListPanel({ selectedUnitId, tacticalLayers, onSelectUnit, on
         <section>
           <h3 className="mb-3 font-label-caps text-label-caps text-on-surface-variant">Unit List</h3>
           <div className="space-y-2">
-            {simulationUnits.map((unit) => (
+            {units.map((unit) => (
               <button
                 key={unit.id}
                 className={`flex w-full items-center gap-3 rounded border p-3 text-left transition-colors ${

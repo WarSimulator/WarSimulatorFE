@@ -2,12 +2,13 @@ import { simulationUnits } from '../../../mocks/units';
 import type { SimulationRuntimeState } from '../../../types';
 
 export const SIMULATION_DURATION = 600;
+export const SIMULATION_PLAYBACK_RATE = 0.25;
 
 export function createInitialRuntimeState(): SimulationRuntimeState {
   return {
     simulationTime: 0,
     isPlaying: false,
-    playbackSpeed: 1,
+    playbackSpeed: 0.5,
     selectedUnitId: simulationUnits[0].id,
     activeTab: 'map',
     tacticalLayers: {

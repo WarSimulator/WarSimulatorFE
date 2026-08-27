@@ -5,12 +5,14 @@ export const UNIT_SOURCE_ID = 'deployment-units';
 export const OBJECTIVE_SOURCE_ID = 'deployment-objectives';
 export const GRAPHICS_SOURCE_ID = 'deployment-graphics';
 export const AXIS_ARROW_SOURCE_ID = 'deployment-axis-arrows';
+export const OBSERVATION_SECTOR_SOURCE_ID = 'observation-sector-source';
 
 export function addDeploymentSourcesAndLayers(map: MapLibreMap) {
   map.addSource(UNIT_SOURCE_ID, { type: 'geojson', data: { type: 'FeatureCollection', features: [] } });
   map.addSource(OBJECTIVE_SOURCE_ID, { type: 'geojson', data: { type: 'FeatureCollection', features: [] } });
   map.addSource(GRAPHICS_SOURCE_ID, { type: 'geojson', data: { type: 'FeatureCollection', features: [] } });
   map.addSource(AXIS_ARROW_SOURCE_ID, { type: 'geojson', data: { type: 'FeatureCollection', features: [] } });
+  map.addSource(OBSERVATION_SECTOR_SOURCE_ID, { type: 'geojson', data: { type: 'FeatureCollection', features: [] } });
 
   map.addLayer({
     id: 'deployment-area-fill',
@@ -57,6 +59,18 @@ export function addDeploymentSourcesAndLayers(map: MapLibreMap) {
       'text-allow-overlap': true,
     },
     paint: { 'text-color': '#f5f5f5', 'text-halo-color': '#121212', 'text-halo-width': 2 },
+  });
+  map.addLayer({
+    id: 'observation-sector-fill',
+    type: 'fill',
+    source: OBSERVATION_SECTOR_SOURCE_ID,
+    paint: { 'fill-color': '#b4c5ff', 'fill-opacity': 0.08 },
+  });
+  map.addLayer({
+    id: 'observation-sector-outline',
+    type: 'line',
+    source: OBSERVATION_SECTOR_SOURCE_ID,
+    paint: { 'line-color': '#b4c5ff', 'line-width': 1.25, 'line-opacity': 0.5 },
   });
   map.addLayer({
     id: 'deployment-axis-arrows',
