@@ -1,3 +1,4 @@
+import { useTacticalTaskLayer } from '../hooks/useTacticalTaskLayer';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import * as maplibregl from 'maplibre-gl';
 import type { GeoJSONSource, Map as MapLibreMap } from 'maplibre-gl';
@@ -47,7 +48,7 @@ function toUnitFeatures(deployment: DeploymentSetup): GeoJSON.FeatureCollection<
         id: unit.id,
         designation: unit.designation,
         sidc: unit.sidc,
-        imageId: getMilitarySymbolImageId(unit.sidc),
+        imageId: getMilitarySymbolImageId(unit.sidc, unit.symbolStandard),
         affiliation: unit.affiliation,
         unitType: unit.unitType,
         echelon: unit.echelon,
@@ -77,7 +78,7 @@ function toObjectiveFeatures(deployment: DeploymentSetup): GeoJSON.FeatureCollec
 function toGraphicFeatureCollection(deployment: DeploymentSetup): GeoJSON.FeatureCollection {
   return {
     type: 'FeatureCollection',
-    features: deployment.tacticalGraphics.map((graphic) => ({
+    features: deployment.tacticalGraphics.filter(g => g.type !== 'mil-task').map((graphic) => ({
       type: 'Feature',
       id: graphic.id,
       properties: { id: graphic.id, type: graphic.type, name: graphic.name ?? '' },
@@ -139,6 +140,7 @@ export function DeploymentPreview({ deployment }: DeploymentPreviewProps) {
   const mapRef = useRef<MapLibreMap | null>(null);
   const [mapReady, setMapReady] = useState(false);
   const [mapError, setMapError] = useState(false);
+  const taskRenderError = useTacticalTaskLayer(mapRef, mapReady, deployment.tacticalGraphics);
   const unitSidcs = useMemo(() => deployment.units.map((unit) => unit.sidc).join('|'), [deployment.units]);
 
   useEffect(() => {
@@ -159,7 +161,7 @@ export function DeploymentPreview({ deployment }: DeploymentPreviewProps) {
       try {
         await ensureObjectiveImage(map);
         await ensureAxisArrowImage(map);
-        await Promise.all(deployment.units.map((unit) => ensureMilitarySymbolImage(map, unit.sidc)));
+        await Promise.all(deployment.units.map((unit) => ensureMilitarySymbolImage(map, unit.sidc, unit.symbolStandard)));
         addDeploymentSourcesAndLayers(map);
         setMapReady(true);
       } catch (error) {
@@ -181,7 +183,7 @@ export function DeploymentPreview({ deployment }: DeploymentPreviewProps) {
     if (!mapReady || !mapRef.current) return;
     const map = mapRef.current;
 
-    void Promise.all(deployment.units.map((unit) => ensureMilitarySymbolImage(map, unit.sidc))).then(() => {
+    void Promise.all(deployment.units.map((unit) => ensureMilitarySymbolImage(map, unit.sidc, unit.symbolStandard))).then(() => {
       (map.getSource(UNIT_SOURCE_ID) as GeoJSONSource | undefined)?.setData(toUnitFeatures(deployment));
       (map.getSource(OBJECTIVE_SOURCE_ID) as GeoJSONSource | undefined)?.setData(toObjectiveFeatures(deployment));
       (map.getSource(GRAPHICS_SOURCE_ID) as GeoJSONSource | undefined)?.setData(toGraphicFeatureCollection(deployment));
@@ -205,6 +207,7 @@ export function DeploymentPreview({ deployment }: DeploymentPreviewProps) {
   return (
     <div className="relative min-h-[300px] flex-1 overflow-hidden rounded border border-outline-variant bg-[#161616]">
       <div ref={containerRef} className="absolute inset-0" />
+      {taskRenderError && <p role="alert" className="absolute top-2 left-2 z-30 bg-surface p-2 text-xs text-error">{taskRenderError}</p>}
       <div className="pointer-events-none absolute inset-0 bg-surface/20 mix-blend-multiply" />
       <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.05)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.05)_1px,transparent_1px)] bg-[size:48px_48px]" />
       <div className="absolute bottom-2 right-2 rounded border border-outline-variant bg-surface/80 px-2 py-1 font-data-mono text-[9px] text-outline">

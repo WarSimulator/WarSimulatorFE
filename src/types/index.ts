@@ -64,6 +64,7 @@ export type SimulationUnit = {
   position: { x: number; y: number };
   icon: string;
   sidc?: string;
+  symbolStandard?: '2525' | 'APP6';
   symbolScale?: number;
   geographicPosition?: SimulationResultPosition;
   log: string[];
@@ -177,7 +178,8 @@ export type ExpandedDeploymentUnitType =
   | 'medical'
   | 'supply'
   | 'maintenance'
-  | 'transportation';
+  | 'transportation'
+  | `catalog:${string}`;
 
 export type DeploymentEchelon = 'platoon' | 'company' | 'battalion';
 
@@ -197,6 +199,8 @@ export type DeploymentUnit = {
   unitType: ExpandedDeploymentUnitType;
   echelon: DeploymentEchelon;
   sidc: string;
+  symbolStandard?: '2525' | 'APP6';
+  symbolLabel?: string;
   symbolScale?: number;
   position: DeploymentPosition;
 };
@@ -230,13 +234,14 @@ export type DeploymentPaletteItem =
       unitType: ExpandedDeploymentUnitType;
       echelon: DeploymentEchelon;
       sidc: string;
+      symbolStandard?: '2525' | 'APP6';
     }
   | {
       kind: 'objective';
       label: string;
     };
 
-export type TacticalGraphicType = 'route' | 'axis' | 'phase-line' | 'boundary' | 'area' | 'freehand';
+export type TacticalGraphicType = 'route' | 'axis' | 'phase-line' | 'boundary' | 'area' | 'freehand' | 'mil-task';
 
 export type LineStringGeometry = {
   type: 'LineString';
@@ -251,6 +256,7 @@ export type PolygonGeometry = {
 export type TacticalGraphic = {
   id: string;
   type: TacticalGraphicType;
+  tacticalSymbol?: { definitionId: string; sidc: string; affiliation: DeploymentAffiliation };
   name?: string;
   geometry: LineStringGeometry | PolygonGeometry;
 };
@@ -258,14 +264,20 @@ export type TacticalGraphic = {
 export type DeploymentEditorMode =
   | { type: 'select' }
   | { type: 'place'; item: DeploymentPaletteItem }
-  | { type: 'draw'; graphicType: TacticalGraphicType }
+  | { type: 'draw'; graphicType: Exclude<TacticalGraphicType, 'mil-task'> }
+  | { type: 'draw-task'; definitionId: string; affiliation: DeploymentAffiliation }
   | { type: 'append-geometry'; graphicId: string };
 
-export type MilitarySymbolCategory = 'combat-arms' | 'fires' | 'combat-support' | 'command-control' | 'sustainment';
+export type MilitarySymbolCategory = string;
 
 export type MilitarySymbolDefinition = {
   id: ExpandedDeploymentUnitType;
   label: string;
   category: MilitarySymbolCategory;
   baseEchelon: DeploymentEchelon;
+  standardId?: string;
+  standard?: '2525' | 'APP6';
+  sidc?: string;
+  supportsEchelon?: boolean;
+  remarks?: string;
 };

@@ -6,9 +6,15 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "generate:symbols": "node scripts/generate-symbol-catalog.mjs",
+    "test:symbols": "node scripts/test-symbol-catalog.mjs",
+    "generate:tasks": "node scripts/generate-tactical-tasks.mjs",
+    "test:tasks": "node scripts/test-tactical-tasks.mjs",
+    "test:rotation": "node scripts/test-graphic-rotation.mjs"
   },
   "dependencies": {
+    "@armyc2.c5isr.renderer/mil-sym-ts-web": "^2.10.4",
     "@mapbox/mapbox-gl-draw": "^1.5.1",
     "@vitejs/plugin-react": "^5.0.0",
     "autoprefixer": "^10.4.21",
@@ -24,6 +30,8 @@
   },
   "devDependencies": {
     "@types/react": "^19.2.18",
-    "@types/react-dom": "^19.2.5"
+    "@types/react-dom": "^19.2.5",
+    "milstandard-e": "^0.2.14",
+    "stanag-app6": "^0.2.0"
   }
 }

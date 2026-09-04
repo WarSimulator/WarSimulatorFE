@@ -1,6 +1,7 @@
+import { getTacticalTask, taskLabel } from '../lib/tacticalTasks';
 import type { DeploymentEditorMode, DeploymentEchelon, DeploymentObjective, DeploymentSetup, DeploymentUnit, TacticalGraphic } from '../../../types';
 import { getLngLat } from '../lib/position';
-import { getUnitSidc } from '../lib/sidc';
+import { getSymbolDefinition, getUnitSidc } from '../lib/sidc';
 
 type UnitPropertiesPanelProps = {
   deployment: DeploymentSetup;
@@ -63,16 +64,17 @@ export function UnitPropertiesPanel({ deployment, selectedEntityId, onChange, on
               <span className="text-outline">Affiliation</span>
               <span className="text-on-surface">{unit.affiliation.toUpperCase()}</span>
               <span className="text-outline">Unit Type</span>
-              <span className="text-on-surface">{unit.unitType.replace(/_/g, ' ').toUpperCase()}</span>
+              <span className="text-on-surface">{unit.symbolLabel ?? getSymbolDefinition(unit.unitType)?.label ?? unit.unitType.replace(/_/g, ' ').toUpperCase()}</span>
             </div>
             <label className="block">
               <span className="mb-1 block font-label-caps text-[10px] text-outline">Echelon</span>
               <select
                 className="w-full rounded border border-outline-variant bg-surface px-3 py-2 font-data-mono text-[12px] text-on-surface outline-none focus:border-primary"
                 value={unit.echelon}
+                disabled={getSymbolDefinition(unit.unitType)?.supportsEchelon === false}
                 onChange={(event) => {
                   const echelon = event.target.value as DeploymentEchelon;
-                  updateUnit({ ...unit, echelon, sidc: getUnitSidc({ affiliation: unit.affiliation, unitType: unit.unitType, echelon }) });
+                  updateUnit({ ...unit, echelon, sidc: getUnitSidc({ ...unit, echelon }) });
                 }}
               >
                 <option value="platoon">Platoon</option>
@@ -123,7 +125,7 @@ export function UnitPropertiesPanel({ deployment, selectedEntityId, onChange, on
           <>
             <div className="grid grid-cols-2 gap-2 font-data-mono text-[11px]">
               <span className="text-outline">Type</span>
-              <span className="text-on-surface">{graphic.type.toUpperCase()}</span>
+              <span className="text-on-surface">{getTacticalTask(graphic.tacticalSymbol?.definitionId) ? taskLabel(getTacticalTask(graphic.tacticalSymbol?.definitionId)!) : graphic.type.toUpperCase()}</span>
               <span className="text-outline">Points</span>
               <span className="text-on-surface">
                 {graphic.geometry.type === 'LineString' ? graphic.geometry.coordinates.length : graphic.geometry.coordinates[0].length - 1}

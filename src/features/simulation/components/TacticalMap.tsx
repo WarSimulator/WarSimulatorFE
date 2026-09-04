@@ -68,7 +68,7 @@ function toUnitFeatures(
             id: unitId,
             designation: unit.name,
             sidc,
-            imageId: getMilitarySymbolImageId(sidc),
+            imageId: getMilitarySymbolImageId(sidc, unit.symbolStandard),
             affiliation: 'friendly',
             unitType: unit.type,
             echelon: 'company',
@@ -134,7 +134,7 @@ export function TacticalMap({ runtime, units, result, onSelectUnit }: TacticalMa
       try {
         await ensureObjectiveImage(map);
         await ensureAxisArrowImage(map);
-        await Promise.all(units.flatMap((unit) => (unit.sidc ? [ensureMilitarySymbolImage(map, unit.sidc)] : [])));
+        await Promise.all(units.flatMap((unit) => (unit.sidc ? [ensureMilitarySymbolImage(map, unit.sidc, unit.symbolStandard)] : [])));
         addDeploymentSourcesAndLayers(map);
         setMapReady(true);
       } catch (error) {

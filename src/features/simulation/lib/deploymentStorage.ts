@@ -12,7 +12,7 @@ function migrateDeployment(deployment: DeploymentSetup): DeploymentSetup {
       const [longitude, latitude] = getLngLat(unit.position ?? {});
       return {
         ...unit,
-        sidc: getUnitSidc({ affiliation: unit.affiliation, unitType: unit.unitType, echelon: unit.echelon }),
+        sidc: getUnitSidc(unit),
         symbolScale: unit.symbolScale ?? 1,
         position: createGeoPosition(longitude, latitude),
       };

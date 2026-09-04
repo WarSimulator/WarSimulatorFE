@@ -1,3 +1,7 @@
+import { GraphicRotationHandle } from './GraphicRotationHandle';
+import { useTaskDrawing } from '../hooks/useTaskDrawing';
+import { getTacticalTask, validateTaskPoints, taskLabel } from '../lib/tacticalTasks';
+import { useTacticalTaskLayer } from '../hooks/useTacticalTaskLayer';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import * as maplibregl from 'maplibre-gl';
 import type { GeoJSONSource, Map as MapLibreMap } from 'maplibre-gl';
@@ -34,9 +38,9 @@ type DeploymentMapProps = {
   onModeChange: (mode: DeploymentEditorMode) => void;
 };
 
-type DrawFeature = GeoJSON.Feature<GeoJSON.LineString | GeoJSON.Polygon, { id?: string; type?: TacticalGraphicType; name?: string }>;
+type DrawFeature = GeoJSON.Feature<GeoJSON.LineString | GeoJSON.Polygon, { id?: string; type?: TacticalGraphicType; name?: string; tacticalSymbol?: TacticalGraphic['tacticalSymbol'] }>;
 
-const DRAW_MODE_BY_TYPE: Record<Exclude<TacticalGraphicType, 'freehand'>, 'draw_line_string' | 'draw_polygon'> = {
+const DRAW_MODE_BY_TYPE: Record<Exclude<TacticalGraphicType, 'freehand' | 'mil-task'>, 'draw_line_string' | 'draw_polygon'> = {
   route: 'draw_line_string',
   axis: 'draw_line_string',
   'phase-line': 'draw_line_string',
@@ -51,6 +55,7 @@ const DEFAULT_GRAPHIC_NAME: Record<TacticalGraphicType, string> = {
   boundary: 'Boundary Alpha',
   area: 'Area Alpha',
   freehand: 'Freehand Alpha',
+  'mil-task': 'Tactical Task',
 };
 
 function patchDrawClasses() {
@@ -72,7 +77,7 @@ function toUnitFeatures(deployment: DeploymentSetup): GeoJSON.FeatureCollection<
         id: unit.id,
         designation: unit.designation,
         sidc: unit.sidc,
-        imageId: getMilitarySymbolImageId(unit.sidc),
+        imageId: getMilitarySymbolImageId(unit.sidc, unit.symbolStandard),
         affiliation: unit.affiliation,
         unitType: unit.unitType,
         echelon: unit.echelon,
@@ -98,7 +103,7 @@ function toObjectiveFeatures(deployment: DeploymentSetup): GeoJSON.FeatureCollec
 function toGraphicFeatureCollection(deployment: DeploymentSetup): GeoJSON.FeatureCollection {
   return {
     type: 'FeatureCollection',
-    features: deployment.tacticalGraphics.map((graphic) => ({
+    features: deployment.tacticalGraphics.filter(g => g.type !== 'mil-task').map((graphic) => ({
       type: 'Feature',
       id: graphic.id,
       properties: { id: graphic.id, type: graphic.type, name: graphic.name ?? '' },
@@ -120,7 +125,7 @@ function toAxisArrowFeatures(deployment: DeploymentSetup): GeoJSON.FeatureCollec
         return {
           type: 'Feature',
           id: `${graphic.id}-arrow`,
-          properties: { rotation },
+          properties: { rotation, id: graphic.id },
           geometry: { type: 'Point', coordinates: end },
         };
       }),
@@ -130,7 +135,7 @@ function toAxisArrowFeatures(deployment: DeploymentSetup): GeoJSON.FeatureCollec
 function nextUnitDesignation(units: DeploymentUnit[], item: Extract<DeploymentPaletteItem, { kind: 'unit' }>) {
   const count = units.filter((unit) => unit.affiliation === item.affiliation && unit.unitType === item.unitType).length + 1;
   const side = item.affiliation === 'friendly' ? 'Friendly' : 'Enemy';
-  return `${side} ${item.label} ${count}`;
+  return `${side} ${item.label.split(' / ').at(-1)} ${count}`;
 }
 
 function drawFeatureToGraphic(feature: DrawFeature): TacticalGraphic {
@@ -138,6 +143,7 @@ function drawFeatureToGraphic(feature: DrawFeature): TacticalGraphic {
   return {
     id: String(feature.id ?? feature.properties?.id ?? `graphic-${crypto.randomUUID()}`),
     type,
+    tacticalSymbol: feature.properties?.tacticalSymbol,
     name: feature.properties?.name ?? DEFAULT_GRAPHIC_NAME[type],
     geometry: feature.geometry as TacticalGraphic['geometry'],
   };
@@ -147,7 +153,7 @@ function graphicToDrawFeature(graphic: TacticalGraphic): DrawFeature {
   return {
     type: 'Feature',
     id: graphic.id,
-    properties: { id: graphic.id, type: graphic.type, name: graphic.name },
+    properties: { id: graphic.id, type: graphic.type, name: graphic.name, tacticalSymbol: graphic.tacticalSymbol },
     geometry: graphic.geometry,
   };
 }
@@ -163,15 +169,29 @@ export function DeploymentMap({ deployment, selectedEntityId, mode, onChange, on
   const dragObjectiveIdRef = useRef<string | null>(null);
   const freehandGraphicIdRef = useRef<string | null>(null);
   const freehandCoordinatesRef = useRef<[number, number][]>([]);
-  const [mapError, setMapError] = useState(false);
   const [isMapReady, setIsMapReady] = useState(false);
+  const [mapError, setMapError] = useState(false);
+  const [taskEditError, setTaskEditError] = useState('');
+  const [rotationId, setRotationId] = useState<string>();
+  const [rotationPreview, setRotationPreview] = useState<TacticalGraphic | null>(null);
+  const displayDeployment = useMemo(() => rotationPreview ? { ...deployment, tacticalGraphics: deployment.tacticalGraphics.map(g => g.id === rotationPreview.id ? rotationPreview : g) } : deployment, [deployment, rotationPreview]);
+  const rotationGraphic = rotationId && selectedEntityId === rotationId && mode.type === 'select' ? displayDeployment.tacticalGraphics.find(g => g.id === rotationId) : undefined;
+  const taskDrawing = useTaskDrawing({ mapRef, ready: isMapReady, mode, deployment, onChange, onModeChange, onSelectEntity });
+  const taskRenderError = useTacticalTaskLayer(mapRef, isMapReady, displayDeployment.tacticalGraphics);
 
   useEffect(() => {
     deploymentRef.current = deployment;
   }, [deployment]);
 
+  useEffect(() => {
+    if (mode.type !== 'select' || selectedEntityId !== rotationId || !deployment.tacticalGraphics.some(g => g.id === rotationId)) {
+      setRotationId(undefined); setRotationPreview(null);
+    }
+  }, [mode.type, selectedEntityId, rotationId, deployment.tacticalGraphics]);
+
   const modeLabel = useMemo(() => {
     if (mode.type === 'select') return 'MODE: SELECT / EDIT';
+    if (mode.type === 'draw-task') return `MODE: ${getTacticalTask(mode.definitionId)?.label ?? 'TACTICAL TASK'}`;
     if (mode.type === 'draw') return `MODE: DRAW ${mode.graphicType.toUpperCase()}`;
     if (mode.type === 'append-geometry') return 'MODE: EDIT GEOMETRY';
     return mode.item.kind === 'unit'
@@ -193,11 +213,13 @@ export function DeploymentMap({ deployment, selectedEntityId, mode, onChange, on
       displayControlsDefault: false,
       controls: {},
       userProperties: true,
+      clickBuffer: 10,
+      touchBuffer: 16,
       styles: [
         {
           id: 'atlas-draw-line',
           type: 'line',
-          filter: ['all', ['==', '$type', 'LineString']],
+          filter: ['all', ['==', '$type', 'LineString'], ['any', ['!=', 'user_type', 'mil-task'], ['==', 'active', 'true']]],
           paint: { 'line-color': '#ffb95f', 'line-width': 2, 'line-dasharray': [2, 2] },
         },
         {
@@ -230,7 +252,7 @@ export function DeploymentMap({ deployment, selectedEntityId, mode, onChange, on
       try {
         await ensureObjectiveImage(map);
         await ensureAxisArrowImage(map);
-        await Promise.all(deployment.units.map((unit) => ensureMilitarySymbolImage(map, unit.sidc)));
+        await Promise.all(deployment.units.map((unit) => ensureMilitarySymbolImage(map, unit.sidc, unit.symbolStandard)));
         addDeploymentSourcesAndLayers(map);
         setIsMapReady(true);
       } catch {
@@ -251,20 +273,20 @@ export function DeploymentMap({ deployment, selectedEntityId, mode, onChange, on
 
   useEffect(() => {
     if (!mapRef.current || !isMapReady) return;
-    void Promise.all(deployment.units.map((unit) => ensureMilitarySymbolImage(mapRef.current!, unit.sidc))).then(() => {
+    void Promise.all(deployment.units.map((unit) => ensureMilitarySymbolImage(mapRef.current!, unit.sidc, unit.symbolStandard))).then(() => {
       (mapRef.current?.getSource(UNIT_SOURCE_ID) as GeoJSONSource | undefined)?.setData(toUnitFeatures(deployment));
     });
     (mapRef.current.getSource(OBJECTIVE_SOURCE_ID) as GeoJSONSource | undefined)?.setData(toObjectiveFeatures(deployment));
-    (mapRef.current.getSource(GRAPHICS_SOURCE_ID) as GeoJSONSource | undefined)?.setData(toGraphicFeatureCollection(deployment));
-    (mapRef.current.getSource(AXIS_ARROW_SOURCE_ID) as GeoJSONSource | undefined)?.setData(toAxisArrowFeatures(deployment));
-  }, [deployment, isMapReady]);
+    (mapRef.current.getSource(GRAPHICS_SOURCE_ID) as GeoJSONSource | undefined)?.setData(toGraphicFeatureCollection(displayDeployment));
+    (mapRef.current.getSource(AXIS_ARROW_SOURCE_ID) as GeoJSONSource | undefined)?.setData(toAxisArrowFeatures(displayDeployment));
+  }, [deployment, displayDeployment, isMapReady]);
 
   useEffect(() => {
     if (!drawRef.current || !isMapReady) return;
     const draw = drawRef.current;
     const featureCollection: GeoJSON.FeatureCollection = {
       type: 'FeatureCollection',
-      features: deployment.tacticalGraphics.map(graphicToDrawFeature),
+      features: displayDeployment.tacticalGraphics.map(graphicToDrawFeature),
     };
     const signature = JSON.stringify(featureCollection);
     if (signature === lastDrawSignatureRef.current) return;
@@ -273,13 +295,14 @@ export function DeploymentMap({ deployment, selectedEntityId, mode, onChange, on
     draw.set(featureCollection);
     lastDrawSignatureRef.current = signature;
     isSyncingDrawRef.current = false;
-  }, [deployment.tacticalGraphics, isMapReady]);
+  }, [displayDeployment.tacticalGraphics, isMapReady]);
 
   useEffect(() => {
     if (!mapRef.current || !isMapReady) return;
     const pointFilter = ['==', ['get', 'id'], selectedEntityId ?? ''] as maplibregl.FilterSpecification;
     mapRef.current.setFilter('deployment-selected-points', pointFilter);
     mapRef.current.setFilter('deployment-selected-lines', pointFilter);
+    mapRef.current.setFilter('task-selected-lines', pointFilter);
   }, [isMapReady, selectedEntityId]);
 
   useEffect(() => {
@@ -314,9 +337,23 @@ export function DeploymentMap({ deployment, selectedEntityId, mode, onChange, on
 
     const syncDraw = () => {
       if (isSyncingDrawRef.current) return;
-      const drawGraphics = draw.getAll().features
+      let drawGraphics: TacticalGraphic[];
+      try {
+      drawGraphics = draw.getAll().features
         .filter((feature): feature is DrawFeature => feature.geometry.type === 'LineString' || feature.geometry.type === 'Polygon')
         .map(drawFeatureToGraphic);
+      for (const g of drawGraphics) {
+        if (g.type !== 'mil-task') continue;
+        const task = getTacticalTask(g.tacticalSymbol?.definitionId);
+        if (!task || g.geometry.type !== 'LineString') throw new Error('전술 도형의 기준점이 유효하지 않습니다.');
+        validateTaskPoints(task, g.geometry.coordinates);
+      }
+      setTaskEditError('');
+      } catch (error) {
+        setTaskEditError(error instanceof Error ? error.message : String(error));
+        draw.set({ type: 'FeatureCollection', features: deploymentRef.current.tacticalGraphics.map(graphicToDrawFeature) });
+        return;
+      }
       lastDrawSignatureRef.current = JSON.stringify({ type: 'FeatureCollection', features: drawGraphics.map(graphicToDrawFeature) });
       const drawIds = new Set(drawGraphics.map((graphic) => graphic.id));
       const currentDeployment = deploymentRef.current;
@@ -338,7 +375,12 @@ export function DeploymentMap({ deployment, selectedEntityId, mode, onChange, on
       syncDraw();
     };
     const handleUpdate = () => syncDraw();
-    const handleDelete = () => syncDraw();
+    const handleDelete = (event: { features: DrawFeature[] }) => {
+      const deletedIds = new Set(event.features.map(feature => String(feature.id)));
+      const current = deploymentRef.current;
+      onChange({ ...current, tacticalGraphics: current.tacticalGraphics.filter(graphic => !deletedIds.has(graphic.id)) });
+      onSelectEntity(undefined);
+    };
     const handleSelection = (event: { features: DrawFeature[] }) => {
       const id = event.features[0]?.properties?.id ?? event.features[0]?.id;
       if (id) onSelectEntity(String(id));
@@ -389,6 +431,7 @@ export function DeploymentMap({ deployment, selectedEntityId, mode, onChange, on
         return;
       }
 
+      if (mode.type === 'place' || mode.type === 'draw-task') return;
       const features = map.queryRenderedFeatures(event.point, { layers: ['deployment-units', 'deployment-objectives'] });
       const feature = features[0];
       if (!feature?.properties?.id) return;
@@ -450,17 +493,20 @@ export function DeploymentMap({ deployment, selectedEntityId, mode, onChange, on
       map.off('mouseup', handleMouseUp);
       map.dragPan.enable();
     };
-  }, [deployment, isMapReady, onChange, onSelectEntity]);
+  }, [deployment, isMapReady, mode, onChange, onSelectEntity]);
 
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
-      if (event.key !== 'Escape') return;
-      drawRef.current?.trash();
+      if (event.key !== 'Escape' || (event.target as HTMLElement)?.closest('input,textarea,select')) return;
+      setRotationId(undefined); setRotationPreview(null);
+      if (mode.type === 'draw') drawRef.current?.trash();
+      else drawRef.current?.changeMode('simple_select');
+      onSelectEntity(undefined);
       onModeChange({ type: 'select' });
     };
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [onModeChange]);
+  }, [mode.type, onModeChange, onSelectEntity]);
 
   const createDroppedEntity = (item: DeploymentPaletteItem, lng: number, lat: number) => {
     if (item.kind === 'unit') {
@@ -471,6 +517,8 @@ export function DeploymentMap({ deployment, selectedEntityId, mode, onChange, on
         unitType: item.unitType,
         echelon: item.echelon,
         sidc: item.sidc,
+        symbolStandard: item.symbolStandard,
+        symbolLabel: item.label,
         symbolScale: 1,
         position: createGeoPosition(lng, lat),
       };
@@ -487,6 +535,21 @@ export function DeploymentMap({ deployment, selectedEntityId, mode, onChange, on
     onSelectEntity(objective.id);
   };
 
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!map || !isMapReady || mode.type !== 'place') return;
+    const handlePlace = (event: maplibregl.MapMouseEvent) => {
+      createDroppedEntity(mode.item, event.lngLat.lng, event.lngLat.lat);
+      onModeChange({ type: 'select' });
+    };
+    map.getCanvas().style.cursor = 'crosshair';
+    map.on('click', handlePlace);
+    return () => {
+      map.off('click', handlePlace);
+      map.getCanvas().style.cursor = '';
+    };
+  }, [mode, isMapReady, deployment, onChange, onSelectEntity, onModeChange]);
+
   const handleDrop = (event: React.DragEvent<HTMLDivElement>) => {
     event.preventDefault();
     if (!mapRef.current || !mapContainerRef.current) return;
@@ -497,6 +560,7 @@ export function DeploymentMap({ deployment, selectedEntityId, mode, onChange, on
     const point = [event.clientX - rect.left, event.clientY - rect.top] as [number, number];
     const lngLat = mapRef.current.unproject(point);
     createDroppedEntity(JSON.parse(raw) as DeploymentPaletteItem, lngLat.lng, lngLat.lat);
+    onModeChange({ type: 'select' });
   };
 
   const deleteSelected = () => {
@@ -510,6 +574,41 @@ export function DeploymentMap({ deployment, selectedEntityId, mode, onChange, on
     });
     onSelectEntity(undefined);
   };
+
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!isMapReady || !map || (mode.type !== 'select' && mode.type !== 'append-geometry')) return;
+    const layers = ['task-lines', 'task-labels', 'deployment-lines', 'deployment-area-line',
+      'deployment-axis-arrows', 'deployment-phase-labels', 'task-fill', 'deployment-area-fill'];
+    const selectGraphic = (event: maplibregl.MapMouseEvent) => {
+      const { x, y } = event.point;
+      // The drawn outline often differs from its editable control line. Hit-test
+      // rendered geometry with a screen-pixel margin, including arrowheads.
+      const exact = map.queryRenderedFeatures(event.point, { layers });
+      const nearby = map.queryRenderedFeatures([[x - 10, y - 10], [x + 10, y + 10]], { layers });
+      const graphic = [...exact, ...nearby].find(feature =>
+        deploymentRef.current.tacticalGraphics.some(item => item.id === feature.properties?.id));
+      if (!graphic) {
+        setRotationId(undefined); setRotationPreview(null);
+        return;
+      }
+      event.preventDefault(); // A double-click on a graphic selects it instead of zooming.
+      const id = String(graphic.properties!.id);
+      if (event.type === 'dblclick') { setRotationId(id); setRotationPreview(null); }
+      onSelectEntity(id);
+      onModeChange({ type: 'select' });
+      drawRef.current?.changeMode('simple_select', { featureIds: [id] });
+    };
+    const handleClick = (event: maplibregl.MapMouseEvent) => {
+      if (mode.type === 'select') selectGraphic(event);
+    };
+    map.on('click', handleClick);
+    map.on('dblclick', selectGraphic);
+    return () => {
+      map.off('click', handleClick);
+      map.off('dblclick', selectGraphic);
+    };
+  }, [isMapReady, mode.type, onSelectEntity, onModeChange]);
 
   const finishDrawing = () => {
     drawRef.current?.changeMode('simple_select');
@@ -530,10 +629,21 @@ export function DeploymentMap({ deployment, selectedEntityId, mode, onChange, on
   return (
     <section className="relative h-full flex-1" onDragOver={(event) => event.preventDefault()} onDrop={handleDrop}>
       <div ref={mapContainerRef} className="h-full w-full bg-surface-container-lowest" />
+      {rotationGraphic && mapRef.current && <GraphicRotationHandle map={mapRef.current} graphic={rotationGraphic} onPreview={setRotationPreview} onCommit={graphic => {
+        const current = deploymentRef.current;
+        onChange({ ...current, tacticalGraphics: current.tacticalGraphics.map(g => g.id === graphic.id ? graphic : g) });
+        setRotationId(undefined); setRotationPreview(null);
+      }} />}
       <div className="pointer-events-none absolute inset-0 bg-surface/15 mix-blend-multiply" />
       <div className="absolute left-[268px] top-4 z-30 rounded border border-outline-variant bg-surface-container/90 px-3 py-2 font-data-mono text-[11px] text-secondary">
         {modeLabel}
       </div>
+      {(taskRenderError || taskEditError) && <p role="alert" className="absolute left-[268px] top-20 z-30 max-w-lg bg-surface p-2 text-xs text-error">{taskRenderError || taskEditError}</p>}
+      {taskDrawing.task && <div className="absolute left-[268px] top-20 z-30 max-w-sm space-y-2 rounded border border-secondary bg-surface p-3 text-xs text-on-surface">
+        <p>{taskLabel(taskDrawing.task)}</p><p>기준점 {taskDrawing.count} / {taskDrawing.task.minPoints === taskDrawing.task.maxPoints ? taskDrawing.task.maxPoints : `${taskDrawing.task.minPoints}–${taskDrawing.task.maxPoints}`} · 미리보기 번호 순서대로 클릭</p>
+        <div className="flex gap-3"><button disabled={taskDrawing.saving || taskDrawing.count < taskDrawing.task.minPoints} onClick={() => void taskDrawing.finish()} className="text-secondary disabled:opacity-40">완료 (Enter)</button><button disabled={taskDrawing.saving || !taskDrawing.count} onClick={taskDrawing.undo}>마지막 점 취소</button><button onClick={() => onModeChange({ type: 'select' })}>취소 (Esc)</button></div>
+        {taskDrawing.saving && <p>도형 생성 중…</p>}{taskDrawing.error && <p role="alert" className="text-error">{taskDrawing.error}</p>}
+      </div>}
       <div className="absolute bottom-4 left-[268px] z-30 flex gap-2">
         <button className="rounded border border-outline-variant bg-surface-container px-3 py-2 font-data-mono text-[11px] text-on-surface hover:bg-surface-variant" onClick={() => mapRef.current?.zoomIn()}>
           Zoom In

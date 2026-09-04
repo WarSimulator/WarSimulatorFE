@@ -29,22 +29,22 @@ function svgToImage(svg: string): Promise<HTMLImageElement> {
   });
 }
 
-export function getMilitarySymbolImageId(sidc: string) {
-  return `mil-symbol-${sidc.replace(/[^a-zA-Z0-9]/g, '_')}`;
+export function getMilitarySymbolImageId(sidc: string, standard: '2525' | 'APP6' = '2525') {
+  return `mil-symbol-${standard}-${sidc.replace(/[^a-zA-Z0-9]/g, '_')}`;
 }
 
 export const OBJECTIVE_IMAGE_ID = 'objective-symbol';
 export const AXIS_ARROW_IMAGE_ID = 'axis-arrow-symbol';
 
-export async function ensureMilitarySymbolImage(map: MapLibreMap, sidc: string) {
-  const imageId = getMilitarySymbolImageId(sidc);
+export async function ensureMilitarySymbolImage(map: MapLibreMap, sidc: string, standard: '2525' | 'APP6' = '2525') {
+  const imageId = getMilitarySymbolImageId(sidc, standard);
   const registry = getRegistry(map);
 
   if (map.hasImage(imageId) || registry.has(imageId)) {
     return imageId;
   }
 
-  const image = await svgToImage(createMilitarySymbolSvg(sidc, 64));
+  const image = await svgToImage(createMilitarySymbolSvg(sidc, 64, undefined, standard));
   if (!map.hasImage(imageId)) {
     map.addImage(imageId, image);
   }

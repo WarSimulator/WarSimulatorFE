@@ -1,3 +1,4 @@
+import { TASK_SOURCE_ID } from '../hooks/useTacticalTaskLayer';
 import type { Map as MapLibreMap } from 'maplibre-gl';
 import { AXIS_ARROW_IMAGE_ID, OBJECTIVE_IMAGE_ID } from './militarySymbolRegistry';
 
@@ -14,6 +15,24 @@ export function addDeploymentSourcesAndLayers(map: MapLibreMap) {
   map.addSource(AXIS_ARROW_SOURCE_ID, { type: 'geojson', data: { type: 'FeatureCollection', features: [] } });
   map.addSource(OBSERVATION_SECTOR_SOURCE_ID, { type: 'geojson', data: { type: 'FeatureCollection', features: [] } });
 
+  map.addSource(TASK_SOURCE_ID, { type: 'geojson', data: { type: 'FeatureCollection', features: [] } });
+  map.addLayer({ id: 'task-fill', type: 'fill', source: TASK_SOURCE_ID,
+    filter: ['==', ['geometry-type'], 'Polygon'],
+    paint: { 'fill-color': ['coalesce', ['get', 'fillColor'], ['get', 'color']], 'fill-opacity': 0.2 } });
+  map.addLayer({ id: 'task-selected-lines', type: 'line', source: TASK_SOURCE_ID,
+    filter: ['==', ['get', 'id'], ''],
+    paint: { 'line-color': '#ffb95f', 'line-width': 12, 'line-opacity': 0.55 } });
+  map.addLayer({ id: 'task-halo', type: 'line', source: TASK_SOURCE_ID,
+    filter: ['!=', ['geometry-type'], 'Point'],
+    paint: { 'line-color': '#111827', 'line-width': ['+', ['get', 'width'], 3] } });
+  map.addLayer({ id: 'task-lines', type: 'line', source: TASK_SOURCE_ID,
+    filter: ['!=', ['geometry-type'], 'Point'],
+    paint: { 'line-color': ['get', 'color'], 'line-width': ['get', 'width'] } });
+  map.addLayer({ id: 'task-labels', type: 'symbol', source: TASK_SOURCE_ID,
+    filter: ['==', ['geometry-type'], 'Point'],
+    layout: { 'text-field': ['get', 'label'], 'text-size': 14, 'text-font': ['Noto Sans Regular'],
+      'text-rotate': ['get', 'rotation'], 'text-rotation-alignment': 'map', 'text-allow-overlap': true },
+    paint: { 'text-color': ['get', 'color'], 'text-halo-color': '#111827', 'text-halo-width': 2 } });
   map.addLayer({
     id: 'deployment-area-fill',
     type: 'fill',
