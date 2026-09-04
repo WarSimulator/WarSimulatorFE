@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import { build } from 'esbuild';
 import ms from 'milsymbol';
 const bundle = await build({
-  stdin: { contents: "export * from './src/features/simulation/lib/sidc'; export * from './src/features/simulation/lib/deploymentStorage'; export * from './src/features/simulation/lib/militarySymbolRegistry'; export * from './src/features/simulation/lib/symbolSvg';", resolveDir: process.cwd(), loader: 'ts' },
+  stdin: { contents: "export * from './src/features/simulation/lib/sidc'; export * from './src/features/simulation/lib/echelons'; export * from './src/features/simulation/lib/deploymentStorage'; export * from './src/features/simulation/lib/militarySymbolRegistry'; export * from './src/features/simulation/lib/symbolSvg';", resolveDir: process.cwd(), loader: 'ts' },
   bundle: true, write: false, platform: 'node', format: 'esm', define: { 'import.meta.env': '{}' },
 });
 const api = await import('data:text/javascript;base64,' + Buffer.from(bundle.outputFiles[0].text).toString('base64'));
@@ -14,7 +14,7 @@ assert.ok(api.symbolCatalog.every(s => ['2525E', 'APP6D'].includes(s.standardId)
 let checked = 0;
 for (const definition of api.symbolCatalog) {
   for (const affiliation of ['friendly', 'enemy']) {
-    for (const echelon of ['platoon', 'company', 'battalion']) {
+    for (const { value: echelon } of api.echelonOptions) {
       const item = api.createPaletteItem({ definition, affiliation, echelon });
       assert.equal(item.kind, 'unit');
       const symbol = new ms.Symbol(item.sidc, { standard: item.symbolStandard, size: 28 });
@@ -59,3 +59,20 @@ assert.equal(copy.units[0].symbolStandard, restored.units[0].symbolStandard);
 assert.equal(api.getUnitSidc({unitType: 'infantry', affiliation: 'friendly', echelon: 'company'}), 'SFGPUCI----E---');
 assert.notEqual(api.getMilitarySymbolImageId('SFGPUCI----E---','2525'), api.getMilitarySymbolImageId('SFGPUCI----E---','APP6'), 'Different standards must not share map image cache entries');
 console.log(`PASS: ${checked.toLocaleString()} rendered affiliation/echelon combinations; legacy codes, persistence, duplication and standard image keys.`);
+
+// Equipment such as tanks must honor the selected echelon, including edits.
+for (const standardId of ['2525E', 'APP6D']) {
+  const tank = api.symbolCatalog.find(s => s.standardId === standardId && /Vehicles? \/ Tank$/.test(s.label));
+  assert.ok(tank?.supportsEchelon);
+  const placed = api.createPaletteItem({definition: tank, affiliation: 'friendly', echelon: 'company'});
+  const edited = {...placed, id: `tank-${standardId}`, position: {longitude: 127, latitude: 37}, echelon: 'division'};
+  edited.sidc = api.getUnitSidc(edited);
+  assert.equal(edited.sidc.slice(8,10), '21');
+  const deployment = api.createEmptyDeployment('tank-test', 'Tank');
+  deployment.units = [edited];
+  api.saveDeployment(deployment);
+  const restored = api.getDeploymentById(deployment.id).units[0];
+  assert.equal(restored.echelon, 'division');
+  assert.equal(restored.sidc, edited.sidc);
+}
+console.log('PASS: tank echelon editing and persistence for MIL-STD-2525E and APP-6D.');

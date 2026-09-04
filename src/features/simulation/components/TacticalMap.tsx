@@ -73,6 +73,7 @@ function toUnitFeatures(
             unitType: unit.type,
             echelon: 'company',
             symbolScale: unit.symbolScale ?? 1,
+            symbolRotation: unit.symbolRotation ?? 0,
           },
           geometry: { type: 'Point' as const, coordinates: [position.longitude, position.latitude] },
         },

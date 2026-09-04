@@ -33,7 +33,7 @@ for (const [id, , data, standard, version] of standards) {
     for (const row of group.mainIcon ?? []) {
       if (!/^\d{6}$/.test(row.Code)) continue;
       const label = [...new Set([row.Entity, row['Entity Type'], row['Entity Subtype']].map(x => x?.trim()).filter(Boolean))].join(' / ');
-      add(id, standard, group.name.trim(), label, `${version}03${set}0000${row.Code}0000`, set === '10', row.Remarks?.trim());
+      add(id, standard, group.name.trim(), label, `${version}03${set}0000${row.Code}0000`, (set === '10' || set === '15'), row.Remarks?.trim());
     }
   }
 }

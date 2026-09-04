@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Icon } from '../../../components/layout/Icon';
 import { loadMettDocuments } from '../../../lib/mettStorage';
@@ -54,6 +54,8 @@ export function SimulationSetupPage() {
   const [deployments, setDeployments] = useState<DeploymentSetup[]>(() => getAllDeployments());
   const [selectedDeploymentId, setSelectedDeploymentId] = useState<string | undefined>();
   const [draftDeployment, setDraftDeployment] = useState<DeploymentSetup | undefined>();
+  const draftRef = useRef(draftDeployment);
+  useEffect(() => { draftRef.current = draftDeployment; }, [draftDeployment]);
   const [editorMode, setEditorMode] = useState<DeploymentEditorMode>({ type: 'select' });
   const [selectedEntityId, setSelectedEntityId] = useState<string | undefined>();
   const [undoStack, setUndoStack] = useState<DeploymentSetup[]>([]);
@@ -141,37 +143,35 @@ export function SimulationSetupPage() {
   };
 
   const updateDraftDeployment = (nextDeployment: DeploymentSetup) => {
-    setDraftDeployment((current) => {
-      if (current) {
-        setUndoStack((stack) => [...stack, current]);
-        setRedoStack([]);
-      }
-      return nextDeployment;
-    });
+    // Map listeners retain this callback. Read the latest draft without nesting
+    // state updates inside React updaters, which StrictMode may invoke twice.
+    const current = draftRef.current;
+    if (current) {
+      setUndoStack(stack => [...stack, current]);
+      setRedoStack([]);
+    }
+    draftRef.current = nextDeployment;
+    setDraftDeployment(nextDeployment);
   };
 
   const handleUndo = () => {
-    setUndoStack((stack) => {
-      const previous = stack.at(-1);
-      if (!previous) return stack;
-      setDraftDeployment((current) => {
-        if (current) setRedoStack((redo) => [...redo, current]);
-        return previous;
-      });
-      return stack.slice(0, -1);
-    });
+    const previous = undoStack.at(-1);
+    if (!previous) return;
+    const current = draftRef.current;
+    if (current) setRedoStack(stack => [...stack, current]);
+    setUndoStack(stack => stack.slice(0, -1));
+    draftRef.current = previous;
+    setDraftDeployment(previous);
   };
 
   const handleRedo = () => {
-    setRedoStack((stack) => {
-      const next = stack.at(-1);
-      if (!next) return stack;
-      setDraftDeployment((current) => {
-        if (current) setUndoStack((undo) => [...undo, current]);
-        return next;
-      });
-      return stack.slice(0, -1);
-    });
+    const next = redoStack.at(-1);
+    if (!next) return;
+    const current = draftRef.current;
+    if (current) setUndoStack(stack => [...stack, current]);
+    setRedoStack(stack => stack.slice(0, -1));
+    draftRef.current = next;
+    setDraftDeployment(next);
   };
 
   useEffect(() => {

@@ -80,6 +80,7 @@ export function getSimulationResultUnits(simulationResult: SimulationResult, dep
       log: metadata.log,
       sidc: actorSidc[track.actor],
       symbolScale: symbolScaleByUnitId.get(track.unitId) ?? 1,
+      symbolRotation: deployment?.units.find(unit => unit.id === track.unitId)?.symbolRotation ?? 0,
       geographicPosition: firstPosition,
     } satisfies SimulationUnit & { sidc?: string; geographicPosition?: { longitude: number; latitude: number } };
   });

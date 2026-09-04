@@ -66,6 +66,8 @@ export type SimulationUnit = {
   sidc?: string;
   symbolStandard?: '2525' | 'APP6';
   symbolScale?: number;
+  /** Clockwise symbol rotation in degrees. Defaults to 0. */
+  symbolRotation?: number;
   geographicPosition?: SimulationResultPosition;
   log: string[];
   timeline: string[];
@@ -181,7 +183,7 @@ export type ExpandedDeploymentUnitType =
   | 'transportation'
   | `catalog:${string}`;
 
-export type DeploymentEchelon = 'platoon' | 'company' | 'battalion';
+export type DeploymentEchelon = 'fireteam' | 'squad' | 'section' | 'platoon' | 'company' | 'battalion' | 'regiment' | 'brigade' | 'division' | 'corps' | 'army' | 'army_group' | 'theater';
 
 export type DeploymentPosition = {
   x?: number;
@@ -202,6 +204,8 @@ export type DeploymentUnit = {
   symbolStandard?: '2525' | 'APP6';
   symbolLabel?: string;
   symbolScale?: number;
+  /** Clockwise symbol rotation in degrees. Defaults to 0. */
+  symbolRotation?: number;
   position: DeploymentPosition;
 };
 

@@ -1,3 +1,4 @@
+import { useState, type CSSProperties } from 'react';
 import { Icon } from '../../../components/layout/Icon';
 import type { DeploymentEditorMode, DeploymentSetup } from '../../../types';
 import { DeploymentMap } from './DeploymentMap';
@@ -35,6 +36,7 @@ export function DeploymentEditor({
   onCancel,
   onSave,
 }: DeploymentEditorProps) {
+  const [paletteOpen, setPaletteOpen] = useState(true);
   return (
     <section className="fixed bottom-0 left-0 right-0 top-[48px] z-30 flex flex-col bg-surface transition-all duration-300">
       <header className="flex h-[72px] items-center justify-between border-b border-outline-variant bg-surface-container-high px-6">
@@ -83,7 +85,10 @@ export function DeploymentEditor({
         </div>
       </header>
 
-      <div className="relative min-h-0 flex-1">
+      <div className="relative min-h-0 flex-1" style={{
+        '--palette-width': 'min(760px, calc(100vw - 32px))',
+        '--map-controls-left': paletteOpen ? 'calc(var(--palette-width) + 32px)' : '72px',
+      } as CSSProperties}>
         <DeploymentMap
           deployment={draft}
           selectedEntityId={selectedEntityId}
@@ -92,7 +97,7 @@ export function DeploymentEditor({
           onSelectEntity={onSelectEntity}
           onModeChange={onModeChange}
         />
-        <SymbolPalette mode={mode} onModeChange={onModeChange} />
+        <SymbolPalette mode={mode} onModeChange={onModeChange} isOpen={paletteOpen} onToggle={() => setPaletteOpen(open => !open)} />
         <UnitPropertiesPanel
           deployment={draft}
           selectedEntityId={selectedEntityId}

@@ -128,6 +128,8 @@ export function addDeploymentSourcesAndLayers(map: MapLibreMap) {
     layout: {
       'icon-image': ['get', 'imageId'],
       'icon-size': ['coalesce', ['get', 'symbolScale'], 1],
+      'icon-rotate': ['coalesce', ['get', 'symbolRotation'], 0],
+      'icon-rotation-alignment': 'map',
       'icon-allow-overlap': true,
       'icon-ignore-placement': true,
       'text-field': ['get', 'designation'],

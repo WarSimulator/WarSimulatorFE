@@ -1,3 +1,4 @@
+import { getEchelonCodes } from './echelons';
 import catalogData from '../data/symbolCatalog.json';
 import type {
   DeploymentAffiliation,
@@ -24,12 +25,6 @@ const functionIds: Record<Exclude<ExpandedDeploymentUnitType, `catalog:${string}
   transportation: 'UST---',
 };
 
-const echelonModifiers: Record<DeploymentEchelon, string> = {
-  platoon: 'D',
-  company: 'E',
-  battalion: 'F',
-};
-
 export function getUnitSidc({
   affiliation,
   unitType,
@@ -46,14 +41,14 @@ export function getUnitSidc({
     const base = sidc ?? definition?.sidc;
     if (!base) return getUnitSidc({ affiliation, unitType: 'infantry', echelon });
     if (/^\d/.test(base)) {
-      const size = definition?.supportsEchelon ? { platoon: '14', company: '15', battalion: '16' }[echelon] : base.slice(8, 10);
+      const size = definition?.supportsEchelon ? getEchelonCodes(echelon).numeric : base.slice(8, 10);
       return base.slice(0, 3) + (affiliation === 'friendly' ? '3' : '6') + base.slice(4, 8) + size + base.slice(10);
     }
-    const size = definition?.supportsEchelon ? echelonModifiers[echelon] : base[11];
+    const size = definition?.supportsEchelon ? getEchelonCodes(echelon).legacy : base[11];
     return base[0] + (affiliation === 'friendly' ? 'F' : 'H') + base.slice(2, 11) + size + base.slice(12);
   }
   const affiliationCode = affiliation === 'friendly' ? 'F' : 'H';
-  return `S${affiliationCode}GP${functionIds[unitType as keyof typeof functionIds]}-${echelonModifiers[echelon]}---`;
+  return `S${affiliationCode}GP${functionIds[unitType as keyof typeof functionIds]}-${getEchelonCodes(echelon).legacy}---`;
 }
 
 export const createSidc = (affiliation: DeploymentAffiliation, unitType: ExpandedDeploymentUnitType, echelon: DeploymentEchelon = 'company') =>

@@ -53,6 +53,7 @@ function toUnitFeatures(deployment: DeploymentSetup): GeoJSON.FeatureCollection<
         unitType: unit.unitType,
         echelon: unit.echelon,
         symbolScale: (unit.symbolScale ?? 1) * PREVIEW_SYMBOL_SCALE,
+        symbolRotation: unit.symbolRotation ?? 0,
       },
       geometry: { type: 'Point', coordinates: getLngLat(unit.position) },
     })),

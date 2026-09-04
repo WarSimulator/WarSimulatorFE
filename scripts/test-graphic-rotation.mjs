@@ -23,6 +23,12 @@ assert.deepEqual(taskRotated.tacticalSymbol,graphic.tacticalSymbol);
 assert.ok(api.renderTacticalGraphic(taskRotated,100000).length>0);
 const saved=new Map();globalThis.window={localStorage:{getItem:k=>saved.get(k)??null,setItem:(k,v)=>saved.set(k,v)}};
 const deployment=api.createEmptyDeployment('rotation-test','Rotation');deployment.tacticalGraphics=[quarter,rotated,taskRotated];
+deployment.units = [0, 90, 275].map((angle, index) => ({
+  id: `rotation-unit-${index}`, designation: 'Infantry', affiliation: 'friendly', unitType: 'infantry',
+  echelon: 'company', position: { longitude: 127, latitude: 37 },
+  ...(index === 0 ? {} : { symbolRotation: angle }),
+}));
 api.saveDeployment(deployment);
 assert.deepEqual(api.getDeploymentById(deployment.id).tacticalGraphics,deployment.tacticalGraphics);
+assert.deepEqual(api.getDeploymentById(deployment.id).units.map(unit => unit.symbolRotation ?? 0), [0, 90, 275]);
 console.log('PASS: rotation direction, inverse, immutable geometry, polygon holes/closure, dateline, tactical task rendering and persistence.');

@@ -1,4 +1,4 @@
-import { GraphicRotationHandle } from './GraphicRotationHandle';
+import { GraphicRotationHandle, UnitRotationHandle } from './GraphicRotationHandle';
 import { useTaskDrawing } from '../hooks/useTaskDrawing';
 import { getTacticalTask, validateTaskPoints, taskLabel } from '../lib/tacticalTasks';
 import { useTacticalTaskLayer } from '../hooks/useTacticalTaskLayer';
@@ -82,6 +82,7 @@ function toUnitFeatures(deployment: DeploymentSetup): GeoJSON.FeatureCollection<
         unitType: unit.unitType,
         echelon: unit.echelon,
         symbolScale: unit.symbolScale ?? 1,
+        symbolRotation: unit.symbolRotation ?? 0,
       },
       geometry: { type: 'Point', coordinates: getLngLat(unit.position) },
     })),
@@ -174,7 +175,12 @@ export function DeploymentMap({ deployment, selectedEntityId, mode, onChange, on
   const [taskEditError, setTaskEditError] = useState('');
   const [rotationId, setRotationId] = useState<string>();
   const [rotationPreview, setRotationPreview] = useState<TacticalGraphic | null>(null);
-  const displayDeployment = useMemo(() => rotationPreview ? { ...deployment, tacticalGraphics: deployment.tacticalGraphics.map(g => g.id === rotationPreview.id ? rotationPreview : g) } : deployment, [deployment, rotationPreview]);
+  const [unitRotationPreview, setUnitRotationPreview] = useState<DeploymentUnit | null>(null);
+  const displayDeployment = useMemo(() => ({ ...deployment,
+    units: unitRotationPreview ? deployment.units.map(unit => unit.id === unitRotationPreview.id ? unitRotationPreview : unit) : deployment.units,
+    tacticalGraphics: rotationPreview ? deployment.tacticalGraphics.map(g => g.id === rotationPreview.id ? rotationPreview : g) : deployment.tacticalGraphics,
+  }), [deployment, rotationPreview, unitRotationPreview]);
+  const rotationUnit = rotationId && selectedEntityId === rotationId && mode.type === 'select' ? displayDeployment.units.find(unit => unit.id === rotationId) : undefined;
   const rotationGraphic = rotationId && selectedEntityId === rotationId && mode.type === 'select' ? displayDeployment.tacticalGraphics.find(g => g.id === rotationId) : undefined;
   const taskDrawing = useTaskDrawing({ mapRef, ready: isMapReady, mode, deployment, onChange, onModeChange, onSelectEntity });
   const taskRenderError = useTacticalTaskLayer(mapRef, isMapReady, displayDeployment.tacticalGraphics);
@@ -184,10 +190,10 @@ export function DeploymentMap({ deployment, selectedEntityId, mode, onChange, on
   }, [deployment]);
 
   useEffect(() => {
-    if (mode.type !== 'select' || selectedEntityId !== rotationId || !deployment.tacticalGraphics.some(g => g.id === rotationId)) {
-      setRotationId(undefined); setRotationPreview(null);
+    if (mode.type !== 'select' || selectedEntityId !== rotationId || ![...deployment.tacticalGraphics, ...deployment.units].some(g => g.id === rotationId)) {
+      setRotationId(undefined); setRotationPreview(null); setUnitRotationPreview(null);
     }
-  }, [mode.type, selectedEntityId, rotationId, deployment.tacticalGraphics]);
+  }, [mode.type, selectedEntityId, rotationId, deployment.tacticalGraphics, deployment.units]);
 
   const modeLabel = useMemo(() => {
     if (mode.type === 'select') return 'MODE: SELECT / EDIT';
@@ -274,7 +280,7 @@ export function DeploymentMap({ deployment, selectedEntityId, mode, onChange, on
   useEffect(() => {
     if (!mapRef.current || !isMapReady) return;
     void Promise.all(deployment.units.map((unit) => ensureMilitarySymbolImage(mapRef.current!, unit.sidc, unit.symbolStandard))).then(() => {
-      (mapRef.current?.getSource(UNIT_SOURCE_ID) as GeoJSONSource | undefined)?.setData(toUnitFeatures(deployment));
+      (mapRef.current?.getSource(UNIT_SOURCE_ID) as GeoJSONSource | undefined)?.setData(toUnitFeatures(displayDeployment));
     });
     (mapRef.current.getSource(OBJECTIVE_SOURCE_ID) as GeoJSONSource | undefined)?.setData(toObjectiveFeatures(deployment));
     (mapRef.current.getSource(GRAPHICS_SOURCE_ID) as GeoJSONSource | undefined)?.setData(toGraphicFeatureCollection(displayDeployment));
@@ -498,7 +504,7 @@ export function DeploymentMap({ deployment, selectedEntityId, mode, onChange, on
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
       if (event.key !== 'Escape' || (event.target as HTMLElement)?.closest('input,textarea,select')) return;
-      setRotationId(undefined); setRotationPreview(null);
+      setRotationId(undefined); setRotationPreview(null); setUnitRotationPreview(null);
       if (mode.type === 'draw') drawRef.current?.trash();
       else drawRef.current?.changeMode('simple_select');
       onSelectEntity(undefined);
@@ -578,7 +584,7 @@ export function DeploymentMap({ deployment, selectedEntityId, mode, onChange, on
   useEffect(() => {
     const map = mapRef.current;
     if (!isMapReady || !map || (mode.type !== 'select' && mode.type !== 'append-geometry')) return;
-    const layers = ['task-lines', 'task-labels', 'deployment-lines', 'deployment-area-line',
+    const layers = ['deployment-units', 'deployment-objectives', 'task-lines', 'task-labels', 'deployment-lines', 'deployment-area-line',
       'deployment-axis-arrows', 'deployment-phase-labels', 'task-fill', 'deployment-area-fill'];
     const selectGraphic = (event: maplibregl.MapMouseEvent) => {
       const { x, y } = event.point;
@@ -587,17 +593,21 @@ export function DeploymentMap({ deployment, selectedEntityId, mode, onChange, on
       const exact = map.queryRenderedFeatures(event.point, { layers });
       const nearby = map.queryRenderedFeatures([[x - 10, y - 10], [x + 10, y + 10]], { layers });
       const graphic = [...exact, ...nearby].find(feature =>
-        deploymentRef.current.tacticalGraphics.some(item => item.id === feature.properties?.id));
+        [...deploymentRef.current.units, ...deploymentRef.current.objectives, ...deploymentRef.current.tacticalGraphics].some(item => item.id === feature.properties?.id));
       if (!graphic) {
-        setRotationId(undefined); setRotationPreview(null);
+        setRotationId(undefined); setRotationPreview(null); setUnitRotationPreview(null);
+        if (mode.type === 'select') {
+          onSelectEntity(undefined);
+          drawRef.current?.changeMode('simple_select', { featureIds: [] });
+        }
         return;
       }
       event.preventDefault(); // A double-click on a graphic selects it instead of zooming.
       const id = String(graphic.properties!.id);
-      if (event.type === 'dblclick') { setRotationId(id); setRotationPreview(null); }
+      if (event.type === 'dblclick') { setRotationId(id); setRotationPreview(null); setUnitRotationPreview(null); }
       onSelectEntity(id);
       onModeChange({ type: 'select' });
-      drawRef.current?.changeMode('simple_select', { featureIds: [id] });
+      drawRef.current?.changeMode('simple_select', { featureIds: deploymentRef.current.tacticalGraphics.some(item => item.id === id) ? [id] : [] });
     };
     const handleClick = (event: maplibregl.MapMouseEvent) => {
       if (mode.type === 'select') selectGraphic(event);
@@ -629,22 +639,27 @@ export function DeploymentMap({ deployment, selectedEntityId, mode, onChange, on
   return (
     <section className="relative h-full flex-1" onDragOver={(event) => event.preventDefault()} onDrop={handleDrop}>
       <div ref={mapContainerRef} className="h-full w-full bg-surface-container-lowest" />
+      {rotationUnit && mapRef.current && <UnitRotationHandle map={mapRef.current} graphic={rotationUnit} onPreview={setUnitRotationPreview} onCommit={unit => {
+        const current = deploymentRef.current;
+        onChange({ ...current, units: current.units.map(item => item.id === unit.id ? { ...item, symbolRotation: unit.symbolRotation } : item) });
+        setRotationId(undefined); setRotationPreview(null); setUnitRotationPreview(null);
+      }} />}
       {rotationGraphic && mapRef.current && <GraphicRotationHandle map={mapRef.current} graphic={rotationGraphic} onPreview={setRotationPreview} onCommit={graphic => {
         const current = deploymentRef.current;
         onChange({ ...current, tacticalGraphics: current.tacticalGraphics.map(g => g.id === graphic.id ? graphic : g) });
-        setRotationId(undefined); setRotationPreview(null);
+        setRotationId(undefined); setRotationPreview(null); setUnitRotationPreview(null);
       }} />}
       <div className="pointer-events-none absolute inset-0 bg-surface/15 mix-blend-multiply" />
-      <div className="absolute left-[268px] top-4 z-30 rounded border border-outline-variant bg-surface-container/90 px-3 py-2 font-data-mono text-[11px] text-secondary">
+      <div className="absolute left-[var(--map-controls-left)] top-4 z-30 rounded border border-outline-variant bg-surface-container/90 px-3 py-2 font-data-mono text-[11px] text-secondary">
         {modeLabel}
       </div>
-      {(taskRenderError || taskEditError) && <p role="alert" className="absolute left-[268px] top-20 z-30 max-w-lg bg-surface p-2 text-xs text-error">{taskRenderError || taskEditError}</p>}
-      {taskDrawing.task && <div className="absolute left-[268px] top-20 z-30 max-w-sm space-y-2 rounded border border-secondary bg-surface p-3 text-xs text-on-surface">
+      {(taskRenderError || taskEditError) && <p role="alert" className="absolute left-[var(--map-controls-left)] top-20 z-30 max-w-lg bg-surface p-2 text-xs text-error">{taskRenderError || taskEditError}</p>}
+      {taskDrawing.task && <div className="absolute left-[var(--map-controls-left)] top-20 z-30 max-w-sm space-y-2 rounded border border-secondary bg-surface p-3 text-xs text-on-surface">
         <p>{taskLabel(taskDrawing.task)}</p><p>기준점 {taskDrawing.count} / {taskDrawing.task.minPoints === taskDrawing.task.maxPoints ? taskDrawing.task.maxPoints : `${taskDrawing.task.minPoints}–${taskDrawing.task.maxPoints}`} · 미리보기 번호 순서대로 클릭</p>
         <div className="flex gap-3"><button disabled={taskDrawing.saving || taskDrawing.count < taskDrawing.task.minPoints} onClick={() => void taskDrawing.finish()} className="text-secondary disabled:opacity-40">완료 (Enter)</button><button disabled={taskDrawing.saving || !taskDrawing.count} onClick={taskDrawing.undo}>마지막 점 취소</button><button onClick={() => onModeChange({ type: 'select' })}>취소 (Esc)</button></div>
         {taskDrawing.saving && <p>도형 생성 중…</p>}{taskDrawing.error && <p role="alert" className="text-error">{taskDrawing.error}</p>}
       </div>}
-      <div className="absolute bottom-4 left-[268px] z-30 flex gap-2">
+      <div className="absolute bottom-4 left-[var(--map-controls-left)] z-30 flex gap-2">
         <button className="rounded border border-outline-variant bg-surface-container px-3 py-2 font-data-mono text-[11px] text-on-surface hover:bg-surface-variant" onClick={() => mapRef.current?.zoomIn()}>
           Zoom In
         </button>

@@ -1,3 +1,4 @@
+import { echelonOptions } from '../lib/echelons';
 import { getTacticalTask, taskLabel } from '../lib/tacticalTasks';
 import type { DeploymentEditorMode, DeploymentEchelon, DeploymentObjective, DeploymentSetup, DeploymentUnit, TacticalGraphic } from '../../../types';
 import { getLngLat } from '../lib/position';
@@ -46,8 +47,19 @@ export function UnitPropertiesPanel({ deployment, selectedEntityId, onChange, on
 
   return (
     <aside className="absolute right-4 top-4 z-30 w-[300px] rounded border border-outline-variant bg-surface-container/95 shadow-xl">
-      <div className="border-b border-outline-variant bg-surface-container-high p-3">
+      <div className="flex items-center justify-between gap-2 border-b border-outline-variant bg-surface-container-high p-3">
         <p className="font-label-caps text-label-caps text-on-surface">{unit ? 'UNIT PROPERTIES' : objective ? 'OBJECTIVE PROPERTIES' : 'TACTICAL GRAPHIC'}</p>
+        <button
+          type="button"
+          aria-label="속성 패널 닫기"
+          title="닫기"
+          onClick={onClearSelection}
+          className="flex h-7 w-7 shrink-0 items-center justify-center rounded text-on-surface-variant hover:bg-surface-variant hover:text-on-surface focus-visible:outline focus-visible:outline-2 focus-visible:outline-secondary"
+        >
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden="true">
+            <path d="m6 6 12 12M18 6 6 18" />
+          </svg>
+        </button>
       </div>
       <div className="space-y-4 p-4">
         {unit && (
@@ -77,9 +89,7 @@ export function UnitPropertiesPanel({ deployment, selectedEntityId, onChange, on
                   updateUnit({ ...unit, echelon, sidc: getUnitSidc({ ...unit, echelon }) });
                 }}
               >
-                <option value="platoon">Platoon</option>
-                <option value="company">Company</option>
-                <option value="battalion">Battalion</option>
+                {echelonOptions.map(option => <option key={option.value} value={option.value}>{option.mark} · {option.label}</option>)}
               </select>
             </label>
             <label className="block">
