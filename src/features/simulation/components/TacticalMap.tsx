@@ -155,6 +155,7 @@ export function TacticalMap({ runtime, units, result, deployment, onSelectUnit }
   const [mapReady, setMapReady] = useState(false);
   const [mapError, setMapError] = useState(false);
   const mapCenter = useMemo(() => getMapCenter(result, deployment), [deployment, result]);
+  const mapZoom = deployment?.mapView?.zoom ?? DEFAULT_MAP_ZOOM + 1;
   const routeFeatures = useMemo(() => toRouteFeatures(result), [result]);
   const tacticalGraphicFeatures = useMemo(() => toTacticalGraphicFeatureCollection(deployment), [deployment]);
   const axisArrowFeatures = useMemo(() => toTacticalGraphicAxisArrowFeatures(deployment), [deployment]);
@@ -176,7 +177,7 @@ export function TacticalMap({ runtime, units, result, deployment, onSelectUnit }
       container: containerRef.current,
       style: getMapStyleUrl() ?? createDefaultMapStyle(),
       center: mapCenter,
-      zoom: DEFAULT_MAP_ZOOM + 1,
+      zoom: mapZoom,
       attributionControl: false,
     });
 
@@ -189,6 +190,14 @@ export function TacticalMap({ runtime, units, result, deployment, onSelectUnit }
         await ensureAxisArrowImage(map);
         await Promise.all(units.flatMap((unit) => (unit.sidc ? [ensureMilitarySymbolImage(map, unit.sidc, unit.symbolStandard)] : [])));
         addDeploymentSourcesAndLayers(map);
+        const geographicPositions = units.flatMap((unit) => unit.geographicPosition ? [[unit.geographicPosition.longitude, unit.geographicPosition.latitude] as [number, number]] : []);
+        if (geographicPositions.length > 1) {
+          const bounds = geographicPositions.reduce(
+            (current, coordinate) => current.extend(coordinate),
+            new maplibregl.LngLatBounds(geographicPositions[0], geographicPositions[0]),
+          );
+          map.fitBounds(bounds, { padding: 70, maxZoom: 15, duration: 0 });
+        }
         setMapReady(true);
       } catch (error) {
         console.error(error);
@@ -220,7 +229,7 @@ export function TacticalMap({ runtime, units, result, deployment, onSelectUnit }
       map.remove();
       mapRef.current = null;
     };
-  }, [mapCenter, onSelectUnit, units]);
+  }, [mapCenter, mapZoom, onSelectUnit, units]);
 
   useEffect(() => {
     if (!mapReady || !mapRef.current) {

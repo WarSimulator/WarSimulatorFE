@@ -17,8 +17,10 @@ export function SimulatorPage() {
   const navigate = useNavigate();
   const simulationResult = useMemo(() => getSimulationResult(simulationId), [simulationId]);
   const deployment = useMemo(
-    () => (simulationResult.deploymentId ? getDeploymentById(simulationResult.deploymentId) : undefined)
-      ?? getSimulationResultDeployment(simulationResult.deploymentId ?? undefined),
+    // Paired result fixtures must win over an older browser copy with the same
+    // deployment ID; otherwise normalized enemy designations can disappear.
+    () => getSimulationResultDeployment(simulationResult.deploymentId ?? undefined)
+      ?? (simulationResult.deploymentId ? getDeploymentById(simulationResult.deploymentId) : undefined),
     [simulationResult],
   );
   const resultUnits = useMemo(() => getSimulationResultUnits(simulationResult, deployment), [deployment, simulationResult]);
