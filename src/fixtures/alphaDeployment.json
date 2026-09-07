@@ -1,0 +1,28 @@
+{
+  "id": "deployment-1788485524256",
+  "name": "Alpha Deployment",
+  "mettTcDocumentId": "op-alpha-primary",
+  "units": [
+    {"id":"unit-c2f1bdaf-2ebe-4948-924b-7aed74ae0c9b","designation":"AA EAGLE","affiliation":"friendly","unitType":"catalog:2525E:13031000001206000000","echelon":"company","sidc":"13031000151206000000","symbolStandard":"2525","symbolLabel":"Movement and Maneuver / Army Aviation/Aviation Rotary Wing","symbolScale":0.5,"position":{"longitude":126.70218013013465,"latitude":37.62916628210351}},
+    {"id":"unit-70c5eeb0-077b-4936-b59c-f9402f438ade","designation":"MAIN","affiliation":"friendly","unitType":"headquarters","echelon":"battalion","sidc":"SFGPUH-----F---","symbolLabel":"Headquarters","symbolScale":0.5,"position":{"longitude":126.70540194902662,"latitude":37.626803180752916}},
+    {"id":"unit-2b60ad90-5b40-4471-95c0-5d896df8f024","designation":"TCF","affiliation":"friendly","unitType":"mechanized_infantry","echelon":"company","sidc":"SFGPUCIZ---E---","symbolLabel":"Mechanized Infantry","symbolScale":0.5,"position":{"longitude":126.70327816282787,"latitude":37.620117784945094}},
+    {"id":"unit-8a57f394-ae78-4671-b362-26e1b03306bd","designation":"division reserve","affiliation":"friendly","unitType":"catalog:2525C:SFGPEVAT-------","echelon":"company","sidc":"SFGPEVAT-------","symbolLabel":"GROUND TRACK EQUIPMENT / GROUND VEHICLE / ARMORED VEHICLE / TANK","symbolScale":0.5,"position":{"longitude":126.7060542311238,"latitude":37.61972000390273}},
+    {"id":"unit-72a28620-9852-437e-a730-2e0d4bdae88d","designation":"A mechanized brigade in the south","affiliation":"friendly","unitType":"catalog:2525D:10031500001202000000","echelon":"company","sidc":"10031500001202000000","symbolStandard":"2525","symbolLabel":"Vehicle / Tank","symbolScale":0.5,"position":{"longitude":126.71036650722112,"latitude":37.62130679239392}},
+    {"id":"unit-2c6e7377-2725-43cb-b459-5504a732cb93","designation":"TAC","affiliation":"friendly","unitType":"headquarters","echelon":"battalion","sidc":"SFGPUH-----F---","symbolLabel":"Headquarters","symbolScale":0.5,"position":{"longitude":126.71267043919858,"latitude":37.62536881758497}},
+    {"id":"unit-8b469639-5539-4c33-b54c-47084c56c078","designation":"A","affiliation":"friendly","unitType":"catalog:2525D:10031000001303010000","echelon":"battalion","sidc":"10031000161303010000","symbolStandard":"2525","symbolLabel":"Fires / Field Artillery / Self-propelled","symbolScale":0.5,"position":{"longitude":126.70972136355351,"latitude":37.627196439939496}},
+    {"id":"unit-febbfdb9-a0cc-46fe-a539-df6b087f218e","designation":"Tank","affiliation":"friendly","unitType":"catalog:2525D:10031500001202000000","echelon":"company","sidc":"10031500001202000000","symbolStandard":"2525","symbolLabel":"Vehicle / Tank","symbolScale":0.5,"position":{"longitude":126.71155492976715,"latitude":37.62894441903978}},
+    {"id":"unit-632f2187-6579-4aa0-86d9-aed5c965771b","designation":"enemy-inf-reg-minus","affiliation":"enemy","unitType":"mechanized_infantry","echelon":"company","sidc":"SHGPUCIZ---E---","symbolLabel":"Mechanized Infantry","symbolScale":0.5,"position":{"longitude":126.71968515306543,"latitude":37.6222985918681}},
+    {"id":"unit-e1eec3ca-eff8-4035-84b7-a12c39530691","designation":"enemy-obj-slam-defense","affiliation":"enemy","unitType":"armor","echelon":"battalion","sidc":"SHGPUCA----F---","symbolLabel":"Armor","symbolScale":0.5,"position":{"longitude":126.72178554342725,"latitude":37.624983507780684}},
+    {"id":"unit-88e5c87e-3b4e-4738-8d22-6e8cf080728a","designation":"enemy-north-force","affiliation":"enemy","unitType":"armor","echelon":"battalion","sidc":"SHGPUCA----F---","symbolLabel":"Armor","symbolScale":0.75,"position":{"longitude":126.72881476149001,"latitude":37.63230294022506}}
+  ],
+  "objectives": [],
+  "tacticalGraphics": [
+    {"id":"graphic-b9e66127-6ac3-4ea3-bad0-2c0dc5e88ee5","type":"phase-line","name":"PL ORANGE","geometry":{"type":"LineString","coordinates":[[126.70733756933254,37.63387403466159],[126.707376117524,37.61674617772093]]}},
+    {"id":"graphic-409e2e46-01f2-42b7-954e-7fd0eabffa8b","type":"phase-line","name":"PL AMBER(LD)","geometry":{"type":"LineString","coordinates":[[126.71508710698362,37.63390563218317],[126.71547258889166,37.61644190288446]]}},
+    {"id":"graphic-2a09e218-c247-492c-9034-3b916fbdac2b","type":"phase-line","name":"PL GREEN","geometry":{"type":"LineString","coordinates":[[126.72112883779516,37.62501403821686],[126.7246812348917,37.61618321790763]]}},
+    {"id":"graphic-62bab168-5927-4eef-a7a5-930fb7fa657e","type":"area","name":"METRO CITY","geometry":{"type":"Polygon","coordinates":[[[126.70046046632774,37.625439694481216],[126.70173568766955,37.619076427847645],[126.70482809942172,37.619076427847645],[126.70352099754808,37.62546494445472],[126.70046046632774,37.625439694481216]]]}}
+  ],
+  "mapView": {"center":[126.70905769815477,37.62626517434013],"zoom":13.857108344807177},
+  "createdAt": "2026-09-04T01:32:04.256Z",
+  "updatedAt": "2026-09-07T04:43:30.274Z"
+}

@@ -1,0 +1,170 @@
+{
+  "schemaVersion": "1.0",
+  "planIndex": 0,
+  "deploymentId": "deployment-1788485524256",
+  "startTime": 0.001,
+  "endTime": 39.198,
+  "metadata": {
+    "source": "TFD 130400aug29 integrated_division plan, spatialized for Alpha Deployment",
+    "durationWarning": "All times are abstract planning units, not operational estimates.",
+    "unitMapping": {
+      "div_cavalry_sqn": "AA EAGLE",
+      "division_deep_operations": "TAC",
+      "division_fires": "A",
+      "division_tcf": "TCF",
+      "main_effort_tank_bde": "MAIN",
+      "northern_mech_bde": "Tank",
+      "reserve_tank_tf": "division reserve",
+      "southern_mech_bde": "A mechanized brigade in the south"
+    }
+  },
+  "unitTracks": [
+    {
+      "unitId": "unit-c2f1bdaf-2ebe-4948-924b-7aed74ae0c9b",
+      "actor": "div_cavalry_sqn",
+      "startTime": 0.001,
+      "endTime": 8.034,
+      "segments": [
+        {"actionSequence": 1, "action": "Move", "startTime": 0.001, "endTime": 3.001, "source": "cav-assembly", "destination": "north-screen-line", "keyframes": [
+          {"time": 0.001, "position": {"longitude": 126.70218013013465, "latitude": 37.62916628210351}},
+          {"time": 1.501, "position": {"longitude": 126.7073990267528, "latitude": 37.63008821035463}},
+          {"time": 3.001, "position": {"longitude": 126.71550352893473, "latitude": 37.632379221671215}}
+        ]}
+      ]
+    },
+    {
+      "unitId": "unit-70c5eeb0-077b-4936-b59c-f9402f438ade",
+      "actor": "main_effort_tank_bde",
+      "startTime": 0.001,
+      "endTime": 39.198,
+      "segments": [
+        {"actionSequence": 5, "action": "Move", "startTime": 0.001, "endTime": 3.001, "source": "main-staging", "destination": "pl-amber-west", "keyframes": [
+          {"time": 0.001, "position": {"longitude": 126.70540194902662, "latitude": 37.626803180752916}},
+          {"time": 1.501, "position": {"longitude": 126.71030000000000, "latitude": 37.62610000000000}},
+          {"time": 3.001, "position": {"longitude": 126.71490000000000, "latitude": 37.62540000000000}}
+        ]},
+        {"actionSequence": 39, "action": "Move", "startTime": 20.105, "endTime": 23.105, "source": "pl-amber-west", "destination": "pl-amber-east", "keyframes": [
+          {"time": 20.105, "position": {"longitude": 126.71490000000000, "latitude": 37.62540000000000}},
+          {"time": 21.605, "position": {"longitude": 126.71550000000000, "latitude": 37.62535000000000}},
+          {"time": 23.105, "position": {"longitude": 126.71640000000000, "latitude": 37.62530000000000}}
+        ]},
+        {"actionSequence": 42, "action": "Move", "startTime": 24.125, "endTime": 27.125, "source": "pl-amber-east", "destination": "obj-slam-area", "keyframes": [
+          {"time": 24.125, "position": {"longitude": 126.71640000000000, "latitude": 37.62530000000000}},
+          {"time": 25.625, "position": {"longitude": 126.71910000000000, "latitude": 37.62510000000000}},
+          {"time": 27.125, "position": {"longitude": 126.72125000000000, "latitude": 37.62505000000000}}
+        ]}
+      ]
+    },
+    {
+      "unitId": "unit-febbfdb9-a0cc-46fe-a539-df6b087f218e",
+      "actor": "northern_mech_bde",
+      "startTime": 0.001,
+      "endTime": 15.064,
+      "segments": [
+        {"actionSequence": 6, "action": "Move", "startTime": 0.001, "endTime": 3.001, "source": "north-assembly", "destination": "north-zone", "keyframes": [
+          {"time": 0.001, "position": {"longitude": 126.71155492976715, "latitude": 37.62894441903978}},
+          {"time": 1.501, "position": {"longitude": 126.71490000000000, "latitude": 37.63045000000000}},
+          {"time": 3.001, "position": {"longitude": 126.71773256763390, "latitude": 37.63193595568396}}
+        ]}
+      ]
+    },
+    {
+      "unitId": "unit-8a57f394-ae78-4671-b362-26e1b03306bd",
+      "actor": "reserve_tank_tf",
+      "startTime": 0.001,
+      "endTime": 30.148,
+      "segments": [
+        {"actionSequence": 7, "action": "Move", "startTime": 0.001, "endTime": 3.001, "source": "reserve-assembly", "destination": "reserve-west-green", "keyframes": [
+          {"time": 0.001, "position": {"longitude": 126.70605423112380, "latitude": 37.61972000390273}},
+          {"time": 1.501, "position": {"longitude": 126.71250000000000, "latitude": 37.62000000000000}},
+          {"time": 3.001, "position": {"longitude": 126.71903971121964, "latitude": 37.62041113988825}}
+        ]},
+        {"actionSequence": 43, "action": "Move", "startTime": 24.126, "endTime": 27.126, "source": "reserve-west-green", "destination": "main-follow-pos", "keyframes": [
+          {"time": 24.126, "position": {"longitude": 126.71903971121964, "latitude": 37.62041113988825}},
+          {"time": 25.626, "position": {"longitude": 126.72000000000000, "latitude": 37.62210000000000}},
+          {"time": 27.126, "position": {"longitude": 126.72096892192144, "latitude": 37.62387388299078}}
+        ]}
+      ]
+    },
+    {
+      "unitId": "unit-72a28620-9852-437e-a730-2e0d4bdae88d",
+      "actor": "southern_mech_bde",
+      "startTime": 0.001,
+      "endTime": 20.095,
+      "segments": [
+        {"actionSequence": 8, "action": "Move", "startTime": 0.001, "endTime": 3.001, "source": "south-assembly", "destination": "pl-amber-west", "keyframes": [
+          {"time": 0.001, "position": {"longitude": 126.71036650722112, "latitude": 37.62130679239392}},
+          {"time": 1.501, "position": {"longitude": 126.71290000000000, "latitude": 37.62130000000000}},
+          {"time": 3.001, "position": {"longitude": 126.71495000000000, "latitude": 37.62130000000000}}
+        ]},
+        {"actionSequence": 35, "action": "Move", "startTime": 14.074, "endTime": 17.074, "source": "pl-amber-west", "destination": "pl-amber-east", "keyframes": [
+          {"time": 14.074, "position": {"longitude": 126.71495000000000, "latitude": 37.62130000000000}},
+          {"time": 15.574, "position": {"longitude": 126.71650000000000, "latitude": 37.62130000000000}},
+          {"time": 17.074, "position": {"longitude": 126.71800000000000, "latitude": 37.62130000000000}}
+        ]}
+      ]
+    }
+  ],
+  "observationEffects": [
+    {"actionSequence": 9, "action": "Observe", "actor": "division_tcf", "target": "METRO CITY", "startTime": 2.011, "endTime": 4.011, "origin": {"longitude": 126.70327816282787, "latitude": 37.620117784945094}, "targetPoint": {"longitude": 126.70260000000000, "latitude": 37.62230000000000}, "direction": 346, "fovDegrees": 70, "rangeMeters": 800, "targetDistanceMeters": 250, "targetInRange": true, "displayRangeMeters": 800},
+    {"actionSequence": 13, "action": "Observe", "actor": "northern_mech_bde", "target": "enemy-north-force", "startTime": 3.012, "endTime": 5.012, "origin": {"longitude": 126.71773256763390, "latitude": 37.63193595568396}, "targetPoint": {"longitude": 126.72881476149001, "latitude": 37.63230294022506}, "direction": 88, "fovDegrees": 65, "rangeMeters": 1500, "targetDistanceMeters": 980, "targetInRange": true, "displayRangeMeters": 1500},
+    {"actionSequence": 15, "action": "Observe", "actor": "southern_mech_bde", "target": "enemy-inf-reg-minus", "startTime": 3.012, "endTime": 5.012, "origin": {"longitude": 126.71495000000000, "latitude": 37.62130000000000}, "targetPoint": {"longitude": 126.71968515306543, "latitude": 37.62229859186810}, "direction": 75, "fovDegrees": 65, "rangeMeters": 1000, "targetDistanceMeters": 440, "targetInRange": true, "displayRangeMeters": 1000},
+    {"actionSequence": 17, "action": "Observe", "actor": "div_cavalry_sqn", "target": "enemy-north-force", "startTime": 5.022, "endTime": 7.022, "origin": {"longitude": 126.71550352893473, "latitude": 37.632379221671215}, "targetPoint": {"longitude": 126.72881476149001, "latitude": 37.63230294022506}, "direction": 90, "fovDegrees": 80, "rangeMeters": 1800, "targetDistanceMeters": 1180, "targetInRange": true, "displayRangeMeters": 1800},
+    {"actionSequence": 44, "action": "Observe", "actor": "main_effort_tank_bde", "target": "enemy-obj-slam-defense", "startTime": 27.136, "endTime": 29.136, "origin": {"longitude": 126.72125000000000, "latitude": 37.62505000000000}, "targetPoint": {"longitude": 126.72178554342725, "latitude": 37.624983507780684}, "direction": 98, "fovDegrees": 55, "rangeMeters": 500, "targetDistanceMeters": 50, "targetInRange": true, "displayRangeMeters": 500}
+  ],
+  "actionEffects": [
+    {"actionSequence":1,"action":"Move","visualizationId":"move","unitId":"unit-c2f1bdaf-2ebe-4948-924b-7aed74ae0c9b","actor":"div_cavalry_sqn","startTime":0.001,"endTime":3.001,"origin":{"longitude":126.70218013013465,"latitude":37.62916628210351},"parameters":{"pddlAction":"pi-div-cavalry-sqn-01-move","task":"cav-assembly | north-screen-line"},"phases":["move"],"executionMode":"visualization_only","outcome":"not_adjudicated"},
+    {"actionSequence":2,"action":"Disrupt","visualizationId":"disrupt","unitId":"unit-2c6e7377-2725-43cb-b459-5504a732cb93","actor":"division_deep_operations","startTime":0.001,"endTime":3.001,"origin":{"longitude":126.71267043919858,"latitude":37.62536881758497},"parameters":{"target":"enemy-artillery-pop"},"phases":["disrupt"],"executionMode":"visualization_only","outcome":"not_adjudicated"},
+    {"actionSequence":3,"action":"Disrupt","visualizationId":"disrupt","unitId":"unit-8b469639-5539-4c33-b54c-47084c56c078","actor":"division_fires","startTime":0.001,"endTime":3.001,"origin":{"longitude":126.70972136355351,"latitude":37.627196439939496},"parameters":{"target":"pop-defensive-system"},"phases":["disrupt"],"executionMode":"visualization_only","outcome":"not_adjudicated"},
+    {"actionSequence":4,"action":"Establish Security","visualizationId":"security","unitId":"unit-2b60ad90-5b40-4471-95c0-5d896df8f024","actor":"division_tcf","startTime":0.001,"endTime":2.001,"origin":{"longitude":126.70327816282787,"latitude":37.620117784945094},"parameters":{"target":"METRO CITY"},"phases":["security"],"executionMode":"visualization_only","outcome":"not_adjudicated"},
+    {"actionSequence":5,"action":"Move","visualizationId":"move","unitId":"unit-70c5eeb0-077b-4936-b59c-f9402f438ade","actor":"main_effort_tank_bde","startTime":0.001,"endTime":3.001,"origin":{"longitude":126.70540194902662,"latitude":37.626803180752916},"parameters":{"destination":"pl-amber-west"},"phases":["move"],"executionMode":"visualization_only","outcome":"not_adjudicated"},
+    {"actionSequence":6,"action":"Move","visualizationId":"move","unitId":"unit-febbfdb9-a0cc-46fe-a539-df6b087f218e","actor":"northern_mech_bde","startTime":0.001,"endTime":3.001,"origin":{"longitude":126.71155492976715,"latitude":37.62894441903978},"parameters":{"destination":"north-zone"},"phases":["move"],"executionMode":"visualization_only","outcome":"not_adjudicated"},
+    {"actionSequence":7,"action":"Move","visualizationId":"move","unitId":"unit-8a57f394-ae78-4671-b362-26e1b03306bd","actor":"reserve_tank_tf","startTime":0.001,"endTime":3.001,"origin":{"longitude":126.7060542311238,"latitude":37.61972000390273},"parameters":{"destination":"reserve-west-green"},"phases":["move"],"executionMode":"visualization_only","outcome":"not_adjudicated"},
+    {"actionSequence":8,"action":"Move","visualizationId":"move","unitId":"unit-72a28620-9852-437e-a730-2e0d4bdae88d","actor":"southern_mech_bde","startTime":0.001,"endTime":3.001,"origin":{"longitude":126.71036650722112,"latitude":37.62130679239392},"parameters":{"destination":"pl-amber-west"},"phases":["move"],"executionMode":"visualization_only","outcome":"not_adjudicated"},
+    {"actionSequence":9,"action":"Observe","visualizationId":"observe","unitId":"unit-2b60ad90-5b40-4471-95c0-5d896df8f024","actor":"division_tcf","startTime":2.011,"endTime":4.011,"origin":{"longitude":126.70327816282787,"latitude":37.620117784945094},"parameters":{"target":"METRO CITY"},"phases":["observe"],"executionMode":"visualization_only","outcome":"not_adjudicated"},
+    {"actionSequence":10,"action":"Establish Security","visualizationId":"security","unitId":"unit-c2f1bdaf-2ebe-4948-924b-7aed74ae0c9b","actor":"div_cavalry_sqn","startTime":3.011,"endTime":5.011,"origin":{"longitude":126.71550352893473,"latitude":37.632379221671215},"parameters":{"target":"north-screen-line"},"phases":["security"],"executionMode":"visualization_only","outcome":"not_adjudicated"},
+    {"actionSequence":11,"action":"Disrupt","visualizationId":"disrupt","unitId":"unit-2c6e7377-2725-43cb-b459-5504a732cb93","actor":"division_deep_operations","startTime":3.012,"endTime":6.012,"origin":{"longitude":126.71267043919858,"latitude":37.62536881758497},"parameters":{"target":"enemy-tank-bn-west-town"},"phases":["disrupt"],"executionMode":"visualization_only","outcome":"not_adjudicated"},
+    {"actionSequence":12,"action":"Disrupt","visualizationId":"disrupt","unitId":"unit-8b469639-5539-4c33-b54c-47084c56c078","actor":"division_fires","startTime":3.012,"endTime":6.012,"origin":{"longitude":126.70972136355351,"latitude":37.627196439939496},"parameters":{"target":"enemy-artillery-pop"},"phases":["disrupt"],"executionMode":"visualization_only","outcome":"not_adjudicated"},
+    {"actionSequence":13,"action":"Observe","visualizationId":"observe","unitId":"unit-febbfdb9-a0cc-46fe-a539-df6b087f218e","actor":"northern_mech_bde","startTime":3.012,"endTime":5.012,"origin":{"longitude":126.7177325676339,"latitude":37.63193595568396},"parameters":{"target":"enemy-north-force"},"phases":["observe"],"executionMode":"visualization_only","outcome":"not_adjudicated"},
+    {"actionSequence":14,"action":"Establish Security","visualizationId":"security","unitId":"unit-8a57f394-ae78-4671-b362-26e1b03306bd","actor":"reserve_tank_tf","startTime":3.012,"endTime":5.012,"origin":{"longitude":126.71903971121964,"latitude":37.62041113988825},"parameters":{"target":"reserve-west-green"},"phases":["security"],"executionMode":"visualization_only","outcome":"not_adjudicated"},
+    {"actionSequence":15,"action":"Observe","visualizationId":"observe","unitId":"unit-72a28620-9852-437e-a730-2e0d4bdae88d","actor":"southern_mech_bde","startTime":3.012,"endTime":5.012,"origin":{"longitude":126.71495,"latitude":37.6213},"parameters":{"target":"enemy-inf-reg-minus"},"phases":["observe"],"executionMode":"visualization_only","outcome":"not_adjudicated"},
+    {"actionSequence":16,"action":"Report","visualizationId":"report","unitId":"unit-2b60ad90-5b40-4471-95c0-5d896df8f024","actor":"division_tcf","startTime":4.022,"endTime":5.022,"origin":{"longitude":126.70327816282787,"latitude":37.620117784945094},"parameters":{"result":"c-tcf-ready"},"phases":["report"],"executionMode":"visualization_only","outcome":"not_adjudicated"},
+    {"actionSequence":17,"action":"Observe","visualizationId":"observe","unitId":"unit-c2f1bdaf-2ebe-4948-924b-7aed74ae0c9b","actor":"div_cavalry_sqn","startTime":5.022,"endTime":7.022,"origin":{"longitude":126.71550352893473,"latitude":37.632379221671215},"parameters":{"target":"enemy-north-force"},"phases":["observe"],"executionMode":"visualization_only","outcome":"not_adjudicated"},
+    {"actionSequence":18,"action":"Identify","visualizationId":"identify","unitId":"unit-febbfdb9-a0cc-46fe-a539-df6b087f218e","actor":"northern_mech_bde","startTime":5.023,"endTime":6.023,"origin":{"longitude":126.7177325676339,"latitude":37.63193595568396},"parameters":{"target":"enemy-north-force"},"phases":["identify"],"executionMode":"visualization_only","outcome":"not_adjudicated"},
+    {"actionSequence":19,"action":"Confirm","visualizationId":"confirm","unitId":"unit-8a57f394-ae78-4671-b362-26e1b03306bd","actor":"reserve_tank_tf","startTime":5.023,"endTime":6.023,"origin":{"longitude":126.71903971121964,"latitude":37.62041113988825},"parameters":{"target":"reserve-status"},"phases":["confirm"],"executionMode":"visualization_only","outcome":"not_adjudicated"},
+    {"actionSequence":20,"action":"Identify","visualizationId":"identify","unitId":"unit-72a28620-9852-437e-a730-2e0d4bdae88d","actor":"southern_mech_bde","startTime":5.023,"endTime":6.023,"origin":{"longitude":126.71495,"latitude":37.6213},"parameters":{"target":"enemy-inf-reg-minus"},"phases":["identify"],"executionMode":"visualization_only","outcome":"not_adjudicated"},
+    {"actionSequence":21,"action":"Disrupt","visualizationId":"disrupt","unitId":"unit-2c6e7377-2725-43cb-b459-5504a732cb93","actor":"division_deep_operations","startTime":6.023,"endTime":9.023,"origin":{"longitude":126.71267043919858,"latitude":37.62536881758497},"parameters":{"target":"enemy-tank-reg-east-town"},"phases":["disrupt"],"executionMode":"visualization_only","outcome":"not_adjudicated"},
+    {"actionSequence":22,"action":"Disrupt","visualizationId":"disrupt","unitId":"unit-8b469639-5539-4c33-b54c-47084c56c078","actor":"division_fires","startTime":6.023,"endTime":9.023,"origin":{"longitude":126.70972136355351,"latitude":37.627196439939496},"parameters":{"target":"uncommitted-enemy-forces"},"phases":["disrupt"],"executionMode":"visualization_only","outcome":"not_adjudicated"},
+    {"actionSequence":23,"action":"Integrate","visualizationId":"integrate","unitId":"unit-72a28620-9852-437e-a730-2e0d4bdae88d","actor":"southern_mech_bde","startTime":6.033,"endTime":7.033,"origin":{"longitude":126.71495,"latitude":37.6213},"parameters":{"support":"fires-and-artillery"},"phases":["integrate"],"executionMode":"visualization_only","outcome":"not_adjudicated"},
+    {"actionSequence":24,"action":"Engage","visualizationId":"engage","unitId":"unit-febbfdb9-a0cc-46fe-a539-df6b087f218e","actor":"northern_mech_bde","startTime":6.034,"endTime":8.034,"origin":{"longitude":126.7177325676339,"latitude":37.63193595568396},"parameters":{"target":"enemy-north-force"},"phases":["engage"],"executionMode":"visualization_only","outcome":"not_adjudicated"},
+    {"actionSequence":25,"action":"Decide","visualizationId":"decide","unitId":"unit-8a57f394-ae78-4671-b362-26e1b03306bd","actor":"reserve_tank_tf","startTime":6.034,"endTime":7.034,"origin":{"longitude":126.71903971121964,"latitude":37.62041113988825},"parameters":{"decision":"reserve-not-committed"},"phases":["decide"],"executionMode":"visualization_only","outcome":"not_adjudicated"},
+    {"actionSequence":26,"action":"Report","visualizationId":"report","unitId":"unit-c2f1bdaf-2ebe-4948-924b-7aed74ae0c9b","actor":"div_cavalry_sqn","startTime":7.034,"endTime":8.034,"origin":{"longitude":126.71550352893473,"latitude":37.632379221671215},"parameters":{"result":"c-cav-screening"},"phases":["report"],"executionMode":"visualization_only","outcome":"not_adjudicated"},
+    {"actionSequence":27,"action":"Engage","visualizationId":"engage","unitId":"unit-72a28620-9852-437e-a730-2e0d4bdae88d","actor":"southern_mech_bde","startTime":7.044,"endTime":9.044,"origin":{"longitude":126.71495,"latitude":37.6213},"parameters":{"target":"enemy-inf-reg-minus"},"phases":["engage"],"executionMode":"visualization_only","outcome":"not_adjudicated"},
+    {"actionSequence":28,"action":"Contain","visualizationId":"contain","unitId":"unit-febbfdb9-a0cc-46fe-a539-df6b087f218e","actor":"northern_mech_bde","startTime":8.044,"endTime":11.044,"origin":{"longitude":126.7177325676339,"latitude":37.63193595568396},"parameters":{"target":"enemy-north-force"},"phases":["contain"],"executionMode":"visualization_only","outcome":"not_adjudicated"},
+    {"actionSequence":29,"action":"Report","visualizationId":"report","unitId":"unit-2c6e7377-2725-43cb-b459-5504a732cb93","actor":"division_deep_operations","startTime":9.034,"endTime":10.034,"origin":{"longitude":126.71267043919858,"latitude":37.62536881758497},"parameters":{"result":"c-deep-ops-reported"},"phases":["report"],"executionMode":"visualization_only","outcome":"not_adjudicated"},
+    {"actionSequence":30,"action":"Report","visualizationId":"report","unitId":"unit-8b469639-5539-4c33-b54c-47084c56c078","actor":"division_fires","startTime":9.034,"endTime":10.034,"origin":{"longitude":126.70972136355351,"latitude":37.627196439939496},"parameters":{"result":"c-fires-reported"},"phases":["report"],"executionMode":"visualization_only","outcome":"not_adjudicated"},
+    {"actionSequence":31,"action":"Fight","visualizationId":"fight","unitId":"unit-72a28620-9852-437e-a730-2e0d4bdae88d","actor":"southern_mech_bde","startTime":9.054,"endTime":12.054,"origin":{"longitude":126.71495,"latitude":37.6213},"parameters":{"target":"enemy-inf-reg-minus"},"phases":["fight"],"executionMode":"visualization_only","outcome":"not_adjudicated"},
+    {"actionSequence":32,"action":"Continue to Engage","visualizationId":"continue","unitId":"unit-febbfdb9-a0cc-46fe-a539-df6b087f218e","actor":"northern_mech_bde","startTime":11.054,"endTime":14.054,"origin":{"longitude":126.7177325676339,"latitude":37.63193595568396},"parameters":{"target":"enemy-north-force"},"phases":["continue"],"executionMode":"visualization_only","outcome":"not_adjudicated"},
+    {"actionSequence":33,"action":"Breach","visualizationId":"breach","unitId":"unit-72a28620-9852-437e-a730-2e0d4bdae88d","actor":"southern_mech_bde","startTime":12.064,"endTime":14.064,"origin":{"longitude":126.71495,"latitude":37.6213},"parameters":{"target":"pl-amber"},"phases":["breach"],"executionMode":"visualization_only","outcome":"not_adjudicated"},
+    {"actionSequence":34,"action":"Report","visualizationId":"report","unitId":"unit-febbfdb9-a0cc-46fe-a539-df6b087f218e","actor":"northern_mech_bde","startTime":14.064,"endTime":15.064,"origin":{"longitude":126.7177325676339,"latitude":37.63193595568396},"parameters":{"result":"c-north-reported"},"phases":["report"],"executionMode":"visualization_only","outcome":"not_adjudicated"},
+    {"actionSequence":35,"action":"Move","visualizationId":"move","unitId":"unit-72a28620-9852-437e-a730-2e0d4bdae88d","actor":"southern_mech_bde","startTime":14.074,"endTime":17.074,"origin":{"longitude":126.71495,"latitude":37.6213},"parameters":{"destination":"pl-amber-east"},"phases":["move"],"executionMode":"visualization_only","outcome":"not_adjudicated"},
+    {"actionSequence":36,"action":"Establish Security","visualizationId":"security","unitId":"unit-72a28620-9852-437e-a730-2e0d4bdae88d","actor":"southern_mech_bde","startTime":17.084,"endTime":19.084,"origin":{"longitude":126.718,"latitude":37.6213},"parameters":{"target":"passage"},"phases":["security"],"executionMode":"visualization_only","outcome":"not_adjudicated"},
+    {"actionSequence":37,"action":"Integrate","visualizationId":"integrate","unitId":"unit-70c5eeb0-077b-4936-b59c-f9402f438ade","actor":"main_effort_tank_bde","startTime":19.094,"endTime":20.094,"origin":{"longitude":126.7149,"latitude":37.6254},"parameters":{"support":"passage-and-deep-ops"},"phases":["integrate"],"executionMode":"visualization_only","outcome":"not_adjudicated"},
+    {"actionSequence":38,"action":"Report","visualizationId":"report","unitId":"unit-72a28620-9852-437e-a730-2e0d4bdae88d","actor":"southern_mech_bde","startTime":19.095,"endTime":20.095,"origin":{"longitude":126.718,"latitude":37.6213},"parameters":{"result":"c-south-reported"},"phases":["report"],"executionMode":"visualization_only","outcome":"not_adjudicated"},
+    {"actionSequence":39,"action":"Move","visualizationId":"move","unitId":"unit-70c5eeb0-077b-4936-b59c-f9402f438ade","actor":"main_effort_tank_bde","startTime":20.105,"endTime":23.105,"origin":{"longitude":126.7149,"latitude":37.6254},"parameters":{"destination":"pl-amber-east"},"phases":["move"],"executionMode":"visualization_only","outcome":"not_adjudicated"},
+    {"actionSequence":40,"action":"Integrate","visualizationId":"integrate","unitId":"unit-70c5eeb0-077b-4936-b59c-f9402f438ade","actor":"main_effort_tank_bde","startTime":23.115,"endTime":24.115,"origin":{"longitude":126.7164,"latitude":37.6253},"parameters":{"support":"deep-fires"},"phases":["integrate"],"executionMode":"visualization_only","outcome":"not_adjudicated"},
+    {"actionSequence":41,"action":"Integrate","visualizationId":"integrate","unitId":"unit-8a57f394-ae78-4671-b362-26e1b03306bd","actor":"reserve_tank_tf","startTime":23.115,"endTime":24.115,"origin":{"longitude":126.71903971121964,"latitude":37.62041113988825},"parameters":{"support":"follow-main-authorized"},"phases":["integrate"],"executionMode":"visualization_only","outcome":"not_adjudicated"},
+    {"actionSequence":42,"action":"Move","visualizationId":"move","unitId":"unit-70c5eeb0-077b-4936-b59c-f9402f438ade","actor":"main_effort_tank_bde","startTime":24.125,"endTime":27.125,"origin":{"longitude":126.7164,"latitude":37.6253},"parameters":{"destination":"obj-slam-area"},"phases":["move"],"executionMode":"visualization_only","outcome":"not_adjudicated"},
+    {"actionSequence":43,"action":"Move","visualizationId":"move","unitId":"unit-8a57f394-ae78-4671-b362-26e1b03306bd","actor":"reserve_tank_tf","startTime":24.126,"endTime":27.126,"origin":{"longitude":126.71903971121964,"latitude":37.62041113988825},"parameters":{"destination":"main-follow-pos"},"phases":["move"],"executionMode":"visualization_only","outcome":"not_adjudicated"},
+    {"actionSequence":44,"action":"Observe","visualizationId":"observe","unitId":"unit-70c5eeb0-077b-4936-b59c-f9402f438ade","actor":"main_effort_tank_bde","startTime":27.136,"endTime":29.136,"origin":{"longitude":126.72125,"latitude":37.62505},"parameters":{"target":"enemy-obj-slam-defense"},"phases":["observe"],"executionMode":"visualization_only","outcome":"not_adjudicated"},
+    {"actionSequence":45,"action":"Establish Security","visualizationId":"security","unitId":"unit-8a57f394-ae78-4671-b362-26e1b03306bd","actor":"reserve_tank_tf","startTime":27.137,"endTime":29.137,"origin":{"longitude":126.72096892192144,"latitude":37.62387388299078},"parameters":{"target":"main-follow-pos"},"phases":["security"],"executionMode":"visualization_only","outcome":"not_adjudicated"},
+    {"actionSequence":46,"action":"Identify","visualizationId":"identify","unitId":"unit-70c5eeb0-077b-4936-b59c-f9402f438ade","actor":"main_effort_tank_bde","startTime":29.147,"endTime":30.147,"origin":{"longitude":126.72125,"latitude":37.62505},"parameters":{"target":"enemy-obj-slam-defense"},"phases":["identify"],"executionMode":"visualization_only","outcome":"not_adjudicated"},
+    {"actionSequence":47,"action":"Report","visualizationId":"report","unitId":"unit-8a57f394-ae78-4671-b362-26e1b03306bd","actor":"reserve_tank_tf","startTime":29.148,"endTime":30.148,"origin":{"longitude":126.72096892192144,"latitude":37.62387388299078},"parameters":{"result":"c-reserve-reported"},"phases":["report"],"executionMode":"visualization_only","outcome":"not_adjudicated"},
+    {"actionSequence":48,"action":"Engage","visualizationId":"engage","unitId":"unit-70c5eeb0-077b-4936-b59c-f9402f438ade","actor":"main_effort_tank_bde","startTime":30.158,"endTime":32.158,"origin":{"longitude":126.72125,"latitude":37.62505},"parameters":{"target":"enemy-obj-slam-defense"},"phases":["engage"],"executionMode":"visualization_only","outcome":"not_adjudicated"},
+    {"actionSequence":49,"action":"Fight","visualizationId":"fight","unitId":"unit-70c5eeb0-077b-4936-b59c-f9402f438ade","actor":"main_effort_tank_bde","startTime":32.168,"endTime":35.168,"origin":{"longitude":126.72125,"latitude":37.62505},"parameters":{"target":"enemy-obj-slam-defense"},"phases":["fight"],"executionMode":"visualization_only","outcome":"not_adjudicated"},
+    {"actionSequence":50,"action":"Seize","visualizationId":"seize","unitId":"unit-70c5eeb0-077b-4936-b59c-f9402f438ade","actor":"main_effort_tank_bde","startTime":35.178,"endTime":37.178,"origin":{"longitude":126.72125,"latitude":37.62505},"parameters":{"target":"obj-slam"},"phases":["seize"],"executionMode":"visualization_only","outcome":"not_adjudicated"},
+    {"actionSequence":51,"action":"Confirm Control","visualizationId":"control","unitId":"unit-70c5eeb0-077b-4936-b59c-f9402f438ade","actor":"main_effort_tank_bde","startTime":37.188,"endTime":38.188,"origin":{"longitude":126.72125,"latitude":37.62505},"parameters":{"target":"obj-slam"},"phases":["control"],"executionMode":"visualization_only","outcome":"not_adjudicated"},
+    {"actionSequence":52,"action":"Report","visualizationId":"report","unitId":"unit-70c5eeb0-077b-4936-b59c-f9402f438ade","actor":"main_effort_tank_bde","startTime":38.198,"endTime":39.198,"origin":{"longitude":126.72125,"latitude":37.62505},"parameters":{"result":"c-main-reported"},"phases":["report"],"executionMode":"visualization_only","outcome":"not_adjudicated"}
+  ],
+  "events": []
+}

@@ -1,4 +1,4 @@
-import moveSimulationResult from '../../../mocks/moveSimulationResult.json';
+import moveSimulationResult from '../../../fixtures/alphaDeploymentTfdSimulationResult.json';
 import type { DeploymentSetup, SimulationResult, SimulationUnit } from '../../../types';
 import { getUnitSidc } from './sidc';
 
@@ -66,14 +66,15 @@ export function getSimulationResultUnits(simulationResult: SimulationResult, dep
     }
   }
   return tracks.map((track, index) => {
+    const deploymentUnit = deployment?.units.find((unit) => unit.id === track.unitId);
     const metadata = actorLabels[track.actor] ?? actorLabels.alpha_coy;
     const firstPosition = track.segments[0]?.keyframes[0]?.position ?? simulationResult.actionEffects?.find(e => e.unitId === track.unitId)?.origin;
 
     return {
       id: track.unitId,
-      name: metadata.name,
-      allegiance: 'Friendly',
-      type: metadata.type,
+      name: deploymentUnit?.designation || metadata.name,
+      allegiance: deploymentUnit?.affiliation === 'enemy' ? 'Enemy' : 'Friendly',
+      type: deploymentUnit?.symbolLabel ?? metadata.type,
       status: metadata.status,
       combatPower: metadata.combatPower,
       currentOrder: metadata.currentOrder,
@@ -84,7 +85,10 @@ export function getSimulationResultUnits(simulationResult: SimulationResult, dep
       icon: metadata.icon,
       timeline: metadata.timeline,
       log: metadata.log,
-      sidc: actorSidc[track.actor],
+      // Engine actors are scenario identifiers, whereas map symbols are owned by
+      // the Deployment unit IDs. Prefer the latter so arbitrary plan actors render.
+      sidc: deploymentUnit?.sidc ?? actorSidc[track.actor],
+      symbolStandard: deploymentUnit?.symbolStandard,
       symbolScale: symbolScaleByUnitId.get(track.unitId) ?? 1,
       symbolRotation: deployment?.units.find(unit => unit.id === track.unitId)?.symbolRotation ?? 0,
       geographicPosition: firstPosition,
