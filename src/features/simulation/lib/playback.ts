@@ -53,11 +53,17 @@ export function getPositionAtTime(track: SimulationUnitTrack, simulationTime: nu
 }
 
 export function getTrackPositionsAtTime(result: SimulationResult, simulationTime: number) {
-  return result.unitTracks.map((track) => ({
+  const positions = result.unitTracks.map((track) => ({
     unitId: track.unitId,
     actor: track.actor,
     position: getPositionAtTime(track, simulationTime),
   }));
+  for (const effect of result.actionEffects ?? []) {
+    if (!positions.some(position => position.unitId === effect.unitId)) {
+      positions.push({ unitId: effect.unitId, actor: effect.actor, position: effect.origin });
+    }
+  }
+  return positions;
 }
 
 export function getEventsAtTime(result: SimulationResult, simulationTime: number): SimulationResultEvent[] {

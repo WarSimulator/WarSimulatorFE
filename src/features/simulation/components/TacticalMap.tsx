@@ -200,17 +200,10 @@ export function TacticalMap({ runtime, units, result, onSelectUnit }: TacticalMa
       return;
     }
 
-    let animationFrameId = 0;
-    const pulse = (timestamp: number) => {
-      const phase = (Math.sin((timestamp / 1_400) * Math.PI * 2) + 1) / 2;
-      map.setPaintProperty('observation-sector-fill', 'fill-opacity', 0.08 + phase * 0.12);
-      map.setPaintProperty('observation-sector-outline', 'line-opacity', 0.45 + phase * 0.25);
-      animationFrameId = window.requestAnimationFrame(pulse);
-    };
-
-    animationFrameId = window.requestAnimationFrame(pulse);
-    return () => window.cancelAnimationFrame(animationFrameId);
-  }, [mapReady, observationSectorFeatures.features.length]);
+    const phase = (Math.sin(runtime.simulationTime * Math.PI / 2) + 1) / 2;
+    map.setPaintProperty('observation-sector-fill', 'fill-opacity', 0.08 + phase * 0.12);
+    map.setPaintProperty('observation-sector-outline', 'line-opacity', 0.45 + phase * 0.25);
+  }, [mapReady, observationSectorFeatures.features.length, runtime.simulationTime]);
 
   useEffect(() => {
     if (!mapReady || !mapRef.current) {

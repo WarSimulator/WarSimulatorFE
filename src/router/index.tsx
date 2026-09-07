@@ -1,3 +1,4 @@
+import { AtomicActionLibraryPage } from '../features/simulation/pages/AtomicActionLibraryPage';
 import { createBrowserRouter, Navigate } from 'react-router-dom';
 import { AppLayout } from '../components/layout/AppLayout';
 import { WorkspacePage } from '../pages/WorkspacePage';
@@ -18,6 +19,7 @@ export const router = createBrowserRouter([
       { path: '/mett/:id', element: <MettEditorPage /> },
       { path: '/simulations', element: <Navigate to="/simulations/setup" replace /> },
       { path: '/simulations/setup', element: <SimulationSetupPage /> },
+      { path: '/simulations/actions', element: <AtomicActionLibraryPage /> },
       { path: '/simulations/library', element: <SimulationLibraryPage /> },
       { path: '/simulations/:simulationId', element: <SimulationDetailPage /> },
     ],

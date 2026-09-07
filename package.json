@@ -11,10 +11,12 @@
     "test:symbols": "node scripts/test-symbol-catalog.mjs",
     "generate:tasks": "node scripts/generate-tactical-tasks.mjs",
     "test:tasks": "node scripts/test-tactical-tasks.mjs",
-    "test:rotation": "node scripts/test-graphic-rotation.mjs"
+    "test:rotation": "node scripts/test-graphic-rotation.mjs",
+    "postinstall": "node scripts/patch-tactical-renderer.mjs"
   },
   "dependencies": {
     "@armyc2.c5isr.renderer/mil-sym-ts-web": "^2.10.4",
+    "@atlas/atomic-actions": "file:../AtomicActionVisualizer",
     "@mapbox/mapbox-gl-draw": "^1.5.1",
     "@vitejs/plugin-react": "^5.0.0",
     "autoprefixer": "^10.4.21",

@@ -1,56 +1,11 @@
 import type { ObservationEffect, SimulationResult } from '../../../types';
 
-const EARTH_RADIUS_METERS = 6_371_008.8;
-const ARC_SEGMENTS = 32;
+import { observationPolygon } from '@atlas/atomic-actions';
+export { destinationPoint } from '@atlas/atomic-actions';
 
-type ObservationSectorProperties = {
-  actionSequence: number;
-  actor: string;
-  target: string;
-  targetInRange: boolean;
-};
-
-function toRadians(degrees: number) {
-  return (degrees * Math.PI) / 180;
-}
-
-function toDegrees(radians: number) {
-  return (radians * 180) / Math.PI;
-}
-
-export function destinationPoint(
-  longitude: number,
-  latitude: number,
-  bearingDegrees: number,
-  distanceMeters: number,
-): [number, number] {
-  const angularDistance = distanceMeters / EARTH_RADIUS_METERS;
-  const bearing = toRadians(bearingDegrees);
-  const originLatitude = toRadians(latitude);
-  const originLongitude = toRadians(longitude);
-
-  const destinationLatitude = Math.asin(
-    Math.sin(originLatitude) * Math.cos(angularDistance) + Math.cos(originLatitude) * Math.sin(angularDistance) * Math.cos(bearing),
-  );
-  const destinationLongitude = originLongitude + Math.atan2(
-    Math.sin(bearing) * Math.sin(angularDistance) * Math.cos(originLatitude),
-    Math.cos(angularDistance) - Math.sin(originLatitude) * Math.sin(destinationLatitude),
-  );
-
-  return [((toDegrees(destinationLongitude) + 540) % 360) - 180, toDegrees(destinationLatitude)];
-}
+type ObservationSectorProperties = { actionSequence: number; actor: string; target: string; targetInRange: boolean };
 
 export function buildObservationSector(effect: ObservationEffect): GeoJSON.Feature<GeoJSON.Polygon, ObservationSectorProperties> {
-  const leftBearing = effect.direction - effect.fovDegrees / 2;
-  const coordinates: [number, number][] = [[effect.origin.longitude, effect.origin.latitude]];
-
-  for (let index = 0; index <= ARC_SEGMENTS; index += 1) {
-    const bearing = leftBearing + (effect.fovDegrees * index) / ARC_SEGMENTS;
-    coordinates.push(destinationPoint(effect.origin.longitude, effect.origin.latitude, bearing, effect.displayRangeMeters));
-  }
-
-  coordinates.push([effect.origin.longitude, effect.origin.latitude]);
-
   return {
     type: 'Feature',
     id: `observation-${effect.actionSequence}`,
@@ -60,7 +15,7 @@ export function buildObservationSector(effect: ObservationEffect): GeoJSON.Featu
       target: effect.target,
       targetInRange: effect.targetInRange,
     },
-    geometry: { type: 'Polygon', coordinates: [coordinates] },
+    geometry: observationPolygon(effect),
   };
 }
 
@@ -71,6 +26,14 @@ export function getActiveObservationEffects(result: SimulationResult, simulation
 export function toObservationSectorFeatures(result: SimulationResult, simulationTime: number): GeoJSON.FeatureCollection<GeoJSON.Polygon, ObservationSectorProperties> {
   return {
     type: 'FeatureCollection',
-    features: getActiveObservationEffects(result, simulationTime).map(buildObservationSector),
+    features: getActiveObservationEffects(result, simulationTime).flatMap(effect => {
+      const elapsed = simulationTime - effect.startTime;
+      const sweep = buildObservationSector({ ...effect,
+        direction: effect.direction + Math.sin(elapsed * Math.PI / 2) * effect.fovDegrees * 0.43,
+        fovDegrees: Math.min(6, effect.fovDegrees),
+      });
+      sweep.id = `observation-sweep-${effect.actor}-${effect.actionSequence}`;
+      return [buildObservationSector(effect), sweep];
+    }),
   };
 }

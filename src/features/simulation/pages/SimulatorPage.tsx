@@ -1,3 +1,4 @@
+import { AtomicActionView } from '../components/AtomicActionView';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { createInitialRuntimeState, SIMULATION_PLAYBACK_RATE } from '../lib/runtime';
@@ -23,7 +24,7 @@ export function SimulatorPage() {
   const [runtime, setRuntime] = useState(() => ({
     ...createInitialRuntimeState(),
     simulationTime: simulationResult.startTime,
-    selectedUnitId: simulationResult.unitTracks[0]?.unitId ?? '',
+    selectedUnitId: resultUnits[0]?.id ?? '',
     playbackSpeed: 0.5,
   }));
   const [exitDialogOpen, setExitDialogOpen] = useState(false);
@@ -148,7 +149,10 @@ export function SimulatorPage() {
           result={simulationResult}
           onSelectUnit={selectUnit}
         />
-        {selectedUnit && <UnitDetailPanel unit={selectedUnit} />}
+        <aside className="w-[380px] shrink-0 overflow-y-auto border-l border-outline-variant bg-surface p-3">
+          <AtomicActionView result={simulationResult} simulationTime={runtime.simulationTime} unitId={runtime.selectedUnitId} />
+          {selectedUnit && <UnitDetailPanel unit={selectedUnit} />}
+        </aside>
       </div>
 
       <PlaybackControls

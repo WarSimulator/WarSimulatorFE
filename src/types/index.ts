@@ -156,6 +156,22 @@ export type ObservationEffect = {
   displayRangeMeters: number;
 };
 
+export type AtomicActionEffect = {
+  actionSequence: number;
+  action: string;
+  visualizationId: string;
+  unitId: string;
+  actor: string;
+  startTime: number;
+  endTime: number;
+  origin: SimulationResultPosition;
+  parameters: Record<string, unknown>;
+  phases: string[];
+  executionMode: 'visualization_only';
+  outcome: 'not_adjudicated';
+  renderData?: { movement?: SimulationTrackSegment; observation?: ObservationEffect }; 
+};
+
 export type SimulationResult = {
   schemaVersion: '1.0';
   planIndex: number;
@@ -164,6 +180,7 @@ export type SimulationResult = {
   endTime: number;
   unitTracks: SimulationUnitTrack[];
   observationEffects?: ObservationEffect[];
+  actionEffects?: AtomicActionEffect[];
   events: SimulationResultEvent[];
 };
 

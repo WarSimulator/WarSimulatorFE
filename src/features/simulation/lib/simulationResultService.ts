@@ -59,9 +59,15 @@ export function getMoveSimulationResult(): SimulationResult {
 export function getSimulationResultUnits(simulationResult: SimulationResult, deployment?: DeploymentSetup): SimulationUnit[] {
   const symbolScaleByUnitId = new Map(deployment?.units.map((unit) => [unit.id, unit.symbolScale ?? 1]));
 
-  return simulationResult.unitTracks.map((track, index) => {
+  const tracks = [...simulationResult.unitTracks];
+  for (const effect of simulationResult.actionEffects ?? []) {
+    if (!tracks.some(track => track.unitId === effect.unitId)) {
+      tracks.push({ unitId: effect.unitId, actor: effect.actor, startTime: effect.startTime, endTime: effect.endTime, segments: [] });
+    }
+  }
+  return tracks.map((track, index) => {
     const metadata = actorLabels[track.actor] ?? actorLabels.alpha_coy;
-    const firstPosition = track.segments[0]?.keyframes[0]?.position;
+    const firstPosition = track.segments[0]?.keyframes[0]?.position ?? simulationResult.actionEffects?.find(e => e.unitId === track.unitId)?.origin;
 
     return {
       id: track.unitId,

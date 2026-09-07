@@ -218,6 +218,8 @@ export function SimulationSetupPage() {
         </div>
       </div>
 
+      <button className="self-start rounded border border-primary px-4 py-2 text-sm text-primary" onClick={() => navigate('/simulations/actions')}>28개 행동 시각화</button>
+
       <div className="flex shrink-0 items-end justify-between gap-4">
         <MettTcSelector
           documents={documents}
