@@ -1,4 +1,5 @@
-import type { ObservationEffect, SimulationResult } from '../../../types';
+import type { DeploymentSetup, ObservationEffect, SimulationResult } from '../../../types';
+import { getUnitPositionAtTime } from './playback';
 
 import { observationPolygon } from '@atlas/atomic-actions';
 export { destinationPoint } from '@atlas/atomic-actions';
@@ -23,17 +24,23 @@ export function getActiveObservationEffects(result: SimulationResult, simulation
   return (result.observationEffects ?? []).filter((effect) => effect.startTime <= simulationTime && simulationTime < effect.endTime);
 }
 
-export function toObservationSectorFeatures(result: SimulationResult, simulationTime: number): GeoJSON.FeatureCollection<GeoJSON.Polygon, ObservationSectorProperties> {
+export function toObservationSectorFeatures(
+  result: SimulationResult,
+  simulationTime: number,
+  deployment?: DeploymentSetup,
+): GeoJSON.FeatureCollection<GeoJSON.Polygon, ObservationSectorProperties> {
   return {
     type: 'FeatureCollection',
     features: getActiveObservationEffects(result, simulationTime).flatMap(effect => {
       const elapsed = simulationTime - effect.startTime;
-      const sweep = buildObservationSector({ ...effect,
+      const origin = getUnitPositionAtTime(effect.actor, simulationTime, result, deployment) ?? effect.origin;
+      const liveEffect = { ...effect, origin };
+      const sweep = buildObservationSector({ ...liveEffect,
         direction: effect.direction + Math.sin(elapsed * Math.PI / 2) * effect.fovDegrees * 0.43,
         fovDegrees: Math.min(6, effect.fovDegrees),
       });
       sweep.id = `observation-sweep-${effect.actor}-${effect.actionSequence}`;
-      return [buildObservationSector(effect), sweep];
+      return [buildObservationSector(liveEffect), sweep];
     }),
   };
 }

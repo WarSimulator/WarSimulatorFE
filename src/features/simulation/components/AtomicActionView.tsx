@@ -2,8 +2,8 @@ import { useEffect, useMemo, useState } from 'react';
 import { actions, createActionFrame } from '@atlas/atomic-actions';
 import type { SimulationResult } from '../../../types';
 
-type Props = { result?: SimulationResult; simulationTime?: number; unitId?: string };
-export function AtomicActionView({ result, simulationTime = 0, unitId }: Props) {
+type Props = { result?: SimulationResult; simulationTime?: number; unitId?: string; onSelectUnit?: (unitId: string) => void };
+export function AtomicActionView({ result, simulationTime = 0, unitId, onSelectUnit }: Props) {
   const [choice, setChoice] = useState(result ? 'auto' : 'observe');
   const [previewProgress, setPreviewProgress] = useState(0);
   const [playing, setPlaying] = useState(false);
@@ -17,9 +17,17 @@ export function AtomicActionView({ result, simulationTime = 0, unitId }: Props) 
     handle = requestAnimationFrame(tick);
     return () => cancelAnimationFrame(handle);
   }, [result, playing]);
+  const activeEffects = useMemo(() => {
+    if (!result) return [];
+    return (result.actionEffects ?? [])
+      .filter((effect) => effect.startTime <= simulationTime && simulationTime < effect.endTime)
+      .sort((first, second) => first.startTime - second.startTime || first.actionSequence - second.actionSequence);
+  }, [result, simulationTime]);
   const active = useMemo(() => {
     if (!result) return undefined;
-    const effect = result.actionEffects?.find(e => e.unitId === unitId && e.startTime <= simulationTime && simulationTime < e.endTime);
+    // Keep the selected unit first, but never leave the action console empty while
+    // other units are visibly executing actions on the map.
+    const effect = activeEffects.find((item) => item.unitId === unitId) ?? activeEffects[0];
     if (effect) return effect;
     const track = result.unitTracks.find(t => t.unitId === unitId);
     if (!track) return undefined;
@@ -27,7 +35,7 @@ export function AtomicActionView({ result, simulationTime = 0, unitId }: Props) 
     if (observation) return { action: observation.action, startTime: observation.startTime, endTime: observation.endTime, renderData: { observation } };
     const segment = track.segments.find(s => s.startTime <= simulationTime && simulationTime < s.endTime);
     return segment ? { ...segment, renderData: { movement: segment } } : undefined;
-  }, [result, simulationTime, unitId]);
+  }, [activeEffects, result, simulationTime, unitId]);
   const progress = result ? automatic && active
     ? (simulationTime - active.startTime) / Math.max(.001, active.endTime - active.startTime)
     : (simulationTime - result.startTime) / Math.max(.001, result.endTime - result.startTime)
@@ -41,7 +49,13 @@ export function AtomicActionView({ result, simulationTime = 0, unitId }: Props) 
         {actions.map(a => <option key={a.id} value={a.id}>{a.name} · {a.ko}</option>)}
       </select>
     </div>
-    <p className="my-3 text-sm text-on-surface-variant">{automatic && (active?.renderData?.movement || active?.renderData?.observation) ? '실제 결과 데이터 · 화면에 맞춘 축척' : automatic ? '선택 부대의 행동과 재생 시간에 연동한 개념 장면' : '28개 행동 예시 미리보기'} · 결과 판정 아님{result && !automatic ? ' · 하단 타임라인으로 재생' : ''}</p>
+    <p className="my-3 text-sm text-on-surface-variant">{automatic && (active?.renderData?.movement || active?.renderData?.observation) ? '실제 결과 데이터 · 화면에 맞춘 축척' : automatic ? '지도에서 진행 중인 행동 연동' : '28개 행동 예시 미리보기'} · 결과 판정 아님{result && !automatic ? ' · 하단 타임라인으로 재생' : ''}</p>
+    {automatic && result && <div className="mb-3 flex flex-wrap gap-1.5">
+      {activeEffects.length > 0 ? activeEffects.map((effect) => <button key={effect.actionSequence} type="button" onClick={() => onSelectUnit?.(effect.unitId)} className={`rounded border px-2 py-1 text-xs ${effect.unitId === unitId ? 'border-primary bg-primary/15 text-primary' : 'border-outline-variant text-on-surface-variant'}`}>
+        {effect.actor} · {effect.action}
+      </button>) : <span className="text-xs text-on-surface-variant">현재 진행 중인 행동 없음</span>}
+    </div>}
+    {automatic && active && <p className="mb-2 font-data-mono text-xs text-secondary">NOW · {('actor' in active ? active.actor : undefined) ?? 'UNKNOWN'} · {active.action}</p>}
     {frame ? <>
       <svg viewBox="0 0 1000 650" role="img" aria-label={`${frame.definition.name}: ${frame.title}`} className="w-full rounded [&_text]:fill-slate-200 [&_text]:text-[16px]" dangerouslySetInnerHTML={{ __html: frame.svg }} />
       <h4 className="mt-3 text-base text-primary">{frame.phase + 1}/4 · {frame.title}</h4>

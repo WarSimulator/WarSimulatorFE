@@ -1,0 +1,24 @@
+{
+  "id": "pipeline-alpha-deployment",
+  "name": "Pipeline Alpha Deployment",
+  "units": [
+    {"id":"unit-main","designation":"main-tank-bde","affiliation":"friendly","sidc":"SFGPUCA----F---","symbolStandard":"2525","symbolScale":0.7,"position":{"longitude":126.7054,"latitude":37.6268}},
+    {"id":"unit-south","designation":"south-mech-bde","affiliation":"friendly","sidc":"SFGPUCIZ---F---","symbolStandard":"2525","symbolScale":0.7,"position":{"longitude":126.7104,"latitude":37.6213}},
+    {"id":"unit-fires","designation":"div-fires","affiliation":"friendly","sidc":"SFGPUCF----F---","symbolStandard":"2525","symbolScale":0.7,"position":{"longitude":126.7097,"latitude":37.6272}},
+    {"id":"unit-tcf","designation":"div-tcf-team","affiliation":"friendly","sidc":"SFGPUCIZ---E---","symbolStandard":"2525","symbolScale":0.65,"position":{"longitude":126.7033,"latitude":37.6201}},
+    {"id":"unit-enemy-infantry","designation":"enemy-infantry-reg","affiliation":"enemy","sidc":"SHGPUCIZ---F---","symbolStandard":"2525","symbolScale":0.7,"position":{"longitude":126.7197,"latitude":37.6223}},
+    {"id":"unit-enemy-armor","designation":"enemy-objective-defense","affiliation":"enemy","sidc":"SHGPUCA----F---","symbolStandard":"2525","symbolScale":0.7,"position":{"longitude":126.7218,"latitude":37.6250}}
+  ],
+  "tacticalGraphics": [
+    {"id":"graphic-amber","type":"phase-line","name":"pl-amber-west","geometry":{"type":"LineString","coordinates":[[126.7149,37.6339],[126.7149,37.6165]]}},
+    {"id":"graphic-amber-east","type":"phase-line","name":"pl-amber-east","geometry":{"type":"LineString","coordinates":[[126.7165,37.6339],[126.7165,37.6165]]}},
+    {"id":"graphic-metro","type":"area","name":"metro-city","geometry":{"type":"Polygon","coordinates":[[[126.7005,37.6255],[126.7049,37.6255],[126.7049,37.6190],[126.7005,37.6190],[126.7005,37.6255]]]}},
+    {"id":"graphic-objective","type":"area","name":"objective-slam","geometry":{"type":"Polygon","coordinates":[[[126.7205,37.6260],[126.7230,37.6260],[126.7230,37.6235],[126.7205,37.6235],[126.7205,37.6260]]]}},
+    {"id":"graphic-breach","type":"phase-line","name":"breach-point","geometry":{"type":"LineString","coordinates":[[126.7151,37.6221],[126.7151,37.6205]]}},
+    {"id":"graphic-enemy-screen","type":"phase-line","name":"enemy-screen-line","geometry":{"type":"LineString","coordinates":[[126.7178,37.6254],[126.7178,37.6185]]}},
+    {"id":"graphic-enemy-bp","type":"area","name":"enemy-battle-position","geometry":{"type":"Polygon","coordinates":[[[126.7180,37.6238],[126.7192,37.6238],[126.7192,37.6226],[126.7180,37.6226],[126.7180,37.6238]]]}},
+    {"id":"graphic-objective-approach","type":"phase-line","name":"objective-approach","geometry":{"type":"LineString","coordinates":[[126.7196,37.6263],[126.7196,37.6232]]}},
+    {"id":"graphic-enemy-rear","type":"phase-line","name":"enemy-rear-assembly","geometry":{"type":"LineString","coordinates":[[126.7248,37.6267],[126.7248,37.6200]]}}
+  ],
+  "mapView":{"center":[126.714,37.624],"zoom":14}
+}

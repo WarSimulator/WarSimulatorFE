@@ -7,6 +7,7 @@ export const OBJECTIVE_SOURCE_ID = 'deployment-objectives';
 export const GRAPHICS_SOURCE_ID = 'deployment-graphics';
 export const AXIS_ARROW_SOURCE_ID = 'deployment-axis-arrows';
 export const OBSERVATION_SECTOR_SOURCE_ID = 'observation-sector-source';
+export const ACTION_EFFECT_SOURCE_ID = 'action-effect-source';
 
 export function addDeploymentSourcesAndLayers(map: MapLibreMap) {
   map.addSource(UNIT_SOURCE_ID, { type: 'geojson', data: { type: 'FeatureCollection', features: [] } });
@@ -14,6 +15,7 @@ export function addDeploymentSourcesAndLayers(map: MapLibreMap) {
   map.addSource(GRAPHICS_SOURCE_ID, { type: 'geojson', data: { type: 'FeatureCollection', features: [] } });
   map.addSource(AXIS_ARROW_SOURCE_ID, { type: 'geojson', data: { type: 'FeatureCollection', features: [] } });
   map.addSource(OBSERVATION_SECTOR_SOURCE_ID, { type: 'geojson', data: { type: 'FeatureCollection', features: [] } });
+  map.addSource(ACTION_EFFECT_SOURCE_ID, { type: 'geojson', data: { type: 'FeatureCollection', features: [] } });
 
   map.addSource(TASK_SOURCE_ID, { type: 'geojson', data: { type: 'FeatureCollection', features: [] } });
   map.addLayer({ id: 'task-fill', type: 'fill', source: TASK_SOURCE_ID,
@@ -39,6 +41,16 @@ export function addDeploymentSourcesAndLayers(map: MapLibreMap) {
     source: GRAPHICS_SOURCE_ID,
     filter: ['==', ['get', 'type'], 'area'],
     paint: { 'fill-color': '#ffb95f', 'fill-opacity': 0.12 },
+  });
+  map.addLayer({
+    id: 'action-effect-lines', type: 'line', source: ACTION_EFFECT_SOURCE_ID,
+    filter: ['==', ['get', 'kind'], 'action-line'],
+    paint: { 'line-color': ['get', 'color'], 'line-width': 3, 'line-opacity': 0.9, 'line-dasharray': [2, 1] },
+  });
+  map.addLayer({
+    id: 'action-effect-markers', type: 'circle', source: ACTION_EFFECT_SOURCE_ID,
+    filter: ['==', ['get', 'kind'], 'action-marker'],
+    paint: { 'circle-radius': ['get', 'radius'], 'circle-color': ['get', 'color'], 'circle-opacity': 0.28, 'circle-stroke-color': ['get', 'color'], 'circle-stroke-width': 2 },
   });
   map.addLayer({
     id: 'deployment-area-line',

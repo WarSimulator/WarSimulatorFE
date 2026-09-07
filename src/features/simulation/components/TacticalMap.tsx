@@ -3,14 +3,17 @@ import * as maplibregl from 'maplibre-gl';
 import type { GeoJSONSource, Map as MapLibreMap } from 'maplibre-gl';
 import 'maplibre-gl/dist/maplibre-gl.css';
 import { Icon } from '../../../components/layout/Icon';
-import type { SimulationResult, SimulationRuntimeState, SimulationUnit } from '../../../types';
+import type { DeploymentSetup, SimulationResult, SimulationRuntimeState, SimulationUnit } from '../../../types';
 import { createDefaultMapStyle, DEFAULT_MAP_CENTER, DEFAULT_MAP_ZOOM, getMapStyleUrl } from '../lib/mapConfig';
 import { ensureAxisArrowImage, ensureMilitarySymbolImage, ensureObjectiveImage, getMilitarySymbolImageId } from '../lib/militarySymbolRegistry';
 import { getTrackPositionsAtTime } from '../lib/playback';
 import { toObservationSectorFeatures } from '../lib/observation';
+import { toTacticalGraphicAxisArrowFeatures, toTacticalGraphicFeatureCollection } from '../lib/tacticalGraphics';
+import { resolvePlanReference } from '../lib/planReferenceMapping';
 import {
   addDeploymentSourcesAndLayers,
   AXIS_ARROW_SOURCE_ID,
+  ACTION_EFFECT_SOURCE_ID,
   GRAPHICS_SOURCE_ID,
   OBJECTIVE_SOURCE_ID,
   OBSERVATION_SECTOR_SOURCE_ID,
@@ -21,10 +24,14 @@ type TacticalMapProps = {
   runtime: SimulationRuntimeState;
   units: SimulationUnit[];
   result: SimulationResult;
+  deployment?: DeploymentSetup;
   onSelectUnit: (unitId: string) => void;
 };
 
-function getMapCenter(result: SimulationResult): [number, number] {
+function getMapCenter(result: SimulationResult, deployment?: DeploymentSetup): [number, number] {
+  if (deployment?.mapView?.center) {
+    return deployment.mapView.center;
+  }
   const positions = result.unitTracks.flatMap((track) => track.segments.flatMap((segment) => segment.keyframes.map((keyframe) => keyframe.position)));
   if (positions.length === 0) {
     return DEFAULT_MAP_CENTER;
@@ -48,10 +55,16 @@ function toUnitFeatures(
 ): GeoJSON.FeatureCollection<GeoJSON.Point> {
   const unitById = new Map(units.map((unit) => [unit.id, unit]));
   const positions = getTrackPositionsAtTime(result, simulationTime);
+  const positionedIds = new Set(positions.map(({ unitId }) => unitId));
+  const staticPositions = units.flatMap((unit) => (
+    !positionedIds.has(unit.id) && unit.geographicPosition
+      ? [{ unitId: unit.id, actor: unit.name, position: unit.geographicPosition }]
+      : []
+  ));
 
   return {
     type: 'FeatureCollection',
-    features: positions.flatMap(({ unitId, actor, position }) => {
+    features: [...positions, ...staticPositions].flatMap(({ unitId, actor, position }) => {
       const unit = unitById.get(unitId);
       const sidc = unit?.sidc;
 
@@ -69,7 +82,7 @@ function toUnitFeatures(
             designation: unit.name,
             sidc,
             imageId: getMilitarySymbolImageId(sidc, unit.symbolStandard),
-            affiliation: 'friendly',
+            affiliation: unit.allegiance === 'Enemy' ? 'enemy' : 'friendly',
             unitType: unit.type,
             echelon: 'company',
             symbolScale: unit.symbolScale ?? 1,
@@ -103,16 +116,55 @@ function toRouteFeatures(result: SimulationResult): GeoJSON.FeatureCollection<Ge
   };
 }
 
-export function TacticalMap({ runtime, units, result, onSelectUnit }: TacticalMapProps) {
+type ActionEffectFeatureProperties = { kind: 'action-line' | 'action-marker'; color: string; radius: number; action: string };
+
+function toActionEffectFeatures(
+  result: SimulationResult,
+  simulationTime: number,
+  deployment?: DeploymentSetup,
+): GeoJSON.FeatureCollection<GeoJSON.Geometry, ActionEffectFeatureProperties> {
+  const positions = getTrackPositionsAtTime(result, simulationTime);
+  const colorByAction: Record<string, string> = {
+    Disrupt: '#ff9f43', 'Establish Security': '#5bd4ff', Report: '#a78bfa', Identify: '#b4c5ff', Confirm: '#b4c5ff', Integrate: '#60a5fa',
+    Engage: '#ff5d5d', Decide: '#ffd166', Contain: '#fb923c', Fight: '#ff5d5d', 'Continue to Engage': '#ff7b7b', Breach: '#ffd166',
+    Clear: '#5bd4ff', Seize: '#64e7a2', 'Confirm Control': '#64e7a2',
+  };
+  const features: GeoJSON.Feature<GeoJSON.Geometry, ActionEffectFeatureProperties>[] = [];
+  for (const effect of result.actionEffects ?? []) {
+    if (effect.startTime > simulationTime || simulationTime >= effect.endTime) continue;
+    if (effect.action === 'Move' || effect.action === 'Observe') continue;
+    const target = typeof effect.parameters.target === 'string' ? effect.parameters.target
+      : typeof effect.parameters.effectArea === 'string' ? effect.parameters.effectArea
+        : typeof effect.parameters.result === 'string' ? effect.parameters.result
+          : typeof effect.parameters.recipient === 'string' ? effect.parameters.recipient : undefined;
+    const color = colorByAction[effect.action];
+    if (!color) continue;
+    const origin = positions.find((position) => position.unitId === effect.unitId || position.actor === effect.actor)?.position ?? effect.origin;
+    const targetPosition = target ? positions.find((position) => position.actor === target)?.position ?? resolvePlanReference(deployment, target) : origin;
+    if (!origin || !targetPosition) continue;
+    const elapsed = (simulationTime - effect.startTime) / Math.max(0.01, effect.endTime - effect.startTime);
+    features.push({ type: 'Feature', id: `action-line-${effect.actionSequence}`, properties: { kind: 'action-line', color, radius: 0, action: effect.action }, geometry: { type: 'LineString', coordinates: [[origin.longitude, origin.latitude], [targetPosition.longitude, targetPosition.latitude]] } });
+    features.push({ type: 'Feature', id: `action-marker-${effect.actionSequence}`, properties: { kind: 'action-marker', color, radius: 12 + Math.round(elapsed * 16), action: effect.action }, geometry: { type: 'Point', coordinates: [targetPosition.longitude, targetPosition.latitude] } });
+  }
+  return { type: 'FeatureCollection', features };
+}
+
+export function TacticalMap({ runtime, units, result, deployment, onSelectUnit }: TacticalMapProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<MapLibreMap | null>(null);
   const [mapReady, setMapReady] = useState(false);
   const [mapError, setMapError] = useState(false);
-  const mapCenter = useMemo(() => getMapCenter(result), [result]);
+  const mapCenter = useMemo(() => getMapCenter(result, deployment), [deployment, result]);
   const routeFeatures = useMemo(() => toRouteFeatures(result), [result]);
+  const tacticalGraphicFeatures = useMemo(() => toTacticalGraphicFeatureCollection(deployment), [deployment]);
+  const axisArrowFeatures = useMemo(() => toTacticalGraphicAxisArrowFeatures(deployment), [deployment]);
   const observationSectorFeatures = useMemo(
-    () => toObservationSectorFeatures(result, runtime.simulationTime),
-    [result, runtime.simulationTime],
+    () => toObservationSectorFeatures(result, runtime.simulationTime, deployment),
+    [deployment, result, runtime.simulationTime],
+  );
+  const actionEffectFeatures = useMemo(
+    () => toActionEffectFeatures(result, runtime.simulationTime, deployment),
+    [deployment, result, runtime.simulationTime],
   );
 
   useEffect(() => {
@@ -189,6 +241,12 @@ export function TacticalMap({ runtime, units, result, onSelectUnit }: TacticalMa
   }, [mapReady, observationSectorFeatures]);
 
   useEffect(() => {
+    if (!mapReady || !mapRef.current) return;
+    const source = mapRef.current.getSource(ACTION_EFFECT_SOURCE_ID) as GeoJSONSource | undefined;
+    source?.setData(actionEffectFeatures);
+  }, [actionEffectFeatures, mapReady]);
+
+  useEffect(() => {
     if (!mapReady || !mapRef.current) {
       return;
     }
@@ -215,10 +273,16 @@ export function TacticalMap({ runtime, units, result, onSelectUnit }: TacticalMa
     const objectiveSource = map.getSource(OBJECTIVE_SOURCE_ID) as GeoJSONSource | undefined;
     const axisSource = map.getSource(AXIS_ARROW_SOURCE_ID) as GeoJSONSource | undefined;
 
-    graphicsSource?.setData(runtime.tacticalLayers.routes ? routeFeatures : { type: 'FeatureCollection', features: [] });
+    graphicsSource?.setData({
+      type: 'FeatureCollection',
+      features: [
+        ...tacticalGraphicFeatures.features,
+        ...(runtime.tacticalLayers.routes ? routeFeatures.features : []),
+      ],
+    });
     objectiveSource?.setData({ type: 'FeatureCollection', features: [] });
-    axisSource?.setData({ type: 'FeatureCollection', features: [] });
-  }, [mapReady, routeFeatures, runtime.tacticalLayers.routes]);
+    axisSource?.setData(axisArrowFeatures);
+  }, [axisArrowFeatures, mapReady, routeFeatures, runtime.tacticalLayers.routes, tacticalGraphicFeatures]);
 
   useEffect(() => {
     if (!mapReady || !mapRef.current) {

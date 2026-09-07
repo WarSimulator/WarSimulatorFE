@@ -121,6 +121,13 @@ export type SimulationTrackSegment = {
   source: string;
   destination: string;
   keyframes: SimulationKeyframe[];
+  routing?: {
+    generatedBy?: string;
+    referenceMoveTime?: number;
+    moveDuration?: number;
+    timingMode?: string;
+    timeCompressionRatio?: number;
+  };
 };
 
 export type SimulationUnitTrack = {
@@ -172,6 +179,36 @@ export type AtomicActionEffect = {
   renderData?: { movement?: SimulationTrackSegment; observation?: ObservationEffect }; 
 };
 
+export type EngagementEffect = {
+  actionSequence: number;
+  action: 'Engage';
+  actor: string;
+  target: string;
+  startTime: number;
+  endTime: number;
+};
+
+export type SeizureEffect = {
+  actionSequence: number;
+  action: 'Seize';
+  actor: string;
+  target: string;
+  startTime: number;
+  seizeStartTime: number;
+  endTime: number;
+  moveDuration: number;
+  seizingDuration: number;
+};
+
+export type ControlChange = {
+  actionSequence: number;
+  action: 'Seize';
+  time: number;
+  target: string;
+  controller: 'friendly' | 'enemy';
+  sourceActor: string;
+};
+
 export type SimulationResult = {
   schemaVersion: '1.0';
   planIndex: number;
@@ -180,6 +217,9 @@ export type SimulationResult = {
   endTime: number;
   unitTracks: SimulationUnitTrack[];
   observationEffects?: ObservationEffect[];
+  engagementEffects?: EngagementEffect[];
+  seizureEffects?: SeizureEffect[];
+  controlChanges?: ControlChange[];
   actionEffects?: AtomicActionEffect[];
   events: SimulationResultEvent[];
 };

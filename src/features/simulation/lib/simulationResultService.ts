@@ -1,8 +1,16 @@
-import moveSimulationResult from '../../../fixtures/alphaDeploymentTfdSimulationResult.json';
+import pipelineDeployment from '../../../fixtures/pipelineDeployment.json';
+import pipelineSimulationResult from '../../../fixtures/pipelineSimulationResult.json';
+import alphaLocalStorageDeployment from '../../../fixtures/alphaDeployment.json';
+import alphaLocalStorageSimulationResult from '../../../fixtures/alphaDeploymentTfdSimulationResult.json';
+import engineSimulationResult from '../../../fixtures/engineSimulationResult.json';
+import alphaDeployment from '../../../../deployment.json';
 import type { DeploymentSetup, SimulationResult, SimulationUnit } from '../../../types';
 import { getUnitSidc } from './sidc';
 
-const result = moveSimulationResult as SimulationResult;
+const result = pipelineSimulationResult as SimulationResult;
+const exampleDeployment = pipelineDeployment as DeploymentSetup;
+const alphaDeploymentExample = alphaLocalStorageDeployment as unknown as DeploymentSetup;
+const alphaResultExample = alphaLocalStorageSimulationResult as SimulationResult;
 
 const actorLabels: Record<string, Pick<SimulationUnit, 'name' | 'type' | 'status' | 'combatPower' | 'currentOrder' | 'personnel' | 'ammunition' | 'mobility' | 'icon' | 'timeline' | 'log'>> = {
   alpha_coy: {
@@ -56,6 +64,36 @@ export function getMoveSimulationResult(): SimulationResult {
   return result;
 }
 
+/** Selects between the dynamic demonstration and the exact Alpha localStorage fixture. */
+export function getSimulationResult(simulationId?: string): SimulationResult {
+  return simulationId === 'alpha-localstorage' ? alphaResultExample : result;
+}
+
+/** Returns the paired deployment fixture for the engine-produced example result. */
+export function getSimulationResultDeployment(deploymentId?: string): DeploymentSetup | undefined {
+  if (deploymentId === exampleDeployment.id) return exampleDeployment;
+  if (deploymentId === alphaDeploymentExample.id) return alphaDeploymentExample;
+  return undefined;
+}
+
+/** Compatibility loader for the richer engine fixture used by local renderer checks. */
+export function loadSimulationResult(): SimulationResult {
+  return engineSimulationResult as SimulationResult;
+}
+
+export function loadSimulationDeployment(): DeploymentSetup {
+  return alphaDeployment as unknown as DeploymentSetup;
+}
+
+export function validateSimulationResultReferences(simulationResult: SimulationResult, deployment: DeploymentSetup) {
+  const identifiers = new Set(deployment.units.flatMap((unit) => [unit.id, unit.designation]));
+  for (const track of simulationResult.unitTracks) {
+    if (!identifiers.has(track.unitId) && !identifiers.has(track.actor)) {
+      throw new Error(`Simulation track does not resolve to a deployment unit: ${track.unitId}`);
+    }
+  }
+}
+
 export function getSimulationResultUnits(simulationResult: SimulationResult, deployment?: DeploymentSetup): SimulationUnit[] {
   const symbolScaleByUnitId = new Map(deployment?.units.map((unit) => [unit.id, unit.symbolScale ?? 1]));
 
@@ -65,10 +103,23 @@ export function getSimulationResultUnits(simulationResult: SimulationResult, dep
       tracks.push({ unitId: effect.unitId, actor: effect.actor, startTime: effect.startTime, endTime: effect.endTime, segments: [] });
     }
   }
+  for (const deploymentUnit of deployment?.units ?? []) {
+    if (!tracks.some((track) => track.unitId === deploymentUnit.id)) {
+      tracks.push({
+        unitId: deploymentUnit.id,
+        actor: deploymentUnit.designation,
+        startTime: simulationResult.startTime,
+        endTime: simulationResult.endTime,
+        segments: [],
+      });
+    }
+  }
   return tracks.map((track, index) => {
     const deploymentUnit = deployment?.units.find((unit) => unit.id === track.unitId);
     const metadata = actorLabels[track.actor] ?? actorLabels.alpha_coy;
-    const firstPosition = track.segments[0]?.keyframes[0]?.position ?? simulationResult.actionEffects?.find(e => e.unitId === track.unitId)?.origin;
+    const firstPosition = track.segments[0]?.keyframes[0]?.position
+      ?? simulationResult.actionEffects?.find((effect) => effect.unitId === track.unitId)?.origin
+      ?? deploymentUnit?.position;
 
     return {
       id: track.unitId,

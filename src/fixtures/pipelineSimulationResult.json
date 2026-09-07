@@ -1,0 +1,1055 @@
+{
+  "schemaVersion": "1.0",
+  "planIndex": 0,
+  "deploymentId": "pipeline-alpha-deployment",
+  "startTime": 0.0,
+  "endTime": 25.9,
+  "unitTracks": [
+    {
+      "unitId": "unit-enemy-infantry",
+      "actor": "enemy-infantry-reg",
+      "startTime": 0.0,
+      "endTime": 12.3,
+      "segments": [
+        {
+          "actionSequence": 1,
+          "action": "Move",
+          "startTime": 0.0,
+          "endTime": 3.0,
+          "source": "current_position",
+          "destination": "enemy-screen-line",
+          "keyframes": [
+            {
+              "time": 0.0,
+              "position": {
+                "longitude": 126.7197,
+                "latitude": 37.6223
+              }
+            },
+            {
+              "time": 3.0,
+              "position": {
+                "longitude": 126.7178,
+                "latitude": 37.6223
+              }
+            }
+          ]
+        },
+        {
+          "actionSequence": 10,
+          "action": "Move",
+          "startTime": 9.3,
+          "endTime": 12.3,
+          "source": "current_position",
+          "destination": "enemy-rear-assembly",
+          "keyframes": [
+            {
+              "time": 9.3,
+              "position": {
+                "longitude": 126.7178,
+                "latitude": 37.6223
+              }
+            },
+            {
+              "time": 12.3,
+              "position": {
+                "longitude": 126.7248,
+                "latitude": 37.6223
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "unitId": "unit-south",
+      "actor": "south-mech-bde",
+      "startTime": 0.0,
+      "endTime": 4.0,
+      "segments": [
+        {
+          "actionSequence": 3,
+          "action": "Move",
+          "startTime": 0.0,
+          "endTime": 4.0,
+          "source": "current_position",
+          "destination": "pl-amber-west",
+          "keyframes": [
+            {
+              "time": 0.0,
+              "position": {
+                "longitude": 126.7104,
+                "latitude": 37.6213
+              }
+            },
+            {
+              "time": 4.0,
+              "position": {
+                "longitude": 126.7149,
+                "latitude": 37.6213
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "unitId": "unit-enemy-armor",
+      "actor": "enemy-objective-defense",
+      "startTime": 2.0,
+      "endTime": 6.0,
+      "segments": [
+        {
+          "actionSequence": 5,
+          "action": "Move",
+          "startTime": 2.0,
+          "endTime": 6.0,
+          "source": "current_position",
+          "destination": "enemy-battle-position",
+          "keyframes": [
+            {
+              "time": 2.0,
+              "position": {
+                "longitude": 126.7218,
+                "latitude": 37.625
+              }
+            },
+            {
+              "time": 6.0,
+              "position": {
+                "longitude": 126.71861984808247,
+                "latitude": 37.62320589314093
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "unitId": "unit-main",
+      "actor": "main-tank-bde",
+      "startTime": 8.3,
+      "endTime": 12.3,
+      "segments": [
+        {
+          "actionSequence": 9,
+          "action": "Move",
+          "startTime": 8.3,
+          "endTime": 12.3,
+          "source": "current_position",
+          "destination": "objective-approach",
+          "keyframes": [
+            {
+              "time": 8.3,
+              "position": {
+                "longitude": 126.7054,
+                "latitude": 37.6268
+              }
+            },
+            {
+              "time": 12.3,
+              "position": {
+                "longitude": 126.7196,
+                "latitude": 37.6263
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "observationEffects": [
+    {
+      "actionSequence": 6,
+      "action": "Observe",
+      "actor": "south-mech-bde",
+      "target": "enemy-infantry-reg",
+      "startTime": 4.1,
+      "endTime": 6.1,
+      "origin": {
+        "longitude": 126.7149,
+        "latitude": 37.6213
+      },
+      "targetPoint": {
+        "longitude": 126.7178,
+        "latitude": 37.6223
+      },
+      "direction": 66.4728868772639,
+      "fovDegrees": 70.0,
+      "rangeMeters": 1600.0,
+      "targetDistanceMeters": 278.5665445920218,
+      "targetInRange": true,
+      "displayRangeMeters": 1600.0
+    },
+    {
+      "actionSequence": 11,
+      "action": "Observe",
+      "actor": "main-tank-bde",
+      "target": "enemy-objective-defense",
+      "startTime": 12.4,
+      "endTime": 14.4,
+      "origin": {
+        "longitude": 126.7196,
+        "latitude": 37.6263
+      },
+      "targetPoint": {
+        "longitude": 126.71861984808247,
+        "latitude": 37.62320589314093
+      },
+      "direction": 194.08496712152635,
+      "fovDegrees": 60.0,
+      "rangeMeters": 1000.0,
+      "targetDistanceMeters": 354.7131410396554,
+      "targetInRange": true,
+      "displayRangeMeters": 1000.0
+    }
+  ],
+  "events": [
+    {
+      "time": 0.0,
+      "type": "ACTION_STARTED",
+      "actionSequence": 1,
+      "actor": "enemy-infantry-reg",
+      "action": "Move"
+    },
+    {
+      "time": 0.0,
+      "type": "ACTION_STARTED",
+      "actionSequence": 2,
+      "actor": "div-fires",
+      "action": "Disrupt"
+    },
+    {
+      "time": 0.0,
+      "type": "ACTION_STARTED",
+      "actionSequence": 3,
+      "actor": "south-mech-bde",
+      "action": "Move"
+    },
+    {
+      "time": 0.0,
+      "type": "ACTION_STARTED",
+      "actionSequence": 4,
+      "actor": "div-tcf-team",
+      "action": "Establish Security"
+    },
+    {
+      "time": 2.0,
+      "type": "ACTION_STARTED",
+      "actionSequence": 5,
+      "actor": "enemy-objective-defense",
+      "action": "Move"
+    },
+    {
+      "time": 3.0,
+      "type": "ACTION_COMPLETED",
+      "actionSequence": 1,
+      "actor": "enemy-infantry-reg",
+      "action": "Move"
+    },
+    {
+      "time": 3.0,
+      "type": "ACTION_VISUALIZATION_ENDED",
+      "actionSequence": 4,
+      "actor": "div-tcf-team",
+      "action": "Establish Security"
+    },
+    {
+      "time": 4.0,
+      "type": "ACTION_VISUALIZATION_ENDED",
+      "actionSequence": 2,
+      "actor": "div-fires",
+      "action": "Disrupt"
+    },
+    {
+      "time": 4.0,
+      "type": "ACTION_COMPLETED",
+      "actionSequence": 3,
+      "actor": "south-mech-bde",
+      "action": "Move"
+    },
+    {
+      "time": 4.1,
+      "type": "ACTION_STARTED",
+      "actionSequence": 6,
+      "actor": "south-mech-bde",
+      "action": "Observe"
+    },
+    {
+      "time": 6.0,
+      "type": "ACTION_COMPLETED",
+      "actionSequence": 5,
+      "actor": "enemy-objective-defense",
+      "action": "Move"
+    },
+    {
+      "time": 6.1,
+      "type": "ACTION_COMPLETED",
+      "actionSequence": 6,
+      "actor": "south-mech-bde",
+      "action": "Observe"
+    },
+    {
+      "time": 6.2,
+      "type": "ACTION_STARTED",
+      "actionSequence": 7,
+      "actor": "south-mech-bde",
+      "action": "Breach"
+    },
+    {
+      "time": 6.2,
+      "type": "ACTION_STARTED",
+      "actionSequence": 8,
+      "actor": "enemy-objective-defense",
+      "action": "Engage"
+    },
+    {
+      "time": 8.2,
+      "type": "ACTION_VISUALIZATION_ENDED",
+      "actionSequence": 7,
+      "actor": "south-mech-bde",
+      "action": "Breach"
+    },
+    {
+      "time": 8.3,
+      "type": "ACTION_STARTED",
+      "actionSequence": 9,
+      "actor": "main-tank-bde",
+      "action": "Move"
+    },
+    {
+      "time": 9.2,
+      "type": "ACTION_VISUALIZATION_ENDED",
+      "actionSequence": 8,
+      "actor": "enemy-objective-defense",
+      "action": "Engage"
+    },
+    {
+      "time": 9.3,
+      "type": "ACTION_STARTED",
+      "actionSequence": 10,
+      "actor": "enemy-infantry-reg",
+      "action": "Move"
+    },
+    {
+      "time": 12.3,
+      "type": "ACTION_COMPLETED",
+      "actionSequence": 9,
+      "actor": "main-tank-bde",
+      "action": "Move"
+    },
+    {
+      "time": 12.3,
+      "type": "ACTION_COMPLETED",
+      "actionSequence": 10,
+      "actor": "enemy-infantry-reg",
+      "action": "Move"
+    },
+    {
+      "time": 12.4,
+      "type": "ACTION_STARTED",
+      "actionSequence": 11,
+      "actor": "main-tank-bde",
+      "action": "Observe"
+    },
+    {
+      "time": 14.4,
+      "type": "ACTION_COMPLETED",
+      "actionSequence": 11,
+      "actor": "main-tank-bde",
+      "action": "Observe"
+    },
+    {
+      "time": 14.5,
+      "type": "ACTION_STARTED",
+      "actionSequence": 12,
+      "actor": "main-tank-bde",
+      "action": "Engage"
+    },
+    {
+      "time": 14.5,
+      "type": "ACTION_STARTED",
+      "actionSequence": 13,
+      "actor": "enemy-objective-defense",
+      "action": "Re-Orient"
+    },
+    {
+      "time": 16.5,
+      "type": "ACTION_VISUALIZATION_ENDED",
+      "actionSequence": 13,
+      "actor": "enemy-objective-defense",
+      "action": "Re-Orient"
+    },
+    {
+      "time": 17.5,
+      "type": "ACTION_VISUALIZATION_ENDED",
+      "actionSequence": 12,
+      "actor": "main-tank-bde",
+      "action": "Engage"
+    },
+    {
+      "time": 17.6,
+      "type": "ACTION_STARTED",
+      "actionSequence": 14,
+      "actor": "main-tank-bde",
+      "action": "Clear"
+    },
+    {
+      "time": 20.6,
+      "type": "ACTION_VISUALIZATION_ENDED",
+      "actionSequence": 14,
+      "actor": "main-tank-bde",
+      "action": "Clear"
+    },
+    {
+      "time": 20.7,
+      "type": "ACTION_STARTED",
+      "actionSequence": 15,
+      "actor": "main-tank-bde",
+      "action": "Seize"
+    },
+    {
+      "time": 23.7,
+      "type": "ACTION_VISUALIZATION_ENDED",
+      "actionSequence": 15,
+      "actor": "main-tank-bde",
+      "action": "Seize"
+    },
+    {
+      "time": 23.8,
+      "type": "ACTION_STARTED",
+      "actionSequence": 16,
+      "actor": "main-tank-bde",
+      "action": "Confirm Control"
+    },
+    {
+      "time": 24.8,
+      "type": "ACTION_VISUALIZATION_ENDED",
+      "actionSequence": 16,
+      "actor": "main-tank-bde",
+      "action": "Confirm Control"
+    },
+    {
+      "time": 24.9,
+      "type": "ACTION_STARTED",
+      "actionSequence": 17,
+      "actor": "main-tank-bde",
+      "action": "Report"
+    },
+    {
+      "time": 25.9,
+      "type": "ACTION_VISUALIZATION_ENDED",
+      "actionSequence": 17,
+      "actor": "main-tank-bde",
+      "action": "Report"
+    }
+  ],
+  "actionEffects": [
+    {
+      "actionSequence": 1,
+      "action": "Move",
+      "visualizationId": "move",
+      "unitId": "unit-enemy-infantry",
+      "actor": "enemy-infantry-reg",
+      "startTime": 0.0,
+      "endTime": 3.0,
+      "origin": {
+        "longitude": 126.7197,
+        "latitude": 37.6223
+      },
+      "parameters": {
+        "source": "current_position",
+        "destination": "enemy-screen-line"
+      },
+      "phases": [
+        "출발 준비",
+        "경로 이동",
+        "목적지 접근",
+        "도착"
+      ],
+      "executionMode": "visualization_only",
+      "outcome": "not_adjudicated",
+      "renderData": {
+        "movement": {
+          "actionSequence": 1,
+          "action": "Move",
+          "startTime": 0.0,
+          "endTime": 3.0,
+          "source": "current_position",
+          "destination": "enemy-screen-line",
+          "keyframes": [
+            {
+              "time": 0.0,
+              "position": {
+                "longitude": 126.7197,
+                "latitude": 37.6223
+              }
+            },
+            {
+              "time": 3.0,
+              "position": {
+                "longitude": 126.7178,
+                "latitude": 37.6223
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "actionSequence": 2,
+      "action": "Disrupt",
+      "visualizationId": "disrupt",
+      "unitId": "unit-fires",
+      "actor": "div-fires",
+      "startTime": 0.0,
+      "endTime": 4.0,
+      "origin": {
+        "longitude": 126.7097,
+        "latitude": 37.6272
+      },
+      "parameters": {
+        "target": "enemy-infantry-reg",
+        "effectArea": "enemy-screen-line"
+      },
+      "phases": [
+        "영향 지역",
+        "효과 발생",
+        "흐름 불안정",
+        "효과 종료"
+      ],
+      "executionMode": "visualization_only",
+      "outcome": "not_adjudicated",
+      "renderData": {}
+    },
+    {
+      "actionSequence": 3,
+      "action": "Move",
+      "visualizationId": "move",
+      "unitId": "unit-south",
+      "actor": "south-mech-bde",
+      "startTime": 0.0,
+      "endTime": 4.0,
+      "origin": {
+        "longitude": 126.7104,
+        "latitude": 37.6213
+      },
+      "parameters": {
+        "source": "current_position",
+        "destination": "pl-amber-west"
+      },
+      "phases": [
+        "출발 준비",
+        "경로 이동",
+        "목적지 접근",
+        "도착"
+      ],
+      "executionMode": "visualization_only",
+      "outcome": "not_adjudicated",
+      "renderData": {
+        "movement": {
+          "actionSequence": 3,
+          "action": "Move",
+          "startTime": 0.0,
+          "endTime": 4.0,
+          "source": "current_position",
+          "destination": "pl-amber-west",
+          "keyframes": [
+            {
+              "time": 0.0,
+              "position": {
+                "longitude": 126.7104,
+                "latitude": 37.6213
+              }
+            },
+            {
+              "time": 4.0,
+              "position": {
+                "longitude": 126.7149,
+                "latitude": 37.6213
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "actionSequence": 4,
+      "action": "Establish Security",
+      "visualizationId": "security",
+      "unitId": "unit-tcf",
+      "actor": "div-tcf-team",
+      "startTime": 0.0,
+      "endTime": 3.0,
+      "origin": {
+        "longitude": 126.7033,
+        "latitude": 37.6201
+      },
+      "parameters": {
+        "target": "metro-city"
+      },
+      "phases": [
+        "보호 대상 지정",
+        "경계 배치",
+        "담당 구역 전개",
+        "경계 확립"
+      ],
+      "executionMode": "visualization_only",
+      "outcome": "not_adjudicated",
+      "renderData": {}
+    },
+    {
+      "actionSequence": 5,
+      "action": "Move",
+      "visualizationId": "move",
+      "unitId": "unit-enemy-armor",
+      "actor": "enemy-objective-defense",
+      "startTime": 2.0,
+      "endTime": 6.0,
+      "origin": {
+        "longitude": 126.7218,
+        "latitude": 37.625
+      },
+      "parameters": {
+        "source": "current_position",
+        "destination": "enemy-battle-position"
+      },
+      "phases": [
+        "출발 준비",
+        "경로 이동",
+        "목적지 접근",
+        "도착"
+      ],
+      "executionMode": "visualization_only",
+      "outcome": "not_adjudicated",
+      "renderData": {
+        "movement": {
+          "actionSequence": 5,
+          "action": "Move",
+          "startTime": 2.0,
+          "endTime": 6.0,
+          "source": "current_position",
+          "destination": "enemy-battle-position",
+          "keyframes": [
+            {
+              "time": 2.0,
+              "position": {
+                "longitude": 126.7218,
+                "latitude": 37.625
+              }
+            },
+            {
+              "time": 6.0,
+              "position": {
+                "longitude": 126.71861984808247,
+                "latitude": 37.62320589314093
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "actionSequence": 6,
+      "action": "Observe",
+      "visualizationId": "observe",
+      "unitId": "unit-south",
+      "actor": "south-mech-bde",
+      "startTime": 4.1,
+      "endTime": 6.1,
+      "origin": {
+        "longitude": 126.7149,
+        "latitude": 37.6213
+      },
+      "parameters": {
+        "target": "enemy-infantry-reg",
+        "sensor_range_m": "1600",
+        "field_of_view_deg": "70"
+      },
+      "phases": [
+        "관측 방향 설정",
+        "범위 탐색",
+        "징후 포착",
+        "관측 유지"
+      ],
+      "executionMode": "visualization_only",
+      "outcome": "not_adjudicated",
+      "renderData": {
+        "observation": {
+          "actionSequence": 6,
+          "action": "Observe",
+          "actor": "south-mech-bde",
+          "target": "enemy-infantry-reg",
+          "startTime": 4.1,
+          "endTime": 6.1,
+          "origin": {
+            "longitude": 126.7149,
+            "latitude": 37.6213
+          },
+          "targetPoint": {
+            "longitude": 126.7178,
+            "latitude": 37.6223
+          },
+          "direction": 66.4728868772639,
+          "fovDegrees": 70.0,
+          "rangeMeters": 1600.0,
+          "targetDistanceMeters": 278.5665445920218,
+          "targetInRange": true,
+          "displayRangeMeters": 1600.0
+        }
+      }
+    },
+    {
+      "actionSequence": 7,
+      "action": "Breach",
+      "visualizationId": "breach",
+      "unitId": "unit-south",
+      "actor": "south-mech-bde",
+      "startTime": 6.2,
+      "endTime": 8.2,
+      "origin": {
+        "longitude": 126.7149,
+        "latitude": 37.6213
+      },
+      "parameters": {
+        "target": "breach-point"
+      },
+      "phases": [
+        "장애물 확인",
+        "작업 지점 접근",
+        "통로 개설",
+        "통로 유지"
+      ],
+      "executionMode": "visualization_only",
+      "outcome": "not_adjudicated",
+      "renderData": {}
+    },
+    {
+      "actionSequence": 8,
+      "action": "Engage",
+      "visualizationId": "engage",
+      "unitId": "unit-enemy-armor",
+      "actor": "enemy-objective-defense",
+      "startTime": 6.2,
+      "endTime": 9.2,
+      "origin": {
+        "longitude": 126.71861984808247,
+        "latitude": 37.62320589314093
+      },
+      "parameters": {
+        "target": "south-mech-bde"
+      },
+      "phases": [
+        "대상 지정",
+        "교전 준비",
+        "화력 적용",
+        "효과 표시"
+      ],
+      "executionMode": "visualization_only",
+      "outcome": "not_adjudicated",
+      "renderData": {}
+    },
+    {
+      "actionSequence": 9,
+      "action": "Move",
+      "visualizationId": "move",
+      "unitId": "unit-main",
+      "actor": "main-tank-bde",
+      "startTime": 8.3,
+      "endTime": 12.3,
+      "origin": {
+        "longitude": 126.7054,
+        "latitude": 37.6268
+      },
+      "parameters": {
+        "source": "current_position",
+        "destination": "objective-approach"
+      },
+      "phases": [
+        "출발 준비",
+        "경로 이동",
+        "목적지 접근",
+        "도착"
+      ],
+      "executionMode": "visualization_only",
+      "outcome": "not_adjudicated",
+      "renderData": {
+        "movement": {
+          "actionSequence": 9,
+          "action": "Move",
+          "startTime": 8.3,
+          "endTime": 12.3,
+          "source": "current_position",
+          "destination": "objective-approach",
+          "keyframes": [
+            {
+              "time": 8.3,
+              "position": {
+                "longitude": 126.7054,
+                "latitude": 37.6268
+              }
+            },
+            {
+              "time": 12.3,
+              "position": {
+                "longitude": 126.7196,
+                "latitude": 37.6263
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "actionSequence": 10,
+      "action": "Move",
+      "visualizationId": "move",
+      "unitId": "unit-enemy-infantry",
+      "actor": "enemy-infantry-reg",
+      "startTime": 9.3,
+      "endTime": 12.3,
+      "origin": {
+        "longitude": 126.7178,
+        "latitude": 37.6223
+      },
+      "parameters": {
+        "source": "current_position",
+        "destination": "enemy-rear-assembly"
+      },
+      "phases": [
+        "출발 준비",
+        "경로 이동",
+        "목적지 접근",
+        "도착"
+      ],
+      "executionMode": "visualization_only",
+      "outcome": "not_adjudicated",
+      "renderData": {
+        "movement": {
+          "actionSequence": 10,
+          "action": "Move",
+          "startTime": 9.3,
+          "endTime": 12.3,
+          "source": "current_position",
+          "destination": "enemy-rear-assembly",
+          "keyframes": [
+            {
+              "time": 9.3,
+              "position": {
+                "longitude": 126.7178,
+                "latitude": 37.6223
+              }
+            },
+            {
+              "time": 12.3,
+              "position": {
+                "longitude": 126.7248,
+                "latitude": 37.6223
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "actionSequence": 11,
+      "action": "Observe",
+      "visualizationId": "observe",
+      "unitId": "unit-main",
+      "actor": "main-tank-bde",
+      "startTime": 12.4,
+      "endTime": 14.4,
+      "origin": {
+        "longitude": 126.7196,
+        "latitude": 37.6263
+      },
+      "parameters": {
+        "target": "enemy-objective-defense",
+        "sensor_range_m": "1000",
+        "field_of_view_deg": "60"
+      },
+      "phases": [
+        "관측 방향 설정",
+        "범위 탐색",
+        "징후 포착",
+        "관측 유지"
+      ],
+      "executionMode": "visualization_only",
+      "outcome": "not_adjudicated",
+      "renderData": {
+        "observation": {
+          "actionSequence": 11,
+          "action": "Observe",
+          "actor": "main-tank-bde",
+          "target": "enemy-objective-defense",
+          "startTime": 12.4,
+          "endTime": 14.4,
+          "origin": {
+            "longitude": 126.7196,
+            "latitude": 37.6263
+          },
+          "targetPoint": {
+            "longitude": 126.71861984808247,
+            "latitude": 37.62320589314093
+          },
+          "direction": 194.08496712152635,
+          "fovDegrees": 60.0,
+          "rangeMeters": 1000.0,
+          "targetDistanceMeters": 354.7131410396554,
+          "targetInRange": true,
+          "displayRangeMeters": 1000.0
+        }
+      }
+    },
+    {
+      "actionSequence": 12,
+      "action": "Engage",
+      "visualizationId": "engage",
+      "unitId": "unit-main",
+      "actor": "main-tank-bde",
+      "startTime": 14.5,
+      "endTime": 17.5,
+      "origin": {
+        "longitude": 126.7196,
+        "latitude": 37.6263
+      },
+      "parameters": {
+        "target": "enemy-objective-defense"
+      },
+      "phases": [
+        "대상 지정",
+        "교전 준비",
+        "화력 적용",
+        "효과 표시"
+      ],
+      "executionMode": "visualization_only",
+      "outcome": "not_adjudicated",
+      "renderData": {}
+    },
+    {
+      "actionSequence": 13,
+      "action": "Re-Orient",
+      "visualizationId": "orient",
+      "unitId": "unit-enemy-armor",
+      "actor": "enemy-objective-defense",
+      "startTime": 14.5,
+      "endTime": 16.5,
+      "origin": {
+        "longitude": 126.71861984808247,
+        "latitude": 37.62320589314093
+      },
+      "parameters": {
+        "target": "objective-slam"
+      },
+      "phases": [
+        "현재 방향",
+        "전환 시작",
+        "회전 진행",
+        "새 방향 유지"
+      ],
+      "executionMode": "visualization_only",
+      "outcome": "not_adjudicated",
+      "renderData": {}
+    },
+    {
+      "actionSequence": 14,
+      "action": "Clear",
+      "visualizationId": "clear",
+      "unitId": "unit-main",
+      "actor": "main-tank-bde",
+      "startTime": 17.6,
+      "endTime": 20.6,
+      "origin": {
+        "longitude": 126.7196,
+        "latitude": 37.6263
+      },
+      "parameters": {
+        "target": "objective-slam"
+      },
+      "phases": [
+        "구역 분할",
+        "순차 수색",
+        "구역 확인",
+        "완료 확인"
+      ],
+      "executionMode": "visualization_only",
+      "outcome": "not_adjudicated",
+      "renderData": {}
+    },
+    {
+      "actionSequence": 15,
+      "action": "Seize",
+      "visualizationId": "seize",
+      "unitId": "unit-main",
+      "actor": "main-tank-bde",
+      "startTime": 20.7,
+      "endTime": 23.7,
+      "origin": {
+        "longitude": 126.7196,
+        "latitude": 37.6263
+      },
+      "parameters": {
+        "target": "objective-slam"
+      },
+      "phases": [
+        "목표 접근",
+        "지역 진입",
+        "점유 전환",
+        "통제 유지"
+      ],
+      "executionMode": "visualization_only",
+      "outcome": "not_adjudicated",
+      "renderData": {}
+    },
+    {
+      "actionSequence": 16,
+      "action": "Confirm Control",
+      "visualizationId": "control",
+      "unitId": "unit-main",
+      "actor": "main-tank-bde",
+      "startTime": 23.8,
+      "endTime": 24.8,
+      "origin": {
+        "longitude": 126.7196,
+        "latitude": 37.6263
+      },
+      "parameters": {
+        "target": "objective-slam"
+      },
+      "phases": [
+        "지역 지정",
+        "점유 확인",
+        "경계 확인",
+        "통제 확인"
+      ],
+      "executionMode": "visualization_only",
+      "outcome": "not_adjudicated",
+      "renderData": {}
+    },
+    {
+      "actionSequence": 17,
+      "action": "Report",
+      "visualizationId": "report",
+      "unitId": "unit-main",
+      "actor": "main-tank-bde",
+      "startTime": 24.9,
+      "endTime": 25.9,
+      "origin": {
+        "longitude": 126.7196,
+        "latitude": 37.6263
+      },
+      "parameters": {
+        "recipient": "div-command"
+      },
+      "phases": [
+        "보고 생성",
+        "전송",
+        "전달",
+        "수신 확인"
+      ],
+      "executionMode": "visualization_only",
+      "outcome": "not_adjudicated",
+      "renderData": {}
+    }
+  ]
+}

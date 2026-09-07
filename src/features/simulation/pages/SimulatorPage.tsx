@@ -4,7 +4,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { createInitialRuntimeState, SIMULATION_PLAYBACK_RATE } from '../lib/runtime';
 import { getDeploymentById } from '../lib/deploymentStorage';
 import { clampResultTime } from '../lib/playback';
-import { getMoveSimulationResult, getSimulationResultUnits } from '../lib/simulationResultService';
+import { getSimulationResult, getSimulationResultDeployment, getSimulationResultUnits } from '../lib/simulationResultService';
 import { ExitSimulationDialog } from '../components/ExitSimulationDialog';
 import { PlaybackControls } from '../components/PlaybackControls';
 import { SimulatorHeader } from '../components/SimulatorHeader';
@@ -15,9 +15,10 @@ import { UnitListPanel } from '../components/UnitListPanel';
 export function SimulatorPage() {
   const { simulationId } = useParams();
   const navigate = useNavigate();
-  const simulationResult = useMemo(() => getMoveSimulationResult(), []);
+  const simulationResult = useMemo(() => getSimulationResult(simulationId), [simulationId]);
   const deployment = useMemo(
-    () => (simulationResult.deploymentId ? getDeploymentById(simulationResult.deploymentId) : undefined),
+    () => (simulationResult.deploymentId ? getDeploymentById(simulationResult.deploymentId) : undefined)
+      ?? getSimulationResultDeployment(simulationResult.deploymentId ?? undefined),
     [simulationResult],
   );
   const resultUnits = useMemo(() => getSimulationResultUnits(simulationResult, deployment), [deployment, simulationResult]);
@@ -147,10 +148,11 @@ export function SimulatorPage() {
           runtime={runtime}
           units={resultUnits}
           result={simulationResult}
+          deployment={deployment}
           onSelectUnit={selectUnit}
         />
         <aside className="w-[380px] shrink-0 overflow-y-auto border-l border-outline-variant bg-surface p-3">
-          <AtomicActionView result={simulationResult} simulationTime={runtime.simulationTime} unitId={runtime.selectedUnitId} />
+          <AtomicActionView result={simulationResult} simulationTime={runtime.simulationTime} unitId={runtime.selectedUnitId} onSelectUnit={selectUnit} />
           {selectedUnit && <UnitDetailPanel unit={selectedUnit} />}
         </aside>
       </div>

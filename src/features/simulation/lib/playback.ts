@@ -1,4 +1,5 @@
 import type {
+  DeploymentSetup,
   SimulationKeyframe,
   SimulationResult,
   SimulationResultEvent,
@@ -64,6 +65,23 @@ export function getTrackPositionsAtTime(result: SimulationResult, simulationTime
     }
   }
   return positions;
+}
+
+/** Finds an animated track by scenario ID or actor label, then falls back to deployment coordinates. */
+export function getUnitPositionAtTime(
+  actorOrUnitId: string,
+  simulationTime: number,
+  result: SimulationResult,
+  deployment?: DeploymentSetup,
+): SimulationResultPosition | undefined {
+  const track = result.unitTracks.find((candidate) => candidate.unitId === actorOrUnitId || candidate.actor === actorOrUnitId);
+  const animatedPosition = track ? getPositionAtTime(track, simulationTime) : undefined;
+  if (animatedPosition) return animatedPosition;
+
+  const unit = deployment?.units.find((candidate) => candidate.id === actorOrUnitId || candidate.designation === actorOrUnitId);
+  const longitude = unit?.position.longitude ?? unit?.position.lon;
+  const latitude = unit?.position.latitude ?? unit?.position.lat;
+  return typeof longitude === 'number' && typeof latitude === 'number' ? { longitude, latitude } : undefined;
 }
 
 export function getEventsAtTime(result: SimulationResult, simulationTime: number): SimulationResultEvent[] {
