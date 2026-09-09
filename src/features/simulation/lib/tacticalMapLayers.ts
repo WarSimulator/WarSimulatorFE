@@ -45,12 +45,18 @@ export function addDeploymentSourcesAndLayers(map: MapLibreMap) {
   map.addLayer({
     id: 'action-effect-lines', type: 'line', source: ACTION_EFFECT_SOURCE_ID,
     filter: ['==', ['get', 'kind'], 'action-line'],
-    paint: { 'line-color': ['get', 'color'], 'line-width': 3, 'line-opacity': 0.9, 'line-dasharray': [2, 1] },
+    paint: { 'line-color': ['get', 'color'], 'line-width': 4, 'line-opacity': 1, 'line-dasharray': [2, 1] },
   });
   map.addLayer({
     id: 'action-effect-markers', type: 'circle', source: ACTION_EFFECT_SOURCE_ID,
     filter: ['==', ['get', 'kind'], 'action-marker'],
-    paint: { 'circle-radius': ['get', 'radius'], 'circle-color': ['get', 'color'], 'circle-opacity': 0.28, 'circle-stroke-color': ['get', 'color'], 'circle-stroke-width': 2 },
+    paint: { 'circle-radius': ['get', 'radius'], 'circle-color': ['get', 'color'], 'circle-opacity': 0.38, 'circle-stroke-color': '#ffffff', 'circle-stroke-width': 2.5 },
+  });
+  map.addLayer({
+    id: 'action-effect-labels', type: 'symbol', source: ACTION_EFFECT_SOURCE_ID,
+    filter: ['==', ['get', 'kind'], 'action-marker'],
+    layout: { 'text-field': ['get', 'action'], 'text-size': 12, 'text-font': ['Noto Sans Regular'], 'text-offset': [0, 2], 'text-allow-overlap': true },
+    paint: { 'text-color': '#ffffff', 'text-halo-color': '#121212', 'text-halo-width': 2 },
   });
   map.addLayer({
     id: 'deployment-area-line',
@@ -95,13 +101,13 @@ export function addDeploymentSourcesAndLayers(map: MapLibreMap) {
     id: 'observation-sector-fill',
     type: 'fill',
     source: OBSERVATION_SECTOR_SOURCE_ID,
-    paint: { 'fill-color': '#b4c5ff', 'fill-opacity': 0.08 },
+    paint: { 'fill-color': ['case', ['get', 'targetInRange'], '#58c7ff', '#ffb95f'], 'fill-opacity': 0.2 },
   });
   map.addLayer({
     id: 'observation-sector-outline',
     type: 'line',
     source: OBSERVATION_SECTOR_SOURCE_ID,
-    paint: { 'line-color': '#b4c5ff', 'line-width': 1.25, 'line-opacity': 0.5 },
+    paint: { 'line-color': ['case', ['get', 'targetInRange'], '#8ad9ff', '#ffcf8a'], 'line-width': 2.5, 'line-opacity': 0.9 },
   });
   map.addLayer({
     id: 'deployment-axis-arrows',

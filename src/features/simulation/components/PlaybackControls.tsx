@@ -89,9 +89,9 @@ export function PlaybackControls({
             className="w-full accent-primary"
           />
           <div className="relative h-4">
-            {timelineEvents.map((event) => (
+            {timelineEvents.map((event, index) => (
               <span
-                key={event.label}
+                key={`${event.time}-${event.label}-${index}`}
                 className="absolute top-0 h-3 w-px bg-outline-variant"
                 style={{ left: `${((event.time - startTime) / duration) * 100}%` }}
                 title={event.label}

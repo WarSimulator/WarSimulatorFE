@@ -1,0 +1,487 @@
+{
+  "version": "1.0.0",
+  "scenario_id": "atlas-final-demo",
+  "id": "final-deployment-demo",
+  "name": "AI Planning 통합 시뮬레이션 예시",
+  "coordinate_system": "WGS84",
+  "units": [
+    {
+      "unit_id": "blue-main-tank",
+      "designation": "청군 1기갑여단 주공",
+      "affiliation": "friendly",
+      "unit_type": "armor",
+      "echelon": "brigade",
+      "sidc": "SFGPUCA----H---",
+      "symbolLabel": "Armor Brigade",
+      "symbolScale": 0.78,
+      "heading": 70,
+      "position": {
+        "longitude": 126.7038,
+        "latitude": 37.6245
+      }
+    },
+    {
+      "unit_id": "blue-recon",
+      "designation": "청군 수색중대",
+      "affiliation": "friendly",
+      "unit_type": "recon",
+      "echelon": "company",
+      "sidc": "SFGPUCR----E---",
+      "symbolLabel": "Reconnaissance Company",
+      "symbolScale": 0.7,
+      "heading": 75,
+      "position": {
+        "longitude": 126.7065,
+        "latitude": 37.6297
+      }
+    },
+    {
+      "unit_id": "blue-artillery",
+      "designation": "청군 포병대대",
+      "affiliation": "friendly",
+      "unit_type": "artillery",
+      "echelon": "battalion",
+      "sidc": "SFGPUCF----F---",
+      "symbolLabel": "Field Artillery Battalion",
+      "symbolScale": 0.72,
+      "position": {
+        "longitude": 126.7028,
+        "latitude": 37.6198
+      }
+    },
+    {
+      "unit_id": "blue-engineer",
+      "designation": "청군 공병중대",
+      "affiliation": "friendly",
+      "unit_type": "engineer",
+      "echelon": "company",
+      "sidc": "SFGPUCE----E---",
+      "symbolLabel": "Engineer Company",
+      "symbolScale": 0.7,
+      "position": {
+        "longitude": 126.7075,
+        "latitude": 37.6215
+      }
+    },
+    {
+      "unit_id": "blue-reserve",
+      "designation": "청군 예비 기계화대대",
+      "affiliation": "friendly",
+      "unit_type": "mechanized_infantry",
+      "echelon": "battalion",
+      "sidc": "SFGPUCIZ---F---",
+      "symbolLabel": "Mechanized Infantry Battalion",
+      "symbolScale": 0.72,
+      "position": {
+        "longitude": 126.7045,
+        "latitude": 37.6178
+      }
+    },
+    {
+      "unit_id": "red-screen",
+      "designation": "적군 전방 보병연대",
+      "affiliation": "enemy",
+      "unit_type": "infantry",
+      "echelon": "regiment",
+      "sidc": "SHGPUCI----G---",
+      "symbolLabel": "Enemy Infantry Regiment",
+      "symbolScale": 0.74,
+      "heading": 250,
+      "position": {
+        "longitude": 126.7185,
+        "latitude": 37.6273
+      }
+    },
+    {
+      "unit_id": "red-armor",
+      "designation": "적군 전차대대",
+      "affiliation": "enemy",
+      "unit_type": "armor",
+      "echelon": "battalion",
+      "sidc": "SHGPUCA----F---",
+      "symbolLabel": "Enemy Armor Battalion",
+      "symbolScale": 0.76,
+      "heading": 250,
+      "position": {
+        "longitude": 126.7225,
+        "latitude": 37.6237
+      }
+    },
+    {
+      "unit_id": "red-recon",
+      "designation": "적군 수색중대",
+      "affiliation": "enemy",
+      "unit_type": "recon",
+      "echelon": "company",
+      "sidc": "SHGPUCR----E---",
+      "symbolLabel": "Enemy Reconnaissance Company",
+      "symbolScale": 0.68,
+      "heading": 250,
+      "position": {
+        "longitude": 126.7215,
+        "latitude": 37.6302
+      }
+    },
+    {
+      "unit_id": "red-artillery",
+      "designation": "적군 자주포대대",
+      "affiliation": "enemy",
+      "unit_type": "artillery",
+      "echelon": "battalion",
+      "sidc": "SHGPUCF----F---",
+      "symbolLabel": "Enemy Artillery Battalion",
+      "symbolScale": 0.72,
+      "heading": 250,
+      "position": {
+        "longitude": 126.7275,
+        "latitude": 37.6268
+      }
+    },
+    {
+      "unit_id": "red-reserve",
+      "designation": "적군 예비 기갑대대",
+      "affiliation": "enemy",
+      "unit_type": "armor",
+      "echelon": "battalion",
+      "sidc": "SHGPUCA----F---",
+      "symbolLabel": "Enemy Reserve Armor",
+      "symbolScale": 0.72,
+      "heading": 245,
+      "position": {
+        "longitude": 126.728,
+        "latitude": 37.619
+      }
+    }
+  ],
+  "objectives": [
+    {
+      "id": "obj-alpha",
+      "name": "OBJ ALPHA",
+      "position": {
+        "longitude": 126.721,
+        "latitude": 37.6247
+      }
+    }
+  ],
+  "tacticalGraphics": [
+    {
+      "id": "attack-position",
+      "type": "area",
+      "name": "ATTACK POSITION",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              126.7108,
+              37.6255
+            ],
+            [
+              126.713,
+              37.6255
+            ],
+            [
+              126.713,
+              37.6234
+            ],
+            [
+              126.7108,
+              37.6234
+            ],
+            [
+              126.7108,
+              37.6255
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "id": "blue-recon-line",
+      "type": "phase-line",
+      "name": "BLUE RECON LINE",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            126.712,
+            37.6282
+          ],
+          [
+            126.713,
+            37.631
+          ]
+        ]
+      }
+    },
+    {
+      "id": "breach-support",
+      "type": "area",
+      "name": "BREACH SUPPORT",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              126.711,
+              37.6225
+            ],
+            [
+              126.7123,
+              37.6225
+            ],
+            [
+              126.7123,
+              37.6215
+            ],
+            [
+              126.711,
+              37.6215
+            ],
+            [
+              126.711,
+              37.6225
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "id": "breach-lane",
+      "type": "axis",
+      "name": "BREACH LANE",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            126.712,
+            37.622
+          ],
+          [
+            126.7155,
+            37.623
+          ],
+          [
+            126.7185,
+            37.624
+          ]
+        ]
+      }
+    },
+    {
+      "id": "obj-approach",
+      "type": "axis",
+      "name": "MAIN ATTACK AXIS",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            126.712,
+            37.6245
+          ],
+          [
+            126.7165,
+            37.6245
+          ],
+          [
+            126.7202,
+            37.6247
+          ]
+        ]
+      }
+    },
+    {
+      "id": "support-position",
+      "type": "area",
+      "name": "SUPPORT POSITION",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              126.714,
+              37.6197
+            ],
+            [
+              126.716,
+              37.6197
+            ],
+            [
+              126.716,
+              37.6182
+            ],
+            [
+              126.714,
+              37.6182
+            ],
+            [
+              126.714,
+              37.6197
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "id": "defense-line",
+      "type": "phase-line",
+      "name": "DEFENSE LINE RED",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            126.719,
+            37.6175
+          ],
+          [
+            126.7197,
+            37.6225
+          ],
+          [
+            126.7205,
+            37.6285
+          ]
+        ]
+      }
+    },
+    {
+      "id": "red-screen-line",
+      "type": "phase-line",
+      "name": "RED SCREEN LINE",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            126.7163,
+            37.622
+          ],
+          [
+            126.7168,
+            37.6288
+          ]
+        ]
+      }
+    },
+    {
+      "id": "red-observation-post",
+      "type": "area",
+      "name": "RED OP",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              126.7168,
+              37.6298
+            ],
+            [
+              126.718,
+              37.6298
+            ],
+            [
+              126.718,
+              37.6288
+            ],
+            [
+              126.7168,
+              37.6288
+            ],
+            [
+              126.7168,
+              37.6298
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "id": "red-counterattack-position",
+      "type": "area",
+      "name": "RED COUNTERATTACK",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              126.721,
+              37.6198
+            ],
+            [
+              126.723,
+              37.6198
+            ],
+            [
+              126.723,
+              37.6182
+            ],
+            [
+              126.721,
+              37.6182
+            ],
+            [
+              126.721,
+              37.6198
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "id": "red-fallback",
+      "type": "phase-line",
+      "name": "RED FALLBACK LINE",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            126.725,
+            37.618
+          ],
+          [
+            126.726,
+            37.6285
+          ]
+        ]
+      }
+    },
+    {
+      "id": "red-artillery-fallback",
+      "type": "area",
+      "name": "RED ARTILLERY FALLBACK",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              126.728,
+              37.6255
+            ],
+            [
+              126.73,
+              37.6255
+            ],
+            [
+              126.73,
+              37.6238
+            ],
+            [
+              126.728,
+              37.6238
+            ],
+            [
+              126.728,
+              37.6255
+            ]
+          ]
+        ]
+      }
+    }
+  ],
+  "mapView": {
+    "center": [
+      126.716,
+      37.624
+    ],
+    "zoom": 13.5
+  }
+}

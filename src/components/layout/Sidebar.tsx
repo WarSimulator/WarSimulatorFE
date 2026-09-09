@@ -9,6 +9,7 @@ const navItems = [
 const simulationItems = [
   { to: '/simulations/setup', label: 'Simulation Setup', icon: 'precision_manufacturing' },
   { to: '/simulations/library', label: 'Simulation Library', icon: 'database' },
+  { to: '/simulations/final', label: 'Simulation Final', icon: 'play_circle' },
 ];
 
 export function Sidebar() {
@@ -69,7 +70,7 @@ export function Sidebar() {
               key={item.to}
               to={item.to}
               className={({ isActive }) =>
-                isActive || (item.to === '/simulations/library' && location.pathname.startsWith('/simulations/') && !location.pathname.endsWith('/run') && location.pathname !== '/simulations/setup')
+                isActive || (item.to === '/simulations/library' && /^\/simulations\/[^/]+$/.test(location.pathname) && !['/simulations/setup', '/simulations/final', '/simulations/actions'].includes(location.pathname))
                   ? 'group relative flex items-center border-l-4 border-secondary bg-surface-container-high py-2 pl-8 font-bold text-secondary transition-colors'
                   : 'group relative flex items-center py-2 pl-9 font-medium text-on-surface-variant transition-colors hover:bg-surface-variant'
               }
@@ -78,9 +79,8 @@ export function Sidebar() {
                 const active =
                   isActive ||
                   (item.to === '/simulations/library' &&
-                    location.pathname.startsWith('/simulations/') &&
-                    !location.pathname.endsWith('/run') &&
-                    location.pathname !== '/simulations/setup');
+                    /^\/simulations\/[^/]+$/.test(location.pathname) &&
+                    !['/simulations/setup', '/simulations/final', '/simulations/actions'].includes(location.pathname));
 
                 return (
                   <>

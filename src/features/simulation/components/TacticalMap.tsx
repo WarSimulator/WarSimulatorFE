@@ -116,6 +116,13 @@ function toRouteFeatures(result: SimulationResult): GeoJSON.FeatureCollection<Ge
   };
 }
 
+function toObjectiveFeatures(deployment?: DeploymentSetup): GeoJSON.FeatureCollection<GeoJSON.Point> {
+  return { type: 'FeatureCollection', features: (deployment?.objectives ?? []).flatMap(objective => {
+    const longitude = objective.position.longitude ?? objective.position.lon; const latitude = objective.position.latitude ?? objective.position.lat;
+    return typeof longitude === 'number' && typeof latitude === 'number' ? [{ type: 'Feature' as const, id: objective.id, properties: { id: objective.id, name: objective.name, symbolScale: .75 }, geometry: { type: 'Point' as const, coordinates: [longitude, latitude] } }] : [];
+  }) };
+}
+
 type ActionEffectFeatureProperties = { kind: 'action-line' | 'action-marker'; color: string; radius: number; action: string };
 
 function toActionEffectFeatures(
@@ -159,6 +166,7 @@ export function TacticalMap({ runtime, units, result, deployment, onSelectUnit }
   const routeFeatures = useMemo(() => toRouteFeatures(result), [result]);
   const tacticalGraphicFeatures = useMemo(() => toTacticalGraphicFeatureCollection(deployment), [deployment]);
   const axisArrowFeatures = useMemo(() => toTacticalGraphicAxisArrowFeatures(deployment), [deployment]);
+  const objectiveFeatures = useMemo(() => toObjectiveFeatures(deployment), [deployment]);
   const observationSectorFeatures = useMemo(
     () => toObservationSectorFeatures(result, runtime.simulationTime, deployment),
     [deployment, result, runtime.simulationTime],
@@ -262,14 +270,14 @@ export function TacticalMap({ runtime, units, result, deployment, onSelectUnit }
 
     const map = mapRef.current;
     if (observationSectorFeatures.features.length === 0) {
-      map.setPaintProperty('observation-sector-fill', 'fill-opacity', 0.08);
-      map.setPaintProperty('observation-sector-outline', 'line-opacity', 0.5);
+      map.setPaintProperty('observation-sector-fill', 'fill-opacity', 0.16);
+      map.setPaintProperty('observation-sector-outline', 'line-opacity', 0.7);
       return;
     }
 
     const phase = (Math.sin(runtime.simulationTime * Math.PI / 2) + 1) / 2;
-    map.setPaintProperty('observation-sector-fill', 'fill-opacity', 0.08 + phase * 0.12);
-    map.setPaintProperty('observation-sector-outline', 'line-opacity', 0.45 + phase * 0.25);
+    map.setPaintProperty('observation-sector-fill', 'fill-opacity', 0.18 + phase * 0.16);
+    map.setPaintProperty('observation-sector-outline', 'line-opacity', 0.72 + phase * 0.28);
   }, [mapReady, observationSectorFeatures.features.length, runtime.simulationTime]);
 
   useEffect(() => {
@@ -289,9 +297,9 @@ export function TacticalMap({ runtime, units, result, deployment, onSelectUnit }
         ...(runtime.tacticalLayers.routes ? routeFeatures.features : []),
       ],
     });
-    objectiveSource?.setData({ type: 'FeatureCollection', features: [] });
+    objectiveSource?.setData(objectiveFeatures);
     axisSource?.setData(axisArrowFeatures);
-  }, [axisArrowFeatures, mapReady, routeFeatures, runtime.tacticalLayers.routes, tacticalGraphicFeatures]);
+  }, [axisArrowFeatures, mapReady, objectiveFeatures, routeFeatures, runtime.tacticalLayers.routes, tacticalGraphicFeatures]);
 
   useEffect(() => {
     if (!mapReady || !mapRef.current) {

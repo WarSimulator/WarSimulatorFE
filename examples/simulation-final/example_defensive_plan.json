@@ -1,0 +1,270 @@
+{
+  "status": "tfd-complete",
+  "complete": true,
+  "scenario_id": "atlas-final-demo",
+  "form_option": "AreaDefenseOption",
+  "time_unit": "simulation-step",
+  "temporal_plan": {
+    "steps": [
+      {
+        "sequence": 1,
+        "start": 0,
+        "duration": 5,
+        "end": 5,
+        "pddl_action": "aa-move",
+        "action_key": "move",
+        "action": "Move",
+        "actor_unit_id": "red-screen",
+        "parameters": {
+          "source": "current_position",
+          "destination": "red-screen-line"
+        }
+      },
+      {
+        "sequence": 2,
+        "start": 0,
+        "duration": 4,
+        "end": 4,
+        "pddl_action": "aa-establish_security",
+        "action_key": "establish_security",
+        "action": "Establish Security",
+        "actor_unit_id": "red-armor",
+        "parameters": {
+          "target": "obj-alpha"
+        }
+      },
+      {
+        "sequence": 3,
+        "start": 0,
+        "duration": 3,
+        "end": 3,
+        "pddl_action": "aa-move",
+        "action_key": "move",
+        "action": "Move",
+        "actor_unit_id": "red-recon",
+        "parameters": {
+          "source": "current_position",
+          "destination": "red-observation-post"
+        }
+      },
+      {
+        "sequence": 4,
+        "start": 3,
+        "duration": 9,
+        "end": 12,
+        "pddl_action": "aa-observe",
+        "action_key": "observe",
+        "action": "Observe",
+        "actor_unit_id": "red-recon",
+        "parameters": {
+          "target": "blue-main-tank",
+          "sensor_range_m": 2400,
+          "field_of_view_deg": 65
+        }
+      },
+      {
+        "sequence": 5,
+        "start": 4,
+        "duration": 5,
+        "end": 9,
+        "pddl_action": "aa-disrupt",
+        "action_key": "disrupt",
+        "action": "Disrupt",
+        "actor_unit_id": "red-artillery",
+        "parameters": {
+          "target": "blue-main-tank"
+        }
+      },
+      {
+        "sequence": 6,
+        "start": 5,
+        "duration": 5,
+        "end": 10,
+        "pddl_action": "aa-contain",
+        "action_key": "contain",
+        "action": "Contain",
+        "actor_unit_id": "red-screen",
+        "parameters": {
+          "target": "blue-main-tank"
+        }
+      },
+      {
+        "sequence": 7,
+        "start": 8,
+        "duration": 2,
+        "end": 10,
+        "pddl_action": "aa-report",
+        "action_key": "report",
+        "action": "Report",
+        "actor_unit_id": "red-recon",
+        "parameters": {
+          "recipient": "red-armor",
+          "result": "friendly-main-located"
+        }
+      },
+      {
+        "sequence": 8,
+        "start": 8,
+        "duration": 6,
+        "end": 14,
+        "pddl_action": "aa-move",
+        "action_key": "move",
+        "action": "Move",
+        "actor_unit_id": "red-reserve",
+        "parameters": {
+          "source": "current_position",
+          "destination": "red-counterattack-position"
+        }
+      },
+      {
+        "sequence": 9,
+        "start": 10,
+        "duration": 5,
+        "end": 15,
+        "pddl_action": "aa-engage",
+        "action_key": "engage",
+        "action": "Engage",
+        "actor_unit_id": "red-armor",
+        "parameters": {
+          "target": "blue-main-tank"
+        }
+      },
+      {
+        "sequence": 10,
+        "start": 12,
+        "duration": 4,
+        "end": 16,
+        "pddl_action": "aa-engage",
+        "action_key": "engage",
+        "action": "Engage",
+        "actor_unit_id": "red-artillery",
+        "parameters": {
+          "target": "blue-engineer"
+        }
+      },
+      {
+        "sequence": 11,
+        "start": 14,
+        "duration": 4,
+        "end": 18,
+        "pddl_action": "aa-ambush",
+        "action_key": "ambush",
+        "action": "Ambush",
+        "actor_unit_id": "red-reserve",
+        "parameters": {
+          "target": "blue-reserve"
+        }
+      },
+      {
+        "sequence": 12,
+        "start": 15,
+        "duration": 6,
+        "end": 21,
+        "pddl_action": "aa-fight",
+        "action_key": "fight",
+        "action": "Fight",
+        "actor_unit_id": "red-armor",
+        "parameters": {
+          "target": "blue-main-tank"
+        }
+      },
+      {
+        "sequence": 13,
+        "start": 18,
+        "duration": 2,
+        "end": 20,
+        "pddl_action": "aa-re_orient",
+        "action_key": "re_orient",
+        "action": "Re-Orient",
+        "actor_unit_id": "red-reserve",
+        "parameters": {
+          "target": "obj-alpha"
+        }
+      },
+      {
+        "sequence": 14,
+        "start": 18,
+        "duration": 5,
+        "end": 23,
+        "pddl_action": "aa-withdraw",
+        "action_key": "withdraw",
+        "action": "Withdraw",
+        "actor_unit_id": "red-screen",
+        "parameters": {
+          "source": "red-screen-line",
+          "destination": "red-fallback"
+        }
+      },
+      {
+        "sequence": 15,
+        "start": 20,
+        "duration": 5,
+        "end": 25,
+        "pddl_action": "aa-move",
+        "action_key": "move",
+        "action": "Move",
+        "actor_unit_id": "red-artillery",
+        "parameters": {
+          "source": "current_position",
+          "destination": "red-artillery-fallback"
+        }
+      },
+      {
+        "sequence": 16,
+        "start": 21,
+        "duration": 4,
+        "end": 25,
+        "pddl_action": "aa-continue_to_engage",
+        "action_key": "continue_to_engage",
+        "action": "Continue to Engage",
+        "actor_unit_id": "red-armor",
+        "parameters": {
+          "target": "blue-main-tank"
+        }
+      },
+      {
+        "sequence": 17,
+        "start": 24,
+        "duration": 5,
+        "end": 29,
+        "pddl_action": "aa-block",
+        "action_key": "block",
+        "action": "Block",
+        "actor_unit_id": "red-reserve",
+        "parameters": {
+          "target": "defense-line"
+        }
+      },
+      {
+        "sequence": 18,
+        "start": 25,
+        "duration": 5,
+        "end": 30,
+        "pddl_action": "aa-withdraw",
+        "action_key": "withdraw",
+        "action": "Withdraw",
+        "actor_unit_id": "red-armor",
+        "parameters": {
+          "source": "obj-alpha",
+          "destination": "red-fallback"
+        }
+      },
+      {
+        "sequence": 19,
+        "start": 30,
+        "duration": 2,
+        "end": 32,
+        "pddl_action": "aa-report",
+        "action_key": "report",
+        "action": "Report",
+        "actor_unit_id": "red-recon",
+        "parameters": {
+          "recipient": "red-reserve",
+          "result": "defense-reorganized"
+        }
+      }
+    ],
+    "step_count": 19,
+    "makespan": 32
+  }
+}

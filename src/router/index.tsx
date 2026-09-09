@@ -8,6 +8,7 @@ import { SimulationSetupPage } from '../features/simulation/pages/SimulationSetu
 import { SimulatorPage } from '../features/simulation/pages/SimulatorPage';
 import { SimulationLibraryPage } from '../features/simulation/pages/SimulationLibraryPage';
 import { SimulationDetailPage } from '../features/simulation/pages/SimulationDetailPage';
+import { SimulationFinalPage } from '../features/simulation/pages/SimulationFinalPage';
 
 export const router = createBrowserRouter([
   {
@@ -21,6 +22,7 @@ export const router = createBrowserRouter([
       { path: '/simulations/setup', element: <SimulationSetupPage /> },
       { path: '/simulations/actions', element: <AtomicActionLibraryPage /> },
       { path: '/simulations/library', element: <SimulationLibraryPage /> },
+      { path: '/simulations/final', element: <SimulationFinalPage /> },
       { path: '/simulations/:simulationId', element: <SimulationDetailPage /> },
     ],
   },

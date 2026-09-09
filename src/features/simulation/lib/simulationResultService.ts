@@ -6,6 +6,7 @@ import engineSimulationResult from '../../../fixtures/engineSimulationResult.jso
 import alphaDeployment from '../../../../deployment.json';
 import type { DeploymentSetup, SimulationResult, SimulationUnit } from '../../../types';
 import { getUnitSidc } from './sidc';
+import { getFinalSimulation, getFinalSimulationDeployment } from './finalSimulation';
 
 const result = pipelineSimulationResult as SimulationResult;
 const exampleDeployment = pipelineDeployment as DeploymentSetup;
@@ -66,11 +67,15 @@ export function getMoveSimulationResult(): SimulationResult {
 
 /** Selects between the dynamic demonstration and the exact Alpha localStorage fixture. */
 export function getSimulationResult(simulationId?: string): SimulationResult {
+  const imported = getFinalSimulation(simulationId);
+  if (imported) return imported.result;
   return simulationId === 'alpha-localstorage' ? alphaResultExample : result;
 }
 
 /** Returns the paired deployment fixture for the engine-produced example result. */
 export function getSimulationResultDeployment(deploymentId?: string): DeploymentSetup | undefined {
+  const imported = getFinalSimulationDeployment(deploymentId);
+  if (imported) return imported;
   if (deploymentId === exampleDeployment.id) return exampleDeployment;
   if (deploymentId === alphaDeploymentExample.id) return alphaDeploymentExample;
   return undefined;
@@ -117,6 +122,13 @@ export function getSimulationResultUnits(simulationResult: SimulationResult, dep
   return tracks.map((track, index) => {
     const deploymentUnit = deployment?.units.find((unit) => unit.id === track.unitId);
     const metadata = actorLabels[track.actor] ?? actorLabels.alpha_coy;
+    const unitEffects = (simulationResult.actionEffects ?? []).filter((effect) => effect.unitId === track.unitId).sort((a, b) => a.startTime - b.startTime);
+    const firstEffect = unitEffects[0];
+    const target = firstEffect && (firstEffect.parameters.target ?? firstEffect.parameters.destination ?? firstEffect.parameters.result);
+    const generatedTimeline = simulationResult.events
+      .filter((event) => event.actor === track.actor)
+      .slice(0, 8)
+      .map((event) => `H+${event.time.toFixed(1)} ${event.type} ${event.action}`);
     const firstPosition = track.segments[0]?.keyframes[0]?.position
       ?? simulationResult.actionEffects?.find((effect) => effect.unitId === track.unitId)?.origin
       ?? deploymentUnit?.position;
@@ -126,16 +138,16 @@ export function getSimulationResultUnits(simulationResult: SimulationResult, dep
       name: deploymentUnit?.designation || metadata.name,
       allegiance: deploymentUnit?.affiliation === 'enemy' ? 'Enemy' : 'Friendly',
       type: deploymentUnit?.symbolLabel ?? metadata.type,
-      status: metadata.status,
+      status: firstEffect ? 'ACTIVE' : metadata.status,
       combatPower: metadata.combatPower,
-      currentOrder: metadata.currentOrder,
+      currentOrder: firstEffect ? `${firstEffect.action}${typeof target === 'string' ? ` · ${target}` : ''}` : metadata.currentOrder,
       personnel: metadata.personnel,
       ammunition: metadata.ammunition,
       mobility: metadata.mobility,
       position: { x: 35 + index * 12, y: 45 },
       icon: metadata.icon,
-      timeline: metadata.timeline,
-      log: metadata.log,
+      timeline: generatedTimeline.length ? generatedTimeline : metadata.timeline,
+      log: unitEffects.slice(0, 6).map((effect) => `${effect.action} · ${effect.startTime.toFixed(1)}–${effect.endTime.toFixed(1)}`),
       // Engine actors are scenario identifiers, whereas map symbols are owned by
       // the Deployment unit IDs. Prefer the latter so arbitrary plan actors render.
       sidc: deploymentUnit?.sidc ?? actorSidc[track.actor],
