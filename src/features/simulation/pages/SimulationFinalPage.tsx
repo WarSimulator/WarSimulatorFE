@@ -31,7 +31,7 @@ export function SimulationFinalPage() {
       const [offensive, defensive, withdrawal, deployment] = await Promise.all([
         readJson(files.offensive), readJson(files.defensive), files.withdrawal ? readJson(files.withdrawal) : undefined, readJson(files.deployment),
       ]);
-      const build = buildFinalSimulation({ offensive, defensive, withdrawal, deployment });
+      const build = await buildFinalSimulation({ offensive, defensive, withdrawal, deployment });
       saveFinalSimulation(build);
       navigate(`/simulations/${build.simulationId}/run`);
     } catch (caught) {

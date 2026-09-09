@@ -123,10 +123,14 @@ export type SimulationTrackSegment = {
   keyframes: SimulationKeyframe[];
   routing?: {
     generatedBy?: string;
+    provider?: string;
     referenceMoveTime?: number;
     moveDuration?: number;
     timingMode?: string;
     timeCompressionRatio?: number;
+    roadDistanceMeters?: number;
+    roadDurationSeconds?: number;
+    fallbackReason?: string;
   };
 };
 

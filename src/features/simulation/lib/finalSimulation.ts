@@ -213,7 +213,96 @@ function bearingDegrees(a: SimulationResultPosition, b: SimulationResultPosition
   return (degrees(Math.atan2(y, x)) + 360) % 360;
 }
 
-export function buildFinalSimulation(inputs: FinalSimulationInputs): FinalSimulationBuild {
+type RoadRoute = {
+  coordinates: SimulationResultPosition[];
+  distanceMeters: number;
+  durationSeconds: number;
+  provider: string;
+};
+
+function routingServiceUrl() {
+  const env = (import.meta as unknown as { env?: { VITE_ROUTING_URL?: string } }).env;
+  return (env?.VITE_ROUTING_URL ?? 'https://router.project-osrm.org').replace(/\/$/, '');
+}
+
+function routingProfile(parameters: Record<string, unknown>) {
+  const requested = String(parameters.routing_profile ?? parameters.routingProfile ?? 'driving').toLowerCase();
+  return ['driving', 'cycling', 'walking'].includes(requested) ? requested : 'driving';
+}
+
+function routingWaypointRefs(parameters: Record<string, unknown>) {
+  const values = parameters.via ?? parameters.waypoints;
+  return Array.isArray(values) ? values.map(String).filter(Boolean) : [];
+}
+
+function samePosition(first: SimulationResultPosition, second: SimulationResultPosition) {
+  return first.longitude === second.longitude && first.latitude === second.latitude;
+}
+
+function distributeRouteKeyframes(
+  coordinates: SimulationResultPosition[],
+  start: number,
+  end: number,
+): SimulationTrackSegment['keyframes'] {
+  const cumulativeDistances = coordinates.reduce<number[]>((distances, coordinate, index) => {
+    if (index === 0) return [0];
+    return [...distances, distances[index - 1] + distanceMeters(coordinates[index - 1], coordinate)];
+  }, []);
+  const totalDistance = cumulativeDistances.at(-1) ?? 0;
+  const duration = Math.max(0, end - start);
+
+  return coordinates.map((coordinate, index) => ({
+    time: totalDistance > 0 ? start + duration * (cumulativeDistances[index] / totalDistance) : start + duration * (index / Math.max(1, coordinates.length - 1)),
+    position: coordinate,
+  }));
+}
+
+async function requestRoadRoute(
+  origin: SimulationResultPosition,
+  destination: SimulationResultPosition,
+  waypoints: SimulationResultPosition[],
+  profile: string,
+): Promise<RoadRoute> {
+  const coordinates = [origin, ...waypoints, destination];
+  const coordinatePath = coordinates.map(point => `${point.longitude},${point.latitude}`).join(';');
+  const controller = new AbortController();
+  const timeout = window.setTimeout(() => controller.abort(), 8000);
+
+  try {
+    const response = await fetch(`${routingServiceUrl()}/route/v1/${profile}/${coordinatePath}?overview=full&geometries=geojson&steps=false`, {
+      signal: controller.signal,
+    });
+    if (!response.ok) throw new Error(`HTTP ${response.status}`);
+    const payload = await response.json() as {
+      code?: string;
+      routes?: Array<{ distance?: number; duration?: number; geometry?: { coordinates?: unknown } }>;
+    };
+    const route = payload.code === 'Ok' ? payload.routes?.[0] : undefined;
+    const rawCoordinates = route?.geometry?.coordinates;
+    if (!route || !Array.isArray(rawCoordinates) || rawCoordinates.length < 2) throw new Error(payload.code ?? 'NoRoute');
+    const roadCoordinates = rawCoordinates.flatMap((value) => {
+      if (!Array.isArray(value) || value.length < 2) return [];
+      const longitude = finite(value[0], Number.NaN); const latitude = finite(value[1], Number.NaN);
+      return Number.isFinite(longitude) && Number.isFinite(latitude) ? [{ longitude, latitude }] : [];
+    });
+    if (roadCoordinates.length < 2) throw new Error('Invalid route geometry');
+
+    // Preserve exact scenario start/end points even when the router snaps them
+    // a short distance onto the nearest road segment.
+    if (!samePosition(origin, roadCoordinates[0])) roadCoordinates.unshift(origin);
+    if (!samePosition(destination, roadCoordinates.at(-1)!)) roadCoordinates.push(destination);
+    return {
+      coordinates: roadCoordinates,
+      distanceMeters: finite(route.distance, 0),
+      durationSeconds: finite(route.duration, 0),
+      provider: routingServiceUrl(),
+    };
+  } finally {
+    window.clearTimeout(timeout);
+  }
+}
+
+export async function buildFinalSimulation(inputs: FinalSimulationInputs): Promise<FinalSimulationBuild> {
   const deployment = normalizeDeployment(inputs.deployment);
   const runTimestamp = Date.now();
   const simulationId = `final-${runTimestamp}`;
@@ -251,7 +340,28 @@ export function buildFinalSimulation(inputs: FinalSimulationInputs): FinalSimula
       const destinationRef = String(parameters.destination ?? parameters.target ?? '').trim();
       const destination = refs.get(destinationRef);
       if (!destination) throw new Error(`${name} 행동의 목적지 '${destinationRef || '(없음)'}' 좌표를 찾을 수 없습니다.`);
-      movement = { actionSequence: sequence, action: name, startTime: start, endTime: end, source: String(parameters.source ?? 'current_position'), destination: destinationRef, keyframes: [{ time: start, position: origin }, { time: end, position: destination }] };
+      const waypointRefs = routingWaypointRefs(parameters);
+      const waypoints = waypointRefs.map((reference) => {
+        const at = refs.get(reference);
+        if (!at) throw new Error(`${name} 행동의 경유지 '${reference}' 좌표를 찾을 수 없습니다.`);
+        return at;
+      });
+      let keyframes = [{ time: start, position: origin }, { time: end, position: destination }];
+      let routing: SimulationTrackSegment['routing'] | undefined;
+      try {
+        const route = await requestRoadRoute(origin, destination, waypoints, routingProfile(parameters));
+        keyframes = distributeRouteKeyframes(route.coordinates, start, end);
+        routing = {
+          generatedBy: 'Road routing', provider: route.provider, moveDuration: end - start, timingMode: 'distance-weighted',
+          roadDistanceMeters: route.distanceMeters, roadDurationSeconds: route.durationSeconds,
+        };
+      } catch (error) {
+        routing = {
+          generatedBy: 'Straight-line fallback', provider: routingServiceUrl(), moveDuration: end - start, timingMode: 'linear',
+          fallbackReason: error instanceof Error ? error.message : 'Road route unavailable',
+        };
+      }
+      movement = { actionSequence: sequence, action: name, startTime: start, endTime: end, source: String(parameters.source ?? 'current_position'), destination: destinationRef, keyframes, routing };
       segments.set(unit.id, [...(segments.get(unit.id) ?? []), movement]); current.set(unit.id, destination);
     }
     let observation: ObservationEffect | undefined;

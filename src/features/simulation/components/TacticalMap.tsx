@@ -147,7 +147,12 @@ function toActionEffectFeatures(
     const color = colorByAction[effect.action];
     if (!color) continue;
     const origin = positions.find((position) => position.unitId === effect.unitId || position.actor === effect.actor)?.position ?? effect.origin;
-    const targetPosition = target ? positions.find((position) => position.actor === target)?.position ?? resolvePlanReference(deployment, target) : origin;
+    // Plans target stable unit IDs (for example, "blue-main-tank"), while
+    // tracks also carry a human-readable designation. Resolve either form
+    // against the live playback position before falling back to map references.
+    const targetPosition = target
+      ? positions.find((position) => position.unitId === target || position.actor === target)?.position ?? resolvePlanReference(deployment, target)
+      : origin;
     if (!origin || !targetPosition) continue;
     const elapsed = (simulationTime - effect.startTime) / Math.max(0.01, effect.endTime - effect.startTime);
     features.push({ type: 'Feature', id: `action-line-${effect.actionSequence}`, properties: { kind: 'action-line', color, radius: 0, action: effect.action }, geometry: { type: 'LineString', coordinates: [[origin.longitude, origin.latitude], [targetPosition.longitude, targetPosition.latitude]] } });

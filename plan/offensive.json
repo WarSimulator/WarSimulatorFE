@@ -1,0 +1,269 @@
+{
+  "status": "tfd-complete",
+  "complete": true,
+  "scenario_id": "atlas-final-demo",
+  "form_option": "PenetrationOption",
+  "time_unit": "simulation-step",
+  "temporal_plan": {
+    "steps": [
+      {
+        "sequence": 1,
+        "start": 0,
+        "duration": 4,
+        "end": 4,
+        "pddl_action": "aa-move",
+        "action_key": "move",
+        "action": "Move",
+        "actor_unit_id": "blue-recon",
+        "parameters": {
+          "source": "current_position",
+          "destination": "blue-recon-line"
+        }
+      },
+      {
+        "sequence": 2,
+        "start": 0,
+        "duration": 6,
+        "end": 6,
+        "pddl_action": "aa-move",
+        "action_key": "move",
+        "action": "Move",
+        "actor_unit_id": "blue-main-tank",
+        "parameters": {
+          "source": "current_position",
+          "destination": "attack-position"
+        }
+      },
+      {
+        "sequence": 3,
+        "start": 2,
+        "duration": 5,
+        "end": 7,
+        "pddl_action": "aa-disrupt",
+        "action_key": "disrupt",
+        "action": "Disrupt",
+        "actor_unit_id": "blue-artillery",
+        "parameters": {
+          "target": "red-artillery"
+        }
+      },
+      {
+        "sequence": 4,
+        "start": 3,
+        "duration": 4,
+        "end": 7,
+        "pddl_action": "aa-move",
+        "action_key": "move",
+        "action": "Move",
+        "actor_unit_id": "blue-engineer",
+        "parameters": {
+          "source": "current_position",
+          "destination": "breach-support"
+        }
+      },
+      {
+        "sequence": 5,
+        "start": 4,
+        "duration": 8,
+        "end": 12,
+        "pddl_action": "aa-observe",
+        "action_key": "observe",
+        "action": "Observe",
+        "actor_unit_id": "blue-recon",
+        "parameters": {
+          "target": "red-screen",
+          "sensor_range_m": 1000,
+          "field_of_view_deg": 42
+        }
+      },
+      {
+        "sequence": 6,
+        "start": 7,
+        "duration": 3,
+        "end": 10,
+        "pddl_action": "aa-integrate",
+        "action_key": "integrate",
+        "action": "Integrate",
+        "actor_unit_id": "blue-main-tank",
+        "parameters": {
+          "support": "artillery-engineer"
+        }
+      },
+      {
+        "sequence": 7,
+        "start": 8,
+        "duration": 4,
+        "end": 12,
+        "pddl_action": "aa-breach",
+        "action_key": "breach",
+        "action": "Breach",
+        "actor_unit_id": "blue-engineer",
+        "parameters": {
+          "target": "breach-lane"
+        }
+      },
+      {
+        "sequence": 8,
+        "start": 9,
+        "duration": 2,
+        "end": 11,
+        "pddl_action": "aa-identify",
+        "action_key": "identify",
+        "action": "Identify",
+        "actor_unit_id": "blue-recon",
+        "parameters": {
+          "target": "red-screen"
+        }
+      },
+      {
+        "sequence": 9,
+        "start": 11,
+        "duration": 2,
+        "end": 13,
+        "pddl_action": "aa-report",
+        "action_key": "report",
+        "action": "Report",
+        "actor_unit_id": "blue-recon",
+        "parameters": {
+          "recipient": "blue-main-tank",
+          "result": "enemy-screen-identified"
+        }
+      },
+      {
+        "sequence": 10,
+        "start": 12,
+        "duration": 6,
+        "end": 18,
+        "pddl_action": "aa-move",
+        "action_key": "move",
+        "action": "Move",
+        "actor_unit_id": "blue-main-tank",
+        "parameters": {
+          "source": "attack-position",
+          "destination": "obj-approach"
+        }
+      },
+      {
+        "sequence": 11,
+        "start": 10,
+        "duration": 6,
+        "end": 16,
+        "pddl_action": "aa-move",
+        "action_key": "move",
+        "action": "Move",
+        "actor_unit_id": "blue-reserve",
+        "parameters": {
+          "source": "current_position",
+          "destination": "support-position"
+        }
+      },
+      {
+        "sequence": 12,
+        "start": 18,
+        "duration": 4,
+        "end": 22,
+        "pddl_action": "aa-engage",
+        "action_key": "engage",
+        "action": "Engage",
+        "actor_unit_id": "blue-main-tank",
+        "parameters": {
+          "target": "red-armor"
+        }
+      },
+      {
+        "sequence": 13,
+        "start": 18,
+        "duration": 4,
+        "end": 22,
+        "pddl_action": "aa-disrupt",
+        "action_key": "disrupt",
+        "action": "Disrupt",
+        "actor_unit_id": "blue-artillery",
+        "parameters": {
+          "target": "red-reserve"
+        }
+      },
+      {
+        "sequence": 14,
+        "start": 22,
+        "duration": 5,
+        "end": 27,
+        "pddl_action": "aa-fight",
+        "action_key": "fight",
+        "action": "Fight",
+        "actor_unit_id": "blue-main-tank",
+        "parameters": {
+          "target": "red-armor"
+        }
+      },
+      {
+        "sequence": 15,
+        "start": 22,
+        "duration": 4,
+        "end": 26,
+        "pddl_action": "aa-clear",
+        "action_key": "clear",
+        "action": "Clear",
+        "actor_unit_id": "blue-engineer",
+        "parameters": {
+          "target": "obj-alpha"
+        }
+      },
+      {
+        "sequence": 16,
+        "start": 26,
+        "duration": 5,
+        "end": 31,
+        "pddl_action": "aa-establish_security",
+        "action_key": "establish_security",
+        "action": "Establish Security",
+        "actor_unit_id": "blue-reserve",
+        "parameters": {
+          "target": "support-position"
+        }
+      },
+      {
+        "sequence": 17,
+        "start": 27,
+        "duration": 3,
+        "end": 30,
+        "pddl_action": "aa-seize",
+        "action_key": "seize",
+        "action": "Seize",
+        "actor_unit_id": "blue-main-tank",
+        "parameters": {
+          "target": "obj-alpha"
+        }
+      },
+      {
+        "sequence": 18,
+        "start": 30,
+        "duration": 2,
+        "end": 32,
+        "pddl_action": "aa-confirm_control",
+        "action_key": "confirm_control",
+        "action": "Confirm Control",
+        "actor_unit_id": "blue-main-tank",
+        "parameters": {
+          "target": "obj-alpha"
+        }
+      },
+      {
+        "sequence": 19,
+        "start": 32,
+        "duration": 2,
+        "end": 34,
+        "pddl_action": "aa-report",
+        "action_key": "report",
+        "action": "Report",
+        "actor_unit_id": "blue-main-tank",
+        "parameters": {
+          "recipient": "blue-artillery",
+          "result": "objective-controlled"
+        }
+      }
+    ],
+    "step_count": 19,
+    "makespan": 34
+  }
+}
