@@ -1,3 +1,4 @@
+import { useMemo, useState } from 'react';
 import { Icon } from '../../../components/layout/Icon';
 import type { SimulationRuntimeState, SimulationUnit, TacticalLayers } from '../../../types';
 
@@ -10,7 +11,21 @@ type UnitListPanelProps = {
   actionsByUnitId?: Record<string, string>;
 };
 
+type UnitFilter = 'all' | 'friendly' | 'enemy';
+
+const UNIT_FILTERS: { id: UnitFilter; label: string }[] = [
+  { id: 'all', label: '전체' },
+  { id: 'friendly', label: '아군' },
+  { id: 'enemy', label: '적군' },
+];
+
 export function UnitListPanel({ units, selectedUnitId, tacticalLayers, onSelectUnit, onLayerChange, actionsByUnitId }: UnitListPanelProps) {
+  const [unitFilter, setUnitFilter] = useState<UnitFilter>('all');
+  const visibleUnits = useMemo(() => units.filter((unit) => (
+    unitFilter === 'all'
+      || (unitFilter === 'friendly' && unit.allegiance === 'Friendly')
+      || (unitFilter === 'enemy' && unit.allegiance === 'Enemy')
+  )), [unitFilter, units]);
   const setLayer = (key: keyof SimulationRuntimeState['tacticalLayers'], value: boolean) => {
     onLayerChange({ ...tacticalLayers, [key]: value });
   };
@@ -26,14 +41,17 @@ export function UnitListPanel({ units, selectedUnitId, tacticalLayers, onSelectU
         <section>
           <h3 className="mb-3 font-label-caps text-label-caps text-on-surface-variant">전투 편성</h3>
           <div className="grid grid-cols-3 gap-2">
-            {['전체', '아군', '적군'].map((filter, index) => (
+            {UNIT_FILTERS.map((filter) => (
               <button
-                key={filter}
+                key={filter.id}
+                type="button"
+                aria-pressed={unitFilter === filter.id}
+                onClick={() => setUnitFilter(filter.id)}
                 className={`rounded border px-2 py-2 font-data-mono text-[11px] ${
-                  index === 0 ? 'border-primary bg-primary/10 text-primary' : 'border-outline-variant text-on-surface-variant'
+                  unitFilter === filter.id ? 'border-primary bg-primary/10 text-primary' : 'border-outline-variant text-on-surface-variant'
                 }`}
               >
-                {filter}
+                {filter.label}
               </button>
             ))}
           </div>
@@ -42,7 +60,7 @@ export function UnitListPanel({ units, selectedUnitId, tacticalLayers, onSelectU
         <section>
           <h3 className="mb-3 font-label-caps text-label-caps text-on-surface-variant">Unit List</h3>
           <div className="space-y-2">
-            {units.map((unit) => (
+            {visibleUnits.map((unit) => (
               <button
                 key={unit.id}
                 className={`flex w-full items-center gap-3 rounded border p-3 text-left transition-colors ${

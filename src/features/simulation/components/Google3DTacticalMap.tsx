@@ -1,8 +1,12 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
-import type { DeploymentSetup, SimulationResult, SimulationRuntimeState, SimulationUnit } from '../../../types';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import type { AtomicActionEffect, DeploymentSetup, ObservationEffect, SimulationResult, SimulationResultPosition, SimulationRuntimeState, SimulationUnit } from '../../../types';
 import { DEFAULT_MAP_CENTER } from '../lib/mapConfig';
-import { getTrackPositionsAtTime } from '../lib/playback';
+import { getTrackPositionsAtTime, getUnitPositionAtTime } from '../lib/playback';
+import { buildObservationSector, getActiveObservationEffects } from '../lib/observation';
+import { resolvePlanReference } from '../lib/planReferenceMapping';
 import { createMilitarySymbolSvg } from '../lib/symbolSvg';
+import { createOverlayStore, createOverlaySchedule } from '../lib/google3DOverlayStore';
+type ActionOverlayStore = ReturnType<typeof createOverlayStore>;
 
 type Props = {
   runtime: SimulationRuntimeState;
@@ -16,6 +20,12 @@ type Props = {
 export type Position3D = { lat: number; lng: number; altitude?: number };
 export type Map3DNode = HTMLElement;
 export type Marker3DNode = HTMLElement & { position: Position3D; label?: string; zIndex?: number };
+type StaticLayerNodes = {
+  routes: HTMLElement[];
+  controlLines: HTMLElement[];
+  objectives: Marker3DNode[];
+  unitLabels: Map<Marker3DNode, string>;
+};
 export type Maps3DLibrary = {
   Map3DElement: new (options: Record<string, unknown>) => Map3DNode;
   Marker3DInteractiveElement: new (options: Record<string, unknown>) => Marker3DNode;
@@ -31,6 +41,18 @@ export const SURFACE_ALTITUDE_MODE = 'RELATIVE_TO_MESH';
 export const SURFACE_DRAWS_OCCLUDED_SEGMENTS = false;
 const SURFACE_SAMPLE_METERS = 25;
 const MAX_SURFACE_SAMPLES_PER_SEGMENT = 128;
+const ACTION_OVERLAY_INTERVAL_MS = 75;
+const FIRE_ACTIONS = new Set(['Engage', 'Continue to Engage', 'Fight', 'Ambush', 'Disrupt']);
+const ACTION_COLORS: Record<string, string> = {
+  Move: '#ffb95f', Observe: '#66d9ff', Engage: '#ff5d5d', 'Continue to Engage': '#ff7b7b',
+  'Establish Security': '#5bd4ff', 'Establish Presence': '#5bd4ff', Confirm: '#b4c5ff',
+  'Confirm Control': '#64e7a2', Construct: '#ffd166', Adapt: '#c084fc', Decide: '#ffd166',
+  'Re-Orient': '#c084fc', Adjust: '#c084fc', Demonstrate: '#fb923c', Integrate: '#60a5fa',
+  Contain: '#fb923c', Block: '#fb923c', Report: '#a78bfa', Identify: '#b4c5ff',
+  Fight: '#ff5d5d', Withdraw: '#a78bfa', 'Do not seek a decisive engagement': '#a78bfa',
+  'Disassemble / Disarm': '#64e7a2', Ambush: '#ff5d5d', Breach: '#ffd166', Clear: '#5bd4ff',
+  Seize: '#64e7a2', Disrupt: '#ff9f43',
+};
 
 let googleMapsLoad: Promise<GoogleMapsRuntime> | undefined;
 
@@ -93,6 +115,121 @@ export function toSurfacePath(points: readonly Position3D[]): Position3D[] {
   return path;
 }
 
+function position3D(position: SimulationResultPosition): Position3D {
+  return { lat: position.latitude, lng: position.longitude };
+}
+
+function circlePath(center: Position3D, radiusMeters: number, points = 28): Position3D[] {
+  const latitudeScale = radiusMeters / 111_000;
+  const longitudeScale = radiusMeters / (111_000 * Math.max(0.1, Math.cos(center.lat * Math.PI / 180)));
+  return Array.from({ length: points + 1 }, (_, index) => {
+    const angle = index / points * Math.PI * 2;
+    return { lat: center.lat + Math.cos(angle) * latitudeScale, lng: center.lng + Math.sin(angle) * longitudeScale };
+  });
+}
+
+function actionColor(action: string) {
+  return ACTION_COLORS[action] ?? '#f8c66d';
+}
+
+function actionPulseRadius(action: string, progress: number) {
+  const base = FIRE_ACTIONS.has(action) ? 115 : action === 'Observe' ? 160 : action === 'Seize' || action === 'Contain' || action === 'Block' ? 180 : 95;
+  return base * (0.75 + 0.3 * Math.sin(progress * Math.PI * 2));
+}
+
+function actionTarget(effect: Pick<AtomicActionEffect, 'parameters'>, result: SimulationResult, deployment: DeploymentSetup | undefined, time: number) {
+  const parameters = effect.parameters;
+  const reference = [parameters.target, parameters.destination, parameters.effectArea, parameters.result, parameters.recipient]
+    .find((value): value is string => typeof value === 'string' && value.trim().length > 0);
+  return reference ? getUnitPositionAtTime(reference, time, result, deployment) ?? resolvePlanReference(deployment, reference) : undefined;
+}
+
+function addPulse(nodes: ActionOverlayStore, key: string, center: Position3D, color: string, radiusMeters: number) {
+  nodes.put(`${key}:pulse`, 'polygon', {
+    path: circlePath(center, radiusMeters), fillColor: `${color}2e`, strokeColor: color, strokeWidth: 3,
+    altitudeMode: SURFACE_ALTITUDE_MODE, drawsOccludedSegments: SURFACE_DRAWS_OCCLUDED_SEGMENTS, zIndex: 30,
+  });
+}
+
+function addDirectedAction(
+  nodes: ActionOverlayStore,
+  key: string,
+  action: string,
+  origin: Position3D,
+  target: Position3D | undefined,
+  progress: number,
+) {
+  const color = actionColor(action);
+  const pulseCenter = target ?? origin;
+  if (target && (target.lat !== origin.lat || target.lng !== origin.lng)) {
+    nodes.put(`${key}:line`, 'line', {
+      path: [origin, target], strokeColor: color, outerColor: '#111827', outerWidth: 0.22, strokeWidth: FIRE_ACTIONS.has(action) ? 7 : 5,
+      altitudeMode: SURFACE_ALTITUDE_MODE, drawsOccludedSegments: SURFACE_DRAWS_OCCLUDED_SEGMENTS, zIndex: 29,
+    });
+  }
+  addPulse(nodes, key, pulseCenter, color, actionPulseRadius(action, progress));
+}
+
+function addObservationAction(
+  nodes: ActionOverlayStore,
+  key: string,
+  effect: ObservationEffect,
+  result: SimulationResult,
+  deployment: DeploymentSetup | undefined,
+  time: number,
+) {
+  const origin = getUnitPositionAtTime(effect.actor, time, result, deployment) ?? effect.origin;
+  const liveEffect = {
+    ...effect,
+    origin,
+    direction: effect.direction + Math.sin((time - effect.startTime) * Math.PI / 2) * effect.fovDegrees * 0.1,
+  };
+  const sector = buildObservationSector(liveEffect, 0.18).geometry.coordinates[0]
+    .map(([lng, lat]) => ({ lat, lng }));
+  nodes.put(`${key}:sector`, 'polygon', {
+    path: sector, fillColor: effect.targetInRange ? '#66d9ff38' : '#f8c66d38', strokeColor: effect.targetInRange ? '#66d9ff' : '#f8c66d', strokeWidth: 3,
+    altitudeMode: SURFACE_ALTITUDE_MODE, drawsOccludedSegments: SURFACE_DRAWS_OCCLUDED_SEGMENTS, zIndex: 30,
+  });
+  addPulse(nodes, key, position3D(origin), '#66d9ff', 45);
+}
+
+function updateActionOverlays(
+  nodes: ActionOverlayStore,
+  result: SimulationResult,
+  deployment: DeploymentSetup | undefined,
+  time: number,
+) {
+  nodes.begin();
+  const activeObservations = getActiveObservationEffects(result, time);
+  const observationSequences = new Set(activeObservations.map(effect => effect.actionSequence));
+  activeObservations.forEach(effect => addObservationAction(nodes, `observe:${effect.actor}:${effect.actionSequence}`, effect, result, deployment, time));
+
+  for (const effect of result.actionEffects ?? []) {
+    if (effect.startTime > time || time >= effect.endTime || (effect.action === 'Observe' && observationSequences.has(effect.actionSequence))) continue;
+    const origin = getUnitPositionAtTime(effect.unitId, time, result, deployment)
+      ?? getUnitPositionAtTime(effect.actor, time, result, deployment)
+      ?? effect.origin;
+    const target = actionTarget(effect, result, deployment, time);
+    const progress = Math.max(0, Math.min(1, (time - effect.startTime) / Math.max(0.01, effect.endTime - effect.startTime)));
+    addDirectedAction(nodes, `action:${effect.unitId}:${effect.actionSequence}`, effect.action, position3D(origin), target ? position3D(target) : undefined, progress);
+  }
+
+  for (const effect of result.engagementEffects ?? []) {
+    if (effect.startTime > time || time >= effect.endTime) continue;
+    const origin = getUnitPositionAtTime(effect.actor, time, result, deployment);
+    const target = getUnitPositionAtTime(effect.target, time, result, deployment) ?? resolvePlanReference(deployment, effect.target);
+    if (origin) addDirectedAction(nodes, `engage:${effect.actor}:${effect.actionSequence}`, effect.action, position3D(origin), target ? position3D(target) : undefined, (time - effect.startTime) / Math.max(0.01, effect.endTime - effect.startTime));
+  }
+
+  for (const effect of result.seizureEffects ?? []) {
+    if (effect.startTime > time || time >= effect.endTime) continue;
+    const origin = getUnitPositionAtTime(effect.actor, time, result, deployment);
+    const target = resolvePlanReference(deployment, effect.target);
+    if (origin) addDirectedAction(nodes, `seize:${effect.actor}:${effect.actionSequence}`, effect.action, position3D(origin), target ? position3D(target) : undefined, (time - effect.startTime) / Math.max(0.01, effect.endTime - effect.startTime));
+  }
+  nodes.end();
+}
+
 function positionsAtTime(result: SimulationResult, units: SimulationUnit[], time: number) {
   const moving = getTrackPositionsAtTime(result, time);
   const movingIds = new Set(moving.map(item => item.unitId));
@@ -116,6 +253,8 @@ export function Google3DTacticalMap({ runtime, playbackRef, units, result, deplo
   const containerRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<Map3DNode | null>(null);
   const markersRef = useRef(new Map<string, Marker3DNode>());
+  const staticLayersRef = useRef<StaticLayerNodes>({ routes: [], controlLines: [], objectives: [], unitLabels: new Map() });
+  const actionOverlaysRef = useRef<ActionOverlayStore | null>(null);
   const fallbackPlaybackRef = useRef(runtime);
   const [error, setError] = useState('');
   const [ready, setReady] = useState(false);
@@ -123,8 +262,12 @@ export function Google3DTacticalMap({ runtime, playbackRef, units, result, deplo
   const cameraRange = useMemo(() => getCameraRange(result, center), [center, result]);
   useEffect(() => { fallbackPlaybackRef.current = runtime; }, [runtime]);
   const clock = playbackRef ?? fallbackPlaybackRef;
+  const refreshActionOverlays = useCallback((time: number) => {
+    if (actionOverlaysRef.current) updateActionOverlays(actionOverlaysRef.current, result, deployment, time);
+  }, [deployment, result]);
 
   useEffect(() => {
+    setReady(false);
     const apiKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY?.trim();
     if (!apiKey) {
       setError('VITE_GOOGLE_MAPS_API_KEY가 설정되지 않았습니다.');
@@ -141,29 +284,42 @@ export function Google3DTacticalMap({ runtime, playbackRef, units, result, deplo
         map.style.height = '100%';
         containerRef.current.replaceChildren(map);
         mapRef.current = map;
+        actionOverlaysRef.current = createOverlayStore(
+          (kind, options) => kind === 'polygon'
+            ? new library.Polygon3DElement(options) : new library.Polyline3DElement(options),
+          node => map.append(node as HTMLElement),
+          toSurfacePath,
+        );
+        staticLayersRef.current = { routes: [], controlLines: [], objectives: [], unitLabels: new Map() };
 
         for (const track of result.unitTracks) {
           for (const segment of track.segments) {
             if (segment.keyframes.length < 2) continue;
-            map.append(new library.Polyline3DElement({
+            const route = new library.Polyline3DElement({
               path: toSurfacePath(segment.keyframes.map(frame => ({ lat: frame.position.latitude, lng: frame.position.longitude }))),
               strokeColor: '#ffb95f', outerColor: '#121212', strokeWidth: 5, outerWidth: 0.3,
               altitudeMode: SURFACE_ALTITUDE_MODE, drawsOccludedSegments: SURFACE_DRAWS_OCCLUDED_SEGMENTS,
-            }));
+            });
+            staticLayersRef.current.routes.push(route);
+            map.append(route);
           }
         }
 
         for (const graphic of deployment?.tacticalGraphics ?? []) {
           if (graphic.geometry.type === 'Polygon') {
-            map.append(new library.Polygon3DElement({
+            const controlLine = new library.Polygon3DElement({
               path: toSurfacePath(graphic.geometry.coordinates[0].map(([lng, lat]) => ({ lat, lng }))), fillColor: '#80d8ff33',
               strokeColor: '#80d8ff', strokeWidth: 3, altitudeMode: SURFACE_ALTITUDE_MODE, drawsOccludedSegments: SURFACE_DRAWS_OCCLUDED_SEGMENTS,
-            }));
+            });
+            staticLayersRef.current.controlLines.push(controlLine);
+            map.append(controlLine);
           } else {
-            map.append(new library.Polyline3DElement({
+            const controlLine = new library.Polyline3DElement({
               path: toSurfacePath(graphic.geometry.coordinates.map(([lng, lat]) => ({ lat, lng }))), strokeColor: '#80d8ff', strokeWidth: 4,
               altitudeMode: SURFACE_ALTITUDE_MODE, drawsOccludedSegments: SURFACE_DRAWS_OCCLUDED_SEGMENTS,
-            }));
+            });
+            staticLayersRef.current.controlLines.push(controlLine);
+            map.append(controlLine);
           }
         }
 
@@ -171,7 +327,9 @@ export function Google3DTacticalMap({ runtime, playbackRef, units, result, deplo
           const lng = objective.position.longitude ?? objective.position.lon;
           const lat = objective.position.latitude ?? objective.position.lat;
           if (typeof lng !== 'number' || typeof lat !== 'number') continue;
-          map.append(new library.Marker3DInteractiveElement({ position: { lat, lng }, ...markerText(objective.name ? `OBJ · ${objective.name}` : 'OBJ'), sizePreserved: true }));
+          const objectiveMarker = new library.Marker3DInteractiveElement({ position: { lat, lng }, ...markerText(objective.name ? `OBJ · ${objective.name}` : 'OBJ'), sizePreserved: true });
+          staticLayersRef.current.objectives.push(objectiveMarker);
+          map.append(objectiveMarker);
         }
 
         const unitById = new Map(units.map(unit => [unit.id, unit]));
@@ -187,8 +345,10 @@ export function Google3DTacticalMap({ runtime, playbackRef, units, result, deplo
           marker.append(template);
           marker.addEventListener('gmp-click', () => onSelectUnit(unit.id));
           markersRef.current.set(unit.id, marker);
+          staticLayersRef.current.unitLabels.set(marker, unit.name);
           map.append(marker);
         }
+        refreshActionOverlays(clock.current.simulationTime);
         setReady(true);
       } catch (caught) {
         setError(caught instanceof Error ? caught.message : 'Google 3D 지도를 초기화하지 못했습니다.');
@@ -198,29 +358,53 @@ export function Google3DTacticalMap({ runtime, playbackRef, units, result, deplo
     return () => {
       cancelled = true;
       markersRef.current.clear();
+      staticLayersRef.current = { routes: [], controlLines: [], objectives: [], unitLabels: new Map() };
+      actionOverlaysRef.current?.clear();
+      actionOverlaysRef.current = null;
       mapRef.current?.remove();
       mapRef.current = null;
     };
-  }, [cameraRange, center, clock, deployment, onSelectUnit, result, units]);
+  }, [cameraRange, center, clock, deployment, onSelectUnit, refreshActionOverlays, result, units]);
+
+  useEffect(() => {
+    const { routes, controlLines, objectives, unitLabels } = staticLayersRef.current;
+    for (const node of routes) node.style.display = runtime.tacticalLayers.routes ? '' : 'none';
+    for (const node of controlLines) node.style.display = runtime.tacticalLayers.controlLines ? '' : 'none';
+    for (const marker of objectives) marker.style.display = runtime.tacticalLayers.controlLines ? '' : 'none';
+    for (const [marker, label] of unitLabels) marker.label = runtime.tacticalLayers.labels ? label : '';
+  }, [ready, runtime.tacticalLayers]);
 
   useEffect(() => {
     if (!ready) return;
     let frame = 0;
     let previousTime = Number.NaN;
-    const tick = () => {
+    const shouldUpdate = createOverlaySchedule(ACTION_OVERLAY_INTERVAL_MS);
+    const previousPositions = new Map<string, Position3D>();
+    let lastFrameTime = Number.NaN;
+    const tick = (timestamp: number) => {
       const time = clock.current.simulationTime;
       if (time !== previousTime) {
         for (const item of positionsAtTime(result, units, time)) {
           const marker = markersRef.current.get(item.unitId);
-          if (marker) marker.position = { lat: item.position.latitude, lng: item.position.longitude };
+          const previous = previousPositions.get(item.unitId);
+          if (marker && (previous?.lat !== item.position.latitude || previous?.lng !== item.position.longitude)) {
+            const position = { lat: item.position.latitude, lng: item.position.longitude };
+            marker.position = position;
+            previousPositions.set(item.unitId, position);
+          }
         }
         previousTime = time;
       }
+      const jumped = Number.isFinite(lastFrameTime) && (time < lastFrameTime || time - lastFrameTime > 0.25);
+      if (shouldUpdate(timestamp, time, clock.current.isPlaying, jumped)) {
+        refreshActionOverlays(time);
+      }
+      lastFrameTime = time;
       frame = requestAnimationFrame(tick);
     };
     frame = requestAnimationFrame(tick);
     return () => cancelAnimationFrame(frame);
-  }, [clock, ready, result, units]);
+  }, [clock, ready, refreshActionOverlays, result, units]);
 
   useEffect(() => {
     for (const [unitId, marker] of markersRef.current) {
@@ -231,7 +415,7 @@ export function Google3DTacticalMap({ runtime, playbackRef, units, result, deplo
   return (
     <section className="relative flex-1 overflow-hidden bg-[#101418]">
       <div ref={containerRef} className="absolute inset-0" />
-      <div className="pointer-events-none absolute left-6 top-6 z-10 rounded border border-secondary/50 bg-surface/85 px-3 py-2 font-data-mono text-[11px] text-secondary backdrop-blur">GOOGLE 3D · RESULT PLAYBACK</div>
+      <div className="pointer-events-none absolute left-6 top-6 z-10 rounded border border-secondary/50 bg-surface/85 px-3 py-2 font-data-mono text-[11px] text-secondary backdrop-blur">GOOGLE 3D · ACTION PLAYBACK</div>
       {!ready && !error && <div className="absolute inset-0 z-20 flex items-center justify-center bg-surface/90 text-sm text-on-surface-variant">Google 3D 지도를 불러오는 중입니다…</div>}
       {error && <div className="absolute inset-0 z-20 flex items-center justify-center bg-surface/95 p-6">
         <div className="max-w-xl rounded border border-error/50 bg-surface-container-high p-6 text-center">

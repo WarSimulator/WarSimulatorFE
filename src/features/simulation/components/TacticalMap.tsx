@@ -303,13 +303,14 @@ export function TacticalMap({ runtime, playbackRef, units, result, deployment, o
     graphicsSource?.setData({
       type: 'FeatureCollection',
       features: [
-        ...tacticalGraphicFeatures.features,
+        ...(runtime.tacticalLayers.controlLines ? tacticalGraphicFeatures.features : []),
         ...(runtime.tacticalLayers.routes ? routeFeatures.features : []),
       ],
     });
-    objectiveSource?.setData(objectiveFeatures);
-    axisSource?.setData(axisArrowFeatures);
-  }, [axisArrowFeatures, mapReady, objectiveFeatures, routeFeatures, runtime.tacticalLayers.routes, tacticalGraphicFeatures]);
+    objectiveSource?.setData(runtime.tacticalLayers.controlLines ? objectiveFeatures : { type: 'FeatureCollection', features: [] });
+    axisSource?.setData(runtime.tacticalLayers.controlLines ? axisArrowFeatures : { type: 'FeatureCollection', features: [] });
+    map.setLayoutProperty('deployment-units', 'text-field', runtime.tacticalLayers.labels ? ['get', 'designation'] : '');
+  }, [axisArrowFeatures, mapReady, objectiveFeatures, routeFeatures, runtime.tacticalLayers.controlLines, runtime.tacticalLayers.labels, runtime.tacticalLayers.routes, tacticalGraphicFeatures]);
 
   useEffect(() => {
     if (!mapReady || !mapRef.current?.isStyleLoaded()) {

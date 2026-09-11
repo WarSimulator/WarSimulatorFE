@@ -240,13 +240,13 @@ export function SimulatorPage() {
         </div>
       ) : (
         <div className="flex min-h-0 flex-1">
-          <UnitListPanel
+          {mapMode !== '3d' && <UnitListPanel
             units={rosterUnits}
             selectedUnitId={runtime.selectedUnitId}
             tacticalLayers={runtime.tacticalLayers}
             onSelectUnit={selectUnit}
             onLayerChange={setTacticalLayers}
-          />
+          />}
           {runtime.activeTab === 'order' ? (
             <CommanderInbox reports={commanderReports} simulationTime={runtime.simulationTime} onSelectUnit={selectUnit} />
           ) : (
