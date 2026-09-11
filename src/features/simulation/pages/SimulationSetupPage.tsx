@@ -47,7 +47,7 @@ function getCopyDeploymentName(currentName: string, existingDeployments: Deploym
   return `${baseName} ${suffix}`;
 }
 
-export function SimulationSetupPage() {
+export function SimulationSetupPage({ editorMapMode = '2d' }: { editorMapMode?: '2d' | '3d' }) {
   const navigate = useNavigate();
   const [documents] = useState(() => loadMettDocuments());
   const [selectedDocumentId, setSelectedDocumentId] = useState(() => documents[0]?.id ?? '');
@@ -212,7 +212,7 @@ export function SimulationSetupPage() {
         <div>
           <h2 className="flex items-center gap-2 font-display-lg text-display-lg tracking-tight text-primary">
             <Icon name="play_circle" className="text-[28px]" />
-            SIMULATION SETUP
+            {editorMapMode === '3d' ? 'SIMULATION 3D EDIT' : 'SIMULATION SETUP'}
           </h2>
           <p className="mt-1 font-body-base text-body-base text-on-surface-variant">METT-TC document and initial force deployment setup.</p>
         </div>
@@ -270,6 +270,7 @@ export function SimulationSetupPage() {
           canRedo={redoStack.length > 0}
           onCancel={() => setDraftDeployment(undefined)}
           onSave={handleSaveDeployment}
+          mapMode={editorMapMode}
         />
       )}
     </div>

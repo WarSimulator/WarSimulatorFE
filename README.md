@@ -51,6 +51,9 @@ METT-TC 기반 AI Planning 및 전술 시뮬레이션 시스템을 위한 웹 �
 - 전체 화면 시뮬레이터 화면
 - Unit 선택 및 상세 정보 표시
 - Timeline / Playback Mock UI
+- Simulation Final의 기존 MapLibre 2D 재생 화면
+- Simulation 3D의 Google 3D 지도 기반 유닛·경로·전술도형 재생 화면
+- Simulation 3D EDIT의 Google 3D 유닛·목표·전술도형 배치 편집 화면
 - ESC 또는 Exit 버튼으로 Simulation Setup 복귀
 
 ## 기술 스택
@@ -61,6 +64,7 @@ METT-TC 기반 AI Planning 및 전술 시뮬레이션 시스템을 위한 웹 �
 - React Router
 - Tailwind CSS
 - MapLibre GL JS
+- Google Maps JavaScript API 3D Maps
 - milsymbol
 - Mapbox GL Draw
 
@@ -69,6 +73,12 @@ METT-TC 기반 AI Planning 및 전술 시뮬레이션 시스템을 위한 웹 �
 ```bash
 npm install
 npm run dev
+```
+
+`Simulation 3D`를 사용하려면 `.env.example`을 `.env`로 복사하고 Google Cloud에서 Maps JavaScript API와 3D Maps가 활성화된 브라우저 제한 키를 설정합니다.
+
+```text
+VITE_GOOGLE_MAPS_API_KEY=your_browser_restricted_google_maps_api_key
 ```
 
 브라우저에서 Vite가 출력하는 로컬 주소로 접속합니다.

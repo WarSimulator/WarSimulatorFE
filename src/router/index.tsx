@@ -23,6 +23,8 @@ export const router = createBrowserRouter([
       { path: '/simulations/actions', element: <AtomicActionLibraryPage /> },
       { path: '/simulations/library', element: <SimulationLibraryPage /> },
       { path: '/simulations/final', element: <SimulationFinalPage /> },
+      { path: '/simulations/3d', element: <SimulationFinalPage mapMode="3d" /> },
+      { path: '/simulations/3d/edit', element: <SimulationSetupPage editorMapMode="3d" /> },
       { path: '/simulations/:simulationId', element: <SimulationDetailPage /> },
     ],
   },

@@ -11,6 +11,7 @@ import { ExitSimulationDialog } from '../components/ExitSimulationDialog';
 import { PlaybackControls } from '../components/PlaybackControls';
 import { SimulatorHeader } from '../components/SimulatorHeader';
 import { TacticalMap } from '../components/TacticalMap';
+import { Google3DTacticalMap } from '../components/Google3DTacticalMap';
 import { UnitDetailPanel } from '../components/UnitDetailPanel';
 import { UnitListPanel } from '../components/UnitListPanel';
 import type { SimulationRuntimeState } from '../../../types';
@@ -20,6 +21,7 @@ export function SimulatorPage() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const viewMode = searchParams.get('view') === 'analysis' ? 'analysis' : 'tactical';
+  const mapMode = searchParams.get('map') === '3d' ? '3d' : '2d';
   const isAnalysisView = viewMode === 'analysis';
   const simulationResult = useMemo(() => getSimulationResult(simulationId), [simulationId]);
   const deployment = useMemo(
@@ -248,7 +250,14 @@ export function SimulatorPage() {
           {runtime.activeTab === 'order' ? (
             <CommanderInbox reports={commanderReports} simulationTime={runtime.simulationTime} onSelectUnit={selectUnit} />
           ) : (
-            <TacticalMap
+            mapMode === '3d' ? <Google3DTacticalMap
+              runtime={runtime}
+              playbackRef={runtimeRef}
+              units={rosterUnits}
+              result={simulationResult}
+              deployment={deployment}
+              onSelectUnit={selectUnit}
+            /> : <TacticalMap
               runtime={runtime}
               playbackRef={runtimeRef}
               units={rosterUnits}

@@ -2,6 +2,7 @@ import { useState, type CSSProperties } from 'react';
 import { Icon } from '../../../components/layout/Icon';
 import type { DeploymentEditorMode, DeploymentSetup } from '../../../types';
 import { DeploymentMap } from './DeploymentMap';
+import { Google3DDeploymentMap } from './Google3DDeploymentMap';
 import { SymbolPalette } from './SymbolPalette';
 import { UnitPropertiesPanel } from './UnitPropertiesPanel';
 
@@ -19,6 +20,7 @@ type DeploymentEditorProps = {
   canRedo: boolean;
   onCancel: () => void;
   onSave: () => void;
+  mapMode?: '2d' | '3d';
 };
 
 export function DeploymentEditor({
@@ -35,6 +37,7 @@ export function DeploymentEditor({
   canRedo,
   onCancel,
   onSave,
+  mapMode = '2d',
 }: DeploymentEditorProps) {
   const [paletteOpen, setPaletteOpen] = useState(true);
   return (
@@ -89,14 +92,21 @@ export function DeploymentEditor({
         '--palette-width': 'min(760px, calc(100vw - 32px))',
         '--map-controls-left': paletteOpen ? 'calc(var(--palette-width) + 32px)' : '72px',
       } as CSSProperties}>
-        <DeploymentMap
+        {mapMode === '3d' ? <Google3DDeploymentMap
           deployment={draft}
           selectedEntityId={selectedEntityId}
           mode={mode}
           onChange={onDraftChange}
           onSelectEntity={onSelectEntity}
           onModeChange={onModeChange}
-        />
+        /> : <DeploymentMap
+          deployment={draft}
+          selectedEntityId={selectedEntityId}
+          mode={mode}
+          onChange={onDraftChange}
+          onSelectEntity={onSelectEntity}
+          onModeChange={onModeChange}
+        />}
         <SymbolPalette mode={mode} onModeChange={onModeChange} isOpen={paletteOpen} onToggle={() => setPaletteOpen(open => !open)} />
         <UnitPropertiesPanel
           deployment={draft}

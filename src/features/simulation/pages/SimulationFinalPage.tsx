@@ -17,7 +17,7 @@ async function readJson(file: File) {
   try { return JSON.parse(await file.text()) as unknown; } catch { throw new Error(`${file.name} 파일이 올바른 JSON이 아닙니다.`); }
 }
 
-export function SimulationFinalPage() {
+export function SimulationFinalPage({ mapMode = '2d' }: { mapMode?: '2d' | '3d' }) {
   const navigate = useNavigate();
   const [files, setFiles] = useState<SelectedFiles>({});
   const [error, setError] = useState('');
@@ -41,7 +41,7 @@ export function SimulationFinalPage() {
       const build = await buildFinalSimulation({ offensive, defensive, withdrawal, deployment });
       saveFinalSimulation(build);
       analysisWindow.location.href = new URL(`/simulations/${build.simulationId}/run?view=analysis`, window.location.origin).href;
-      navigate(`/simulations/${build.simulationId}/run?view=tactical`);
+      navigate(`/simulations/${build.simulationId}/run?view=tactical${mapMode === '3d' ? '&map=3d' : ''}`);
     } catch (caught) {
       analysisWindow.close();
       setError(caught instanceof Error ? caught.message : '파일을 처리하지 못했습니다.');
@@ -53,7 +53,7 @@ export function SimulationFinalPage() {
     <header className="border-b border-outline-variant pb-4">
       <div className="flex items-center gap-3">
         <span className="flex h-12 w-12 items-center justify-center rounded border border-secondary/40 bg-secondary/10"><Icon name="play_circle" className="text-[28px] text-secondary" filled /></span>
-        <div><h2 className="font-display-lg text-display-lg tracking-tight text-primary">SIMULATION FINAL</h2><p className="mt-1 text-sm text-on-surface-variant">AI Planning 팀의 계획과 유닛 배치 파일을 하나의 시뮬레이션으로 실행합니다.</p></div>
+        <div><h2 className="font-display-lg text-display-lg tracking-tight text-primary">{mapMode === '3d' ? 'SIMULATION 3D' : 'SIMULATION FINAL'}</h2><p className="mt-1 text-sm text-on-surface-variant">AI Planning 팀의 계획과 유닛 배치 파일을 {mapMode === '3d' ? 'Google 3D 전술 지도에서' : '하나의 시뮬레이션으로'} 실행합니다.</p></div>
       </div>
     </header>
 
@@ -73,7 +73,7 @@ export function SimulationFinalPage() {
     </section>
 
     <section className="flex items-center justify-between gap-6 rounded border border-outline-variant bg-surface-container-low p-5">
-      <div><p className="text-sm font-semibold text-on-surface">{ready ? '실행 준비 완료' : '필수 파일을 선택해 주세요.'}</p><p className="mt-1 text-xs text-on-surface-variant">Start를 누르면 파일을 검증하고 공격·수비 행동을 같은 시간축에서 재생합니다.</p></div>
+      <div><p className="text-sm font-semibold text-on-surface">{ready ? '실행 준비 완료' : '필수 파일을 선택해 주세요.'}</p><p className="mt-1 text-xs text-on-surface-variant">Start를 누르면 파일을 검증하고 공격·수비 행동을 같은 시간축의 {mapMode === '3d' ? '3D 지도에서' : '지도에서'} 재생합니다.</p></div>
       <button disabled={!ready || loading} onClick={start} className="flex min-w-[190px] items-center justify-center gap-2 rounded bg-secondary px-7 py-3 font-label-caps text-sm font-bold text-on-secondary transition-colors enabled:hover:bg-secondary-container disabled:cursor-not-allowed disabled:opacity-35"><Icon name={loading ? 'hourglass_top' : 'play_arrow'} filled />{loading ? 'PROCESSING' : 'START SIMULATION'}</button>
     </section>
   </div>;
