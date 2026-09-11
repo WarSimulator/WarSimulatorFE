@@ -1,11 +1,14 @@
 import { Icon } from '../../../components/layout/Icon';
 import type { SimulationUnit } from '../../../types';
+import { UnitStateGraphs } from './UnitStateGraphs';
 
 type UnitDetailPanelProps = {
   unit: SimulationUnit;
 };
 
 export function UnitDetailPanel({ unit }: UnitDetailPanelProps) {
+  const agent = unit.agentState;
+  const metric = (value: number | undefined) => `${Math.round(value ?? 0)}%`;
   return (
     <aside className="flex h-full w-[340px] flex-col border-l border-outline-variant bg-surface-container/95">
       <div className="border-b border-outline-variant bg-surface-container-highest p-4">
@@ -24,27 +27,35 @@ export function UnitDetailPanel({ unit }: UnitDetailPanelProps) {
       <div className="flex-1 space-y-5 overflow-y-auto p-4">
         <section className="grid grid-cols-2 gap-2">
           <div className="rounded border border-outline-variant/60 bg-surface p-3">
-            <span className="font-label-caps text-[9px] text-outline">현재 상태</span>
-            <p className="mt-1 font-data-mono text-[12px] text-secondary">{unit.status}</p>
+            <span className="font-label-caps text-[9px] text-outline">명령 상태</span>
+            <p className="mt-1 font-data-mono text-[12px] text-secondary">{agent?.commandState ?? unit.status}</p>
           </div>
           <div className="rounded border border-outline-variant/60 bg-surface p-3">
-            <span className="font-label-caps text-[9px] text-outline">전투력</span>
-            <p className="mt-1 font-data-mono text-[12px] text-primary">{unit.combatPower}%</p>
+            <span className="font-label-caps text-[9px] text-outline">전투준비도</span>
+            <p className="mt-1 font-data-mono text-[12px] text-primary">{agent?.readinessState ?? 'EFFECTIVE'}</p>
           </div>
         </section>
 
+        <UnitStateGraphs command={agent?.commandState} readiness={agent?.readinessState} />
+
         <section>
-          <h3 className="mb-2 font-label-caps text-label-caps text-on-surface-variant">현재 명령</h3>
-          <p className="rounded border border-outline-variant bg-surface p-3 font-body-base text-[13px] leading-5 text-on-surface">{unit.currentOrder}</p>
+          <h3 className="mb-2 font-label-caps text-label-caps text-on-surface-variant">현재 명령 / 실행 모드</h3>
+          <p className="rounded border border-outline-variant bg-surface p-3 font-body-base text-[13px] leading-5 text-on-surface">
+            {agent?.currentOrder ?? unit.currentOrder}
+            {agent?.executionMode ? <span className="mt-1 block font-data-mono text-[11px] text-secondary">{agent.executionMode}</span> : null}
+          </p>
         </section>
 
         <section>
-          <h3 className="mb-2 font-label-caps text-label-caps text-on-surface-variant">부대 상태</h3>
+          <h3 className="mb-2 font-label-caps text-label-caps text-on-surface-variant">에이전트 상태</h3>
           <div className="grid grid-cols-3 gap-2">
             {[
-              ['인원', unit.personnel],
-              ['탄약', unit.ammunition],
-              ['기동', unit.mobility],
+              ['탄약', metric(agent?.ammunitionPct)],
+              ['피해', metric(agent?.damagePct)],
+              ['피로', metric(agent?.fatiguePct)],
+              ['기동', metric(agent?.mobilityPct)],
+              ['제압', metric(agent?.suppressionPct)],
+              ['전투력', metric(agent?.combatPowerPct)],
             ].map(([label, value]) => (
               <div key={label} className="rounded border border-outline-variant bg-surface p-2 text-center">
                 <p className="font-label-caps text-[9px] text-outline">{label}</p>
@@ -55,30 +66,28 @@ export function UnitDetailPanel({ unit }: UnitDetailPanelProps) {
         </section>
 
         <section>
-          <h3 className="mb-2 font-label-caps text-label-caps text-on-surface-variant">명령 타임라인</h3>
-          <div className="space-y-2">
-            {unit.timeline.map((item) => (
-              <div key={item} className="rounded border border-outline-variant/60 bg-surface p-2 font-data-mono text-[11px] text-on-surface">
-                {item}
+          <h3 className="mb-2 font-label-caps text-label-caps text-on-surface-variant">전이 Guard</h3>
+          <div className="grid grid-cols-3 gap-2">
+            {[
+              ['MOVE', agent?.canMove],
+              ['FIRE', agent?.canFire],
+              ['OBSERVE', agent?.canObserve],
+            ].map(([label, allowed]) => (
+              <div key={label as string} className="rounded border border-outline-variant bg-surface p-2 text-center">
+                <p className="font-label-caps text-[9px] text-outline">{label}</p>
+                <p className={`mt-1 font-data-mono text-[11px] ${allowed ? 'text-secondary' : 'text-error'}`}>{allowed ? 'READY' : 'BLOCKED'}</p>
               </div>
             ))}
           </div>
         </section>
 
         <section>
-          <h3 className="mb-2 font-label-caps text-label-caps text-secondary">AI PLANNING ASSESSMENT</h3>
-          <p className="rounded border border-secondary/30 bg-secondary/5 p-3 font-data-mono text-[11px] leading-5 text-on-surface-variant">
-            Mock assessment: current unit posture remains consistent with selected OP ORDER constraints.
-          </p>
-        </section>
-
-        <section>
-          <h3 className="mb-2 font-label-caps text-label-caps text-on-surface-variant">상황 로그</h3>
+          <h3 className="mb-2 font-label-caps text-label-caps text-on-surface-variant">에이전트 보고</h3>
           <div className="space-y-1">
-            {unit.log.map((item, index) => (
-              <div key={item} className="flex gap-2 rounded p-2 font-data-mono text-[11px] hover:bg-surface-variant/50">
-                <span className="text-outline">04:{String(12 + index * 3).padStart(2, '0')}:00</span>
-                <span className="text-on-surface-variant">{item}</span>
+            {(agent?.reports ?? []).map((report, index) => (
+              <div key={`${report.time}-${report.message}-${index}`} className="flex gap-2 rounded p-2 font-data-mono text-[11px] hover:bg-surface-variant/50">
+                <span className="text-outline">H+{report.time.toFixed(1)}</span>
+                <span className="text-on-surface-variant">{report.message}</span>
               </div>
             ))}
           </div>

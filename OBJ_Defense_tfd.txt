@@ -1,0 +1,3494 @@
+{
+  "status": "tfd-complete",
+  "session_id": "537f7d6c8cae",
+  "form_option": "AreaDefenseOption",
+  "paths": {
+    "domain": "/home/planning/project/planning_system/FM1015_COA_PhD_Ontology_v0.24.5/runtime/tfd/537f7d6c8cae/areadefenseoption/domain.pddl",
+    "problem": "/home/planning/project/planning_system/FM1015_COA_PhD_Ontology_v0.24.5/runtime/tfd/537f7d6c8cae/areadefenseoption/problem.pddl",
+    "mapping": "/home/planning/project/planning_system/FM1015_COA_PhD_Ontology_v0.24.5/runtime/tfd/537f7d6c8cae/areadefenseoption/ontology_tfd_mapping.json"
+  },
+  "action_count": 28,
+  "fluent_count": 149,
+  "initial_state": [
+    "access_available",
+    "ambush_opportunity",
+    "blocking_capability",
+    "breach_capability",
+    "c2_available",
+    "clearance_capability",
+    "clearance_required",
+    "combat_capability",
+    "communications_available",
+    "concealment_available",
+    "construction_capability",
+    "containment_required",
+    "control_capability",
+    "coordination_available",
+    "coordination_required",
+    "disruption_means",
+    "disruption_required",
+    "engagement_capability",
+    "engagement_required",
+    "engineer_capability",
+    "friendly_force_available",
+    "hostile_contest",
+    "identification_required",
+    "information_need",
+    "materials_available",
+    "mission_received",
+    "mobility_available",
+    "movement_required",
+    "objective_control_required",
+    "objective_known",
+    "observation_area_exists",
+    "observation_capability",
+    "obstacle_exists",
+    "passage_required",
+    "planning_problem_exists",
+    "route_available",
+    "security_capability",
+    "security_required",
+    "support_available",
+    "terrain_known",
+    "time_available",
+    "weapons_control_capability"
+  ],
+  "hard_goals": [
+    "entity_identified",
+    "information_available",
+    "objective_controlled",
+    "opposing_function_degraded",
+    "opposing_movement_limited",
+    "passage_available",
+    "position_updated",
+    "security_established"
+  ],
+  "tfd": {
+    "available": true,
+    "executable": "/home/planning/project/planning_system/FM1015_COA_PhD_Ontology_v0.24.5/third_party/tfd/downward/tfd",
+    "source": "bundled",
+    "built": true,
+    "note": "TFD executable and compiled search/preprocess components found.",
+    "adapter_version": "0.9.0",
+    "external_planner": "Temporal Fast Downward (TFD)",
+    "research_sandbox_only": true,
+    "partial_plan_policy": "TFD searches for a complete temporal plan; if none is returned, retain the ontology-aware planner complete/partial result and its causal blockers.",
+    "default_config": "y+Y+e+r+O+1+C+1+b",
+    "duration_warning": "v0.9.0 durations are abstract research time-units, not operational timing estimates."
+  },
+  "complete": true,
+  "command": [
+    "/home/planning/project/planning_system/FM1015_COA_PhD_Ontology_v0.24.5/third_party/tfd/downward/tfd",
+    "/home/planning/project/planning_system/FM1015_COA_PhD_Ontology_v0.24.5/runtime/tfd/537f7d6c8cae/areadefenseoption/domain.pddl",
+    "/home/planning/project/planning_system/FM1015_COA_PhD_Ontology_v0.24.5/runtime/tfd/537f7d6c8cae/areadefenseoption/problem.pddl",
+    "/home/planning/project/planning_system/FM1015_COA_PhD_Ontology_v0.24.5/runtime/tfd/537f7d6c8cae/areadefenseoption/tfd_plan.txt",
+    "y+Y+e+r+O+1+C+1+b"
+  ],
+  "returncode": 0,
+  "elapsed_seconds": 0.105,
+  "timed_out": false,
+  "plan_path": "/home/planning/project/planning_system/FM1015_COA_PhD_Ontology_v0.24.5/runtime/tfd/537f7d6c8cae/areadefenseoption/tfd_plan.txt",
+  "temporal_plan": {
+    "steps": [
+      {
+        "sequence": 1,
+        "start": 0.001,
+        "duration": 1,
+        "end": 1.001,
+        "pddl_action": "aa-observe",
+        "action_key": "observe",
+        "action": "Observe",
+        "parameters": [],
+        "validation_level": "RESEARCH_VALIDATED"
+      },
+      {
+        "sequence": 2,
+        "start": 1.016,
+        "duration": 1,
+        "end": 2.016,
+        "pddl_action": "aa-identify",
+        "action_key": "identify",
+        "action": "Identify",
+        "parameters": [],
+        "validation_level": "RESEARCH_VALIDATED"
+      },
+      {
+        "sequence": 3,
+        "start": 0.002,
+        "duration": 1,
+        "end": 1.002,
+        "pddl_action": "aa-clear",
+        "action_key": "clear",
+        "action": "Clear",
+        "parameters": [],
+        "validation_level": "RESEARCH_VALIDATED"
+      },
+      {
+        "sequence": 4,
+        "start": 1.017,
+        "duration": 1,
+        "end": 2.017,
+        "pddl_action": "aa-seize",
+        "action_key": "seize",
+        "action": "Seize",
+        "parameters": [],
+        "validation_level": "RESEARCH_VALIDATED"
+      },
+      {
+        "sequence": 5,
+        "start": 0.003,
+        "duration": 1,
+        "end": 1.003,
+        "pddl_action": "aa-disrupt",
+        "action_key": "disrupt",
+        "action": "Disrupt",
+        "parameters": [],
+        "validation_level": "RESEARCH_VALIDATED"
+      },
+      {
+        "sequence": 6,
+        "start": 0.004,
+        "duration": 1,
+        "end": 1.004,
+        "pddl_action": "aa-contain",
+        "action_key": "contain",
+        "action": "Contain",
+        "parameters": [],
+        "validation_level": "RESEARCH_VALIDATED"
+      },
+      {
+        "sequence": 7,
+        "start": 0.005,
+        "duration": 1,
+        "end": 1.005,
+        "pddl_action": "aa-breach",
+        "action_key": "breach",
+        "action": "Breach",
+        "parameters": [],
+        "validation_level": "RESEARCH_VALIDATED"
+      },
+      {
+        "sequence": 8,
+        "start": 0.005,
+        "duration": 1,
+        "end": 1.005,
+        "pddl_action": "aa-move",
+        "action_key": "move",
+        "action": "Move",
+        "parameters": [],
+        "validation_level": "RESEARCH_VALIDATED"
+      },
+      {
+        "sequence": 9,
+        "start": 0.006,
+        "duration": 1,
+        "end": 1.006,
+        "pddl_action": "aa-establish_security",
+        "action_key": "establish_security",
+        "action": "Establish Security",
+        "parameters": [],
+        "validation_level": "RESEARCH_VALIDATED"
+      }
+    ],
+    "step_count": 9,
+    "makespan": 2.017,
+    "overlap_pair_count": 22
+  },
+  "goal_verification": {
+    "all_hard_goals_achieved": true,
+    "missing_hard_goals": [],
+    "final_state": [
+      "access_available",
+      "ambush_opportunity",
+      "area_cleared",
+      "blocking_capability",
+      "breach_capability",
+      "c2_available",
+      "clearance_capability",
+      "clearance_required",
+      "combat_capability",
+      "communications_available",
+      "concealment_available",
+      "construction_capability",
+      "containment_required",
+      "control_capability",
+      "control_evidence_available",
+      "control_verification_required",
+      "coordination_available",
+      "coordination_required",
+      "decision_information_sufficient",
+      "discriminating_information",
+      "disruption_means",
+      "disruption_required",
+      "enemy_force_contained",
+      "enemy_tempo_disrupted",
+      "enemy_timetable_interrupted",
+      "enemy_withdrawal_restricted",
+      "engagement_capability",
+      "engagement_required",
+      "engineer_capability",
+      "entity_identified",
+      "friendly_force_available",
+      "hostile_contest",
+      "identification_required",
+      "information_available",
+      "information_need",
+      "materials_available",
+      "mission_received",
+      "mobility_available",
+      "movement_required",
+      "objective_accessible",
+      "objective_control_required",
+      "objective_controlled",
+      "objective_known",
+      "observation_area_exists",
+      "observation_capability",
+      "obstacle_exists",
+      "opposing_function_degraded",
+      "opposing_movement_limited",
+      "organized_resistance_eliminated",
+      "passage_available",
+      "passage_required",
+      "planning_problem_exists",
+      "position_updated",
+      "reportable_information",
+      "route_available",
+      "security_capability",
+      "security_established",
+      "security_required",
+      "support_available",
+      "terrain_known",
+      "time_available",
+      "weapons_control_capability"
+    ]
+  },
+  "internal_plan": {
+    "status": "complete",
+    "complete": true,
+    "steps": [
+      {
+        "sequence": 1,
+        "action_key": "observe",
+        "action": "Observe",
+        "score": 0.641,
+        "precondition_status": "SATISFIED",
+        "precondition": "information_need",
+        "necessary_condition": "observation_capability",
+        "postcondition": "information_available; discriminating_information; reportable_information",
+        "research_derived_template": true,
+        "rationale": "Forward search selected Observe: candidate-generation hard gates satisfied; transition adds information_available, discriminating_information, reportable_information. Hard-goal causal support 0.869 -> 0.891. Profile prior=True; sufficient-set bonus=True.",
+        "state_before": [
+          "access_available",
+          "ambush_opportunity",
+          "blocking_capability",
+          "breach_capability",
+          "c2_available",
+          "clearance_capability",
+          "clearance_required",
+          "combat_capability",
+          "communications_available",
+          "concealment_available",
+          "construction_capability",
+          "containment_required",
+          "control_capability",
+          "coordination_available",
+          "coordination_required",
+          "disruption_means",
+          "disruption_required",
+          "engagement_capability",
+          "engagement_required",
+          "engineer_capability",
+          "friendly_force_available",
+          "hostile_contest",
+          "identification_required",
+          "information_need",
+          "materials_available",
+          "mission_received",
+          "mobility_available",
+          "movement_required",
+          "objective_control_required",
+          "objective_known",
+          "observation_area_exists",
+          "observation_capability",
+          "obstacle_exists",
+          "passage_required",
+          "planning_problem_exists",
+          "route_available",
+          "security_capability",
+          "security_required",
+          "support_available",
+          "terrain_known",
+          "time_available",
+          "weapons_control_capability"
+        ],
+        "state_after": [
+          "access_available",
+          "ambush_opportunity",
+          "blocking_capability",
+          "breach_capability",
+          "c2_available",
+          "clearance_capability",
+          "clearance_required",
+          "combat_capability",
+          "communications_available",
+          "concealment_available",
+          "construction_capability",
+          "containment_required",
+          "control_capability",
+          "coordination_available",
+          "coordination_required",
+          "discriminating_information",
+          "disruption_means",
+          "disruption_required",
+          "engagement_capability",
+          "engagement_required",
+          "engineer_capability",
+          "friendly_force_available",
+          "hostile_contest",
+          "identification_required",
+          "information_available",
+          "information_need",
+          "materials_available",
+          "mission_received",
+          "mobility_available",
+          "movement_required",
+          "objective_control_required",
+          "objective_known",
+          "observation_area_exists",
+          "observation_capability",
+          "obstacle_exists",
+          "passage_required",
+          "planning_problem_exists",
+          "reportable_information",
+          "route_available",
+          "security_capability",
+          "security_required",
+          "support_available",
+          "terrain_known",
+          "time_available",
+          "weapons_control_capability"
+        ],
+        "derived_effects": [],
+        "derived_rules_fired": [],
+        "hard_gates_satisfied": [
+          "information_need",
+          "observation_capability"
+        ],
+        "deferred_execution_gates": [],
+        "contextual_action_gates": [],
+        "supporting_satisfied": [
+          "observation_area_exists"
+        ],
+        "sufficient_sets_satisfied": [
+          [
+            "information_need",
+            "observation_capability"
+          ]
+        ],
+        "contraindications_present": [],
+        "action_cost": 0.56,
+        "goal_progress_before": 0,
+        "goal_progress_after": 0.125,
+        "causal_goal_support_before": 0.869,
+        "causal_goal_support_after": 0.891,
+        "llm_selected": false,
+        "cascade_predecessor_action_key": null,
+        "cascade_pair_status": null,
+        "cascade_pair_rule": null,
+        "cascade_pair_rationale": null,
+        "fsm_mode": "OFF",
+        "fsm_transition_allowed": true,
+        "fsm_failed_guards": [],
+        "fsm_checked_guards": [],
+        "action_validation_level": "RESEARCH_VALIDATED",
+        "condition_library_source": "v0.8.8.1 authoring/validation workbench"
+      },
+      {
+        "sequence": 2,
+        "action_key": "identify",
+        "action": "Identify",
+        "score": 0.641,
+        "precondition_status": "SATISFIED",
+        "precondition": "identification_required",
+        "necessary_condition": "discriminating_information",
+        "postcondition": "entity_identified; decision_information_sufficient; reportable_information",
+        "research_derived_template": true,
+        "rationale": "Forward search selected Identify: candidate-generation hard gates satisfied; transition adds entity_identified, decision_information_sufficient. Hard-goal causal support 0.891 -> 0.906. Profile prior=True; sufficient-set bonus=True.",
+        "state_before": [
+          "access_available",
+          "ambush_opportunity",
+          "blocking_capability",
+          "breach_capability",
+          "c2_available",
+          "clearance_capability",
+          "clearance_required",
+          "combat_capability",
+          "communications_available",
+          "concealment_available",
+          "construction_capability",
+          "containment_required",
+          "control_capability",
+          "coordination_available",
+          "coordination_required",
+          "discriminating_information",
+          "disruption_means",
+          "disruption_required",
+          "engagement_capability",
+          "engagement_required",
+          "engineer_capability",
+          "friendly_force_available",
+          "hostile_contest",
+          "identification_required",
+          "information_available",
+          "information_need",
+          "materials_available",
+          "mission_received",
+          "mobility_available",
+          "movement_required",
+          "objective_control_required",
+          "objective_known",
+          "observation_area_exists",
+          "observation_capability",
+          "obstacle_exists",
+          "passage_required",
+          "planning_problem_exists",
+          "reportable_information",
+          "route_available",
+          "security_capability",
+          "security_required",
+          "support_available",
+          "terrain_known",
+          "time_available",
+          "weapons_control_capability"
+        ],
+        "state_after": [
+          "access_available",
+          "ambush_opportunity",
+          "blocking_capability",
+          "breach_capability",
+          "c2_available",
+          "clearance_capability",
+          "clearance_required",
+          "combat_capability",
+          "communications_available",
+          "concealment_available",
+          "construction_capability",
+          "containment_required",
+          "control_capability",
+          "coordination_available",
+          "coordination_required",
+          "decision_information_sufficient",
+          "discriminating_information",
+          "disruption_means",
+          "disruption_required",
+          "engagement_capability",
+          "engagement_required",
+          "engineer_capability",
+          "entity_identified",
+          "friendly_force_available",
+          "hostile_contest",
+          "identification_required",
+          "information_available",
+          "information_need",
+          "materials_available",
+          "mission_received",
+          "mobility_available",
+          "movement_required",
+          "objective_control_required",
+          "objective_known",
+          "observation_area_exists",
+          "observation_capability",
+          "obstacle_exists",
+          "passage_required",
+          "planning_problem_exists",
+          "reportable_information",
+          "route_available",
+          "security_capability",
+          "security_required",
+          "support_available",
+          "terrain_known",
+          "time_available",
+          "weapons_control_capability"
+        ],
+        "derived_effects": [],
+        "derived_rules_fired": [],
+        "hard_gates_satisfied": [
+          "discriminating_information",
+          "identification_required"
+        ],
+        "deferred_execution_gates": [],
+        "contextual_action_gates": [],
+        "supporting_satisfied": [
+          "information_available"
+        ],
+        "sufficient_sets_satisfied": [
+          [
+            "identification_required",
+            "discriminating_information"
+          ]
+        ],
+        "contraindications_present": [],
+        "action_cost": 0.56,
+        "goal_progress_before": 0.125,
+        "goal_progress_after": 0.25,
+        "causal_goal_support_before": 0.891,
+        "causal_goal_support_after": 0.906,
+        "llm_selected": false,
+        "cascade_predecessor_action_key": "observe",
+        "cascade_pair_status": "DIRECT_CAUSAL",
+        "cascade_pair_rule": "CAUSAL_EFFECT_TO_REQUIREMENT",
+        "cascade_pair_rationale": "Source effects satisfy successor prerequisite(s): discriminating_information",
+        "fsm_mode": "OFF",
+        "fsm_transition_allowed": true,
+        "fsm_failed_guards": [],
+        "fsm_checked_guards": [],
+        "action_validation_level": "RESEARCH_VALIDATED",
+        "condition_library_source": "v0.8.8.1 authoring/validation workbench"
+      },
+      {
+        "sequence": 3,
+        "action_key": "move",
+        "action": "Move",
+        "score": 0.556,
+        "precondition_status": "SATISFIED",
+        "precondition": "movement_required; action_authorized",
+        "necessary_condition": "mobility_available; route_available",
+        "postcondition": "position_updated; objective_accessible",
+        "research_derived_template": true,
+        "rationale": "Forward search selected Move: candidate-generation hard gates satisfied; transition adds position_updated, objective_accessible. Hard-goal causal support 0.906 -> 0.925. Profile prior=False; sufficient-set bonus=True.",
+        "state_before": [
+          "access_available",
+          "ambush_opportunity",
+          "blocking_capability",
+          "breach_capability",
+          "c2_available",
+          "clearance_capability",
+          "clearance_required",
+          "combat_capability",
+          "communications_available",
+          "concealment_available",
+          "construction_capability",
+          "containment_required",
+          "control_capability",
+          "coordination_available",
+          "coordination_required",
+          "decision_information_sufficient",
+          "discriminating_information",
+          "disruption_means",
+          "disruption_required",
+          "engagement_capability",
+          "engagement_required",
+          "engineer_capability",
+          "entity_identified",
+          "friendly_force_available",
+          "hostile_contest",
+          "identification_required",
+          "information_available",
+          "information_need",
+          "materials_available",
+          "mission_received",
+          "mobility_available",
+          "movement_required",
+          "objective_control_required",
+          "objective_known",
+          "observation_area_exists",
+          "observation_capability",
+          "obstacle_exists",
+          "passage_required",
+          "planning_problem_exists",
+          "reportable_information",
+          "route_available",
+          "security_capability",
+          "security_required",
+          "support_available",
+          "terrain_known",
+          "time_available",
+          "weapons_control_capability"
+        ],
+        "state_after": [
+          "access_available",
+          "ambush_opportunity",
+          "blocking_capability",
+          "breach_capability",
+          "c2_available",
+          "clearance_capability",
+          "clearance_required",
+          "combat_capability",
+          "communications_available",
+          "concealment_available",
+          "construction_capability",
+          "containment_required",
+          "control_capability",
+          "coordination_available",
+          "coordination_required",
+          "decision_information_sufficient",
+          "discriminating_information",
+          "disruption_means",
+          "disruption_required",
+          "engagement_capability",
+          "engagement_required",
+          "engineer_capability",
+          "entity_identified",
+          "friendly_force_available",
+          "hostile_contest",
+          "identification_required",
+          "information_available",
+          "information_need",
+          "materials_available",
+          "mission_received",
+          "mobility_available",
+          "movement_required",
+          "objective_accessible",
+          "objective_control_required",
+          "objective_known",
+          "observation_area_exists",
+          "observation_capability",
+          "obstacle_exists",
+          "passage_required",
+          "planning_problem_exists",
+          "position_updated",
+          "reportable_information",
+          "route_available",
+          "security_capability",
+          "security_required",
+          "support_available",
+          "terrain_known",
+          "time_available",
+          "weapons_control_capability"
+        ],
+        "derived_effects": [],
+        "derived_rules_fired": [],
+        "hard_gates_satisfied": [
+          "mobility_available",
+          "movement_required",
+          "route_available"
+        ],
+        "deferred_execution_gates": [
+          "action_authorized"
+        ],
+        "contextual_action_gates": [],
+        "supporting_satisfied": [],
+        "sufficient_sets_satisfied": [
+          [
+            "movement_required",
+            "mobility_available",
+            "route_available",
+            "action_authorized"
+          ]
+        ],
+        "contraindications_present": [],
+        "action_cost": 0.8,
+        "goal_progress_before": 0.25,
+        "goal_progress_after": 0.375,
+        "causal_goal_support_before": 0.906,
+        "causal_goal_support_after": 0.925,
+        "llm_selected": false,
+        "cascade_predecessor_action_key": "identify",
+        "cascade_pair_status": "DIRECT_PLAUSIBLE",
+        "cascade_pair_rule": "VALIDATION_PROMOTION_V0132",
+        "cascade_pair_rationale": "v0.13.2 validation promotion: Preserved reserve CONTAIN/BLOCK decomposition (Observe -> Identify -> Move -> Contain -> Block) and activated v0.12 reserve branch; pair-probe showed baseline solution loss.",
+        "fsm_mode": "OFF",
+        "fsm_transition_allowed": true,
+        "fsm_failed_guards": [],
+        "fsm_checked_guards": [],
+        "action_validation_level": "RESEARCH_VALIDATED",
+        "condition_library_source": "v0.8.8.1 authoring/validation workbench"
+      },
+      {
+        "sequence": 4,
+        "action_key": "seize",
+        "action": "Seize",
+        "score": 0.595,
+        "precondition_status": "SATISFIED",
+        "precondition": "objective_control_required; action_authorized",
+        "necessary_condition": "objective_accessible; control_capability",
+        "postcondition": "objective_controlled; security_required; control_verification_required; reportable_information",
+        "research_derived_template": true,
+        "rationale": "Forward search selected Seize: candidate-generation hard gates satisfied; transition adds objective_controlled, control_verification_required. Hard-goal causal support 0.925 -> 0.940. Profile prior=False; sufficient-set bonus=True.",
+        "state_before": [
+          "access_available",
+          "ambush_opportunity",
+          "blocking_capability",
+          "breach_capability",
+          "c2_available",
+          "clearance_capability",
+          "clearance_required",
+          "combat_capability",
+          "communications_available",
+          "concealment_available",
+          "construction_capability",
+          "containment_required",
+          "control_capability",
+          "coordination_available",
+          "coordination_required",
+          "decision_information_sufficient",
+          "discriminating_information",
+          "disruption_means",
+          "disruption_required",
+          "engagement_capability",
+          "engagement_required",
+          "engineer_capability",
+          "entity_identified",
+          "friendly_force_available",
+          "hostile_contest",
+          "identification_required",
+          "information_available",
+          "information_need",
+          "materials_available",
+          "mission_received",
+          "mobility_available",
+          "movement_required",
+          "objective_accessible",
+          "objective_control_required",
+          "objective_known",
+          "observation_area_exists",
+          "observation_capability",
+          "obstacle_exists",
+          "passage_required",
+          "planning_problem_exists",
+          "position_updated",
+          "reportable_information",
+          "route_available",
+          "security_capability",
+          "security_required",
+          "support_available",
+          "terrain_known",
+          "time_available",
+          "weapons_control_capability"
+        ],
+        "state_after": [
+          "access_available",
+          "ambush_opportunity",
+          "blocking_capability",
+          "breach_capability",
+          "c2_available",
+          "clearance_capability",
+          "clearance_required",
+          "combat_capability",
+          "communications_available",
+          "concealment_available",
+          "construction_capability",
+          "containment_required",
+          "control_capability",
+          "control_verification_required",
+          "coordination_available",
+          "coordination_required",
+          "decision_information_sufficient",
+          "discriminating_information",
+          "disruption_means",
+          "disruption_required",
+          "engagement_capability",
+          "engagement_required",
+          "engineer_capability",
+          "entity_identified",
+          "friendly_force_available",
+          "hostile_contest",
+          "identification_required",
+          "information_available",
+          "information_need",
+          "materials_available",
+          "mission_received",
+          "mobility_available",
+          "movement_required",
+          "objective_accessible",
+          "objective_control_required",
+          "objective_controlled",
+          "objective_known",
+          "observation_area_exists",
+          "observation_capability",
+          "obstacle_exists",
+          "passage_required",
+          "planning_problem_exists",
+          "position_updated",
+          "reportable_information",
+          "route_available",
+          "security_capability",
+          "security_required",
+          "support_available",
+          "terrain_known",
+          "time_available",
+          "weapons_control_capability"
+        ],
+        "derived_effects": [],
+        "derived_rules_fired": [],
+        "hard_gates_satisfied": [
+          "control_capability",
+          "objective_accessible",
+          "objective_control_required"
+        ],
+        "deferred_execution_gates": [
+          "action_authorized"
+        ],
+        "contextual_action_gates": [],
+        "supporting_satisfied": [
+          "entity_identified"
+        ],
+        "sufficient_sets_satisfied": [
+          [
+            "objective_control_required",
+            "objective_accessible",
+            "control_capability",
+            "action_authorized"
+          ]
+        ],
+        "contraindications_present": [],
+        "action_cost": 0.68,
+        "goal_progress_before": 0.375,
+        "goal_progress_after": 0.5,
+        "causal_goal_support_before": 0.925,
+        "causal_goal_support_after": 0.94,
+        "llm_selected": false,
+        "cascade_predecessor_action_key": "move",
+        "cascade_pair_status": "DIRECT_CAUSAL",
+        "cascade_pair_rule": "CAUSAL_EFFECT_TO_REQUIREMENT",
+        "cascade_pair_rationale": "Source effects satisfy successor prerequisite(s): objective_accessible",
+        "fsm_mode": "OFF",
+        "fsm_transition_allowed": true,
+        "fsm_failed_guards": [],
+        "fsm_checked_guards": [],
+        "action_validation_level": "RESEARCH_VALIDATED",
+        "condition_library_source": "v0.8.8.1 authoring/validation workbench"
+      },
+      {
+        "sequence": 5,
+        "action_key": "establish_security",
+        "action": "Establish Security",
+        "score": 0.694,
+        "precondition_status": "SATISFIED",
+        "precondition": "security_required",
+        "necessary_condition": "security_capability",
+        "postcondition": "security_established; control_evidence_available; reportable_information",
+        "research_derived_template": true,
+        "rationale": "Forward search selected Establish Security: candidate-generation hard gates satisfied; transition adds security_established, control_evidence_available. Hard-goal causal support 0.940 -> 0.955. Profile prior=True; sufficient-set bonus=True.",
+        "state_before": [
+          "access_available",
+          "ambush_opportunity",
+          "blocking_capability",
+          "breach_capability",
+          "c2_available",
+          "clearance_capability",
+          "clearance_required",
+          "combat_capability",
+          "communications_available",
+          "concealment_available",
+          "construction_capability",
+          "containment_required",
+          "control_capability",
+          "control_verification_required",
+          "coordination_available",
+          "coordination_required",
+          "decision_information_sufficient",
+          "discriminating_information",
+          "disruption_means",
+          "disruption_required",
+          "engagement_capability",
+          "engagement_required",
+          "engineer_capability",
+          "entity_identified",
+          "friendly_force_available",
+          "hostile_contest",
+          "identification_required",
+          "information_available",
+          "information_need",
+          "materials_available",
+          "mission_received",
+          "mobility_available",
+          "movement_required",
+          "objective_accessible",
+          "objective_control_required",
+          "objective_controlled",
+          "objective_known",
+          "observation_area_exists",
+          "observation_capability",
+          "obstacle_exists",
+          "passage_required",
+          "planning_problem_exists",
+          "position_updated",
+          "reportable_information",
+          "route_available",
+          "security_capability",
+          "security_required",
+          "support_available",
+          "terrain_known",
+          "time_available",
+          "weapons_control_capability"
+        ],
+        "state_after": [
+          "access_available",
+          "ambush_opportunity",
+          "blocking_capability",
+          "breach_capability",
+          "c2_available",
+          "clearance_capability",
+          "clearance_required",
+          "combat_capability",
+          "communications_available",
+          "concealment_available",
+          "construction_capability",
+          "containment_required",
+          "control_capability",
+          "control_evidence_available",
+          "control_verification_required",
+          "coordination_available",
+          "coordination_required",
+          "decision_information_sufficient",
+          "discriminating_information",
+          "disruption_means",
+          "disruption_required",
+          "engagement_capability",
+          "engagement_required",
+          "engineer_capability",
+          "entity_identified",
+          "friendly_force_available",
+          "hostile_contest",
+          "identification_required",
+          "information_available",
+          "information_need",
+          "materials_available",
+          "mission_received",
+          "mobility_available",
+          "movement_required",
+          "objective_accessible",
+          "objective_control_required",
+          "objective_controlled",
+          "objective_known",
+          "observation_area_exists",
+          "observation_capability",
+          "obstacle_exists",
+          "passage_required",
+          "planning_problem_exists",
+          "position_updated",
+          "reportable_information",
+          "route_available",
+          "security_capability",
+          "security_established",
+          "security_required",
+          "support_available",
+          "terrain_known",
+          "time_available",
+          "weapons_control_capability"
+        ],
+        "derived_effects": [],
+        "derived_rules_fired": [],
+        "hard_gates_satisfied": [
+          "security_capability",
+          "security_required"
+        ],
+        "deferred_execution_gates": [],
+        "contextual_action_gates": [],
+        "supporting_satisfied": [
+          "objective_controlled"
+        ],
+        "sufficient_sets_satisfied": [
+          [
+            "security_required",
+            "security_capability"
+          ]
+        ],
+        "contraindications_present": [],
+        "action_cost": 0.44,
+        "goal_progress_before": 0.5,
+        "goal_progress_after": 0.625,
+        "causal_goal_support_before": 0.94,
+        "causal_goal_support_after": 0.955,
+        "llm_selected": false,
+        "cascade_predecessor_action_key": "seize",
+        "cascade_pair_status": "DIRECT_CAUSAL",
+        "cascade_pair_rule": "CAUSAL_EFFECT_TO_REQUIREMENT",
+        "cascade_pair_rationale": "Source effects satisfy successor prerequisite(s): security_required",
+        "fsm_mode": "OFF",
+        "fsm_transition_allowed": true,
+        "fsm_failed_guards": [],
+        "fsm_checked_guards": [],
+        "action_validation_level": "RESEARCH_VALIDATED",
+        "condition_library_source": "v0.8.8.1 authoring/validation workbench"
+      },
+      {
+        "sequence": 6,
+        "action_key": "contain",
+        "action": "Contain",
+        "score": 0.694,
+        "precondition_status": "SATISFIED",
+        "precondition": "containment_required",
+        "necessary_condition": "control_capability",
+        "postcondition": "enemy_force_contained; enemy_withdrawal_restricted; opposing_movement_limited; reportable_information",
+        "research_derived_template": true,
+        "rationale": "Forward search selected Contain: candidate-generation hard gates satisfied; transition adds enemy_force_contained, enemy_withdrawal_restricted, opposing_movement_limited. Hard-goal causal support 0.955 -> 0.970. Profile prior=True; sufficient-set bonus=True.",
+        "state_before": [
+          "access_available",
+          "ambush_opportunity",
+          "blocking_capability",
+          "breach_capability",
+          "c2_available",
+          "clearance_capability",
+          "clearance_required",
+          "combat_capability",
+          "communications_available",
+          "concealment_available",
+          "construction_capability",
+          "containment_required",
+          "control_capability",
+          "control_evidence_available",
+          "control_verification_required",
+          "coordination_available",
+          "coordination_required",
+          "decision_information_sufficient",
+          "discriminating_information",
+          "disruption_means",
+          "disruption_required",
+          "engagement_capability",
+          "engagement_required",
+          "engineer_capability",
+          "entity_identified",
+          "friendly_force_available",
+          "hostile_contest",
+          "identification_required",
+          "information_available",
+          "information_need",
+          "materials_available",
+          "mission_received",
+          "mobility_available",
+          "movement_required",
+          "objective_accessible",
+          "objective_control_required",
+          "objective_controlled",
+          "objective_known",
+          "observation_area_exists",
+          "observation_capability",
+          "obstacle_exists",
+          "passage_required",
+          "planning_problem_exists",
+          "position_updated",
+          "reportable_information",
+          "route_available",
+          "security_capability",
+          "security_established",
+          "security_required",
+          "support_available",
+          "terrain_known",
+          "time_available",
+          "weapons_control_capability"
+        ],
+        "state_after": [
+          "access_available",
+          "ambush_opportunity",
+          "blocking_capability",
+          "breach_capability",
+          "c2_available",
+          "clearance_capability",
+          "clearance_required",
+          "combat_capability",
+          "communications_available",
+          "concealment_available",
+          "construction_capability",
+          "containment_required",
+          "control_capability",
+          "control_evidence_available",
+          "control_verification_required",
+          "coordination_available",
+          "coordination_required",
+          "decision_information_sufficient",
+          "discriminating_information",
+          "disruption_means",
+          "disruption_required",
+          "enemy_force_contained",
+          "enemy_withdrawal_restricted",
+          "engagement_capability",
+          "engagement_required",
+          "engineer_capability",
+          "entity_identified",
+          "friendly_force_available",
+          "hostile_contest",
+          "identification_required",
+          "information_available",
+          "information_need",
+          "materials_available",
+          "mission_received",
+          "mobility_available",
+          "movement_required",
+          "objective_accessible",
+          "objective_control_required",
+          "objective_controlled",
+          "objective_known",
+          "observation_area_exists",
+          "observation_capability",
+          "obstacle_exists",
+          "opposing_movement_limited",
+          "passage_required",
+          "planning_problem_exists",
+          "position_updated",
+          "reportable_information",
+          "route_available",
+          "security_capability",
+          "security_established",
+          "security_required",
+          "support_available",
+          "terrain_known",
+          "time_available",
+          "weapons_control_capability"
+        ],
+        "derived_effects": [],
+        "derived_rules_fired": [],
+        "hard_gates_satisfied": [
+          "containment_required",
+          "control_capability"
+        ],
+        "deferred_execution_gates": [],
+        "contextual_action_gates": [],
+        "supporting_satisfied": [
+          "security_established",
+          "mobility_available"
+        ],
+        "sufficient_sets_satisfied": [
+          [
+            "containment_required",
+            "control_capability"
+          ]
+        ],
+        "contraindications_present": [],
+        "action_cost": 0.44,
+        "goal_progress_before": 0.625,
+        "goal_progress_after": 0.75,
+        "causal_goal_support_before": 0.955,
+        "causal_goal_support_after": 0.97,
+        "llm_selected": false,
+        "cascade_predecessor_action_key": "establish_security",
+        "cascade_pair_status": "EVENT_OR_CONTEXT_REQUIRED",
+        "cascade_pair_rule": "NO_DEFAULT_EDGE",
+        "cascade_pair_rationale": "No default immediate cascade is asserted. The successor may still become legal after an enemy reaction, decision point, branch/sequel, intervening Atomic Action, independent parallel thread, or mission-specific state update.",
+        "fsm_mode": "OFF",
+        "fsm_transition_allowed": true,
+        "fsm_failed_guards": [],
+        "fsm_checked_guards": [],
+        "action_validation_level": "RESEARCH_VALIDATED",
+        "condition_library_source": "v0.8.8.1 authoring/validation workbench"
+      },
+      {
+        "sequence": 7,
+        "action_key": "breach",
+        "action": "Breach",
+        "score": 0.641,
+        "precondition_status": "SATISFIED",
+        "precondition": "obstacle_exists; action_authorized",
+        "necessary_condition": "breach_capability",
+        "postcondition": "passage_available; route_available; reportable_information",
+        "research_derived_template": true,
+        "rationale": "Forward search selected Breach: candidate-generation hard gates satisfied; transition adds passage_available. Hard-goal causal support 0.970 -> 0.985. Profile prior=False; sufficient-set bonus=True.",
+        "state_before": [
+          "access_available",
+          "ambush_opportunity",
+          "blocking_capability",
+          "breach_capability",
+          "c2_available",
+          "clearance_capability",
+          "clearance_required",
+          "combat_capability",
+          "communications_available",
+          "concealment_available",
+          "construction_capability",
+          "containment_required",
+          "control_capability",
+          "control_evidence_available",
+          "control_verification_required",
+          "coordination_available",
+          "coordination_required",
+          "decision_information_sufficient",
+          "discriminating_information",
+          "disruption_means",
+          "disruption_required",
+          "enemy_force_contained",
+          "enemy_withdrawal_restricted",
+          "engagement_capability",
+          "engagement_required",
+          "engineer_capability",
+          "entity_identified",
+          "friendly_force_available",
+          "hostile_contest",
+          "identification_required",
+          "information_available",
+          "information_need",
+          "materials_available",
+          "mission_received",
+          "mobility_available",
+          "movement_required",
+          "objective_accessible",
+          "objective_control_required",
+          "objective_controlled",
+          "objective_known",
+          "observation_area_exists",
+          "observation_capability",
+          "obstacle_exists",
+          "opposing_movement_limited",
+          "passage_required",
+          "planning_problem_exists",
+          "position_updated",
+          "reportable_information",
+          "route_available",
+          "security_capability",
+          "security_established",
+          "security_required",
+          "support_available",
+          "terrain_known",
+          "time_available",
+          "weapons_control_capability"
+        ],
+        "state_after": [
+          "access_available",
+          "ambush_opportunity",
+          "blocking_capability",
+          "breach_capability",
+          "c2_available",
+          "clearance_capability",
+          "clearance_required",
+          "combat_capability",
+          "communications_available",
+          "concealment_available",
+          "construction_capability",
+          "containment_required",
+          "control_capability",
+          "control_evidence_available",
+          "control_verification_required",
+          "coordination_available",
+          "coordination_required",
+          "decision_information_sufficient",
+          "discriminating_information",
+          "disruption_means",
+          "disruption_required",
+          "enemy_force_contained",
+          "enemy_withdrawal_restricted",
+          "engagement_capability",
+          "engagement_required",
+          "engineer_capability",
+          "entity_identified",
+          "friendly_force_available",
+          "hostile_contest",
+          "identification_required",
+          "information_available",
+          "information_need",
+          "materials_available",
+          "mission_received",
+          "mobility_available",
+          "movement_required",
+          "objective_accessible",
+          "objective_control_required",
+          "objective_controlled",
+          "objective_known",
+          "observation_area_exists",
+          "observation_capability",
+          "obstacle_exists",
+          "opposing_movement_limited",
+          "passage_available",
+          "passage_required",
+          "planning_problem_exists",
+          "position_updated",
+          "reportable_information",
+          "route_available",
+          "security_capability",
+          "security_established",
+          "security_required",
+          "support_available",
+          "terrain_known",
+          "time_available",
+          "weapons_control_capability"
+        ],
+        "derived_effects": [],
+        "derived_rules_fired": [],
+        "hard_gates_satisfied": [
+          "breach_capability",
+          "obstacle_exists"
+        ],
+        "deferred_execution_gates": [
+          "action_authorized"
+        ],
+        "contextual_action_gates": [],
+        "supporting_satisfied": [
+          "engineer_capability",
+          "security_established"
+        ],
+        "sufficient_sets_satisfied": [
+          [
+            "obstacle_exists",
+            "breach_capability",
+            "action_authorized"
+          ]
+        ],
+        "contraindications_present": [],
+        "action_cost": 0.56,
+        "goal_progress_before": 0.75,
+        "goal_progress_after": 0.875,
+        "causal_goal_support_before": 0.97,
+        "causal_goal_support_after": 0.985,
+        "llm_selected": false,
+        "cascade_predecessor_action_key": "contain",
+        "cascade_pair_status": "EVENT_OR_CONTEXT_REQUIRED",
+        "cascade_pair_rule": "NO_DEFAULT_EDGE",
+        "cascade_pair_rationale": "No default immediate cascade is asserted. The successor may still become legal after an enemy reaction, decision point, branch/sequel, intervening Atomic Action, independent parallel thread, or mission-specific state update.",
+        "fsm_mode": "OFF",
+        "fsm_transition_allowed": true,
+        "fsm_failed_guards": [],
+        "fsm_checked_guards": [],
+        "action_validation_level": "RESEARCH_VALIDATED",
+        "condition_library_source": "v0.8.8.1 authoring/validation workbench"
+      },
+      {
+        "sequence": 8,
+        "action_key": "disrupt",
+        "action": "Disrupt",
+        "score": 0.602,
+        "precondition_status": "SATISFIED",
+        "precondition": "disruption_required",
+        "necessary_condition": "disruption_means",
+        "postcondition": "enemy_tempo_disrupted; enemy_timetable_interrupted; opposing_function_degraded; reportable_information",
+        "research_derived_template": true,
+        "rationale": "Forward search selected Disrupt: candidate-generation hard gates satisfied; transition adds enemy_tempo_disrupted, enemy_timetable_interrupted, opposing_function_degraded. Hard-goal causal support 0.985 -> 1.000. Profile prior=False; sufficient-set bonus=True.",
+        "state_before": [
+          "access_available",
+          "ambush_opportunity",
+          "blocking_capability",
+          "breach_capability",
+          "c2_available",
+          "clearance_capability",
+          "clearance_required",
+          "combat_capability",
+          "communications_available",
+          "concealment_available",
+          "construction_capability",
+          "containment_required",
+          "control_capability",
+          "control_evidence_available",
+          "control_verification_required",
+          "coordination_available",
+          "coordination_required",
+          "decision_information_sufficient",
+          "discriminating_information",
+          "disruption_means",
+          "disruption_required",
+          "enemy_force_contained",
+          "enemy_withdrawal_restricted",
+          "engagement_capability",
+          "engagement_required",
+          "engineer_capability",
+          "entity_identified",
+          "friendly_force_available",
+          "hostile_contest",
+          "identification_required",
+          "information_available",
+          "information_need",
+          "materials_available",
+          "mission_received",
+          "mobility_available",
+          "movement_required",
+          "objective_accessible",
+          "objective_control_required",
+          "objective_controlled",
+          "objective_known",
+          "observation_area_exists",
+          "observation_capability",
+          "obstacle_exists",
+          "opposing_movement_limited",
+          "passage_available",
+          "passage_required",
+          "planning_problem_exists",
+          "position_updated",
+          "reportable_information",
+          "route_available",
+          "security_capability",
+          "security_established",
+          "security_required",
+          "support_available",
+          "terrain_known",
+          "time_available",
+          "weapons_control_capability"
+        ],
+        "state_after": [
+          "access_available",
+          "ambush_opportunity",
+          "blocking_capability",
+          "breach_capability",
+          "c2_available",
+          "clearance_capability",
+          "clearance_required",
+          "combat_capability",
+          "communications_available",
+          "concealment_available",
+          "construction_capability",
+          "containment_required",
+          "control_capability",
+          "control_evidence_available",
+          "control_verification_required",
+          "coordination_available",
+          "coordination_required",
+          "decision_information_sufficient",
+          "discriminating_information",
+          "disruption_means",
+          "disruption_required",
+          "enemy_force_contained",
+          "enemy_tempo_disrupted",
+          "enemy_timetable_interrupted",
+          "enemy_withdrawal_restricted",
+          "engagement_capability",
+          "engagement_required",
+          "engineer_capability",
+          "entity_identified",
+          "friendly_force_available",
+          "hostile_contest",
+          "identification_required",
+          "information_available",
+          "information_need",
+          "materials_available",
+          "mission_received",
+          "mobility_available",
+          "movement_required",
+          "objective_accessible",
+          "objective_control_required",
+          "objective_controlled",
+          "objective_known",
+          "observation_area_exists",
+          "observation_capability",
+          "obstacle_exists",
+          "opposing_function_degraded",
+          "opposing_movement_limited",
+          "passage_available",
+          "passage_required",
+          "planning_problem_exists",
+          "position_updated",
+          "reportable_information",
+          "route_available",
+          "security_capability",
+          "security_established",
+          "security_required",
+          "support_available",
+          "terrain_known",
+          "time_available",
+          "weapons_control_capability"
+        ],
+        "derived_effects": [],
+        "derived_rules_fired": [],
+        "hard_gates_satisfied": [
+          "disruption_means",
+          "disruption_required"
+        ],
+        "deferred_execution_gates": [],
+        "contextual_action_gates": [],
+        "supporting_satisfied": [
+          "information_available"
+        ],
+        "sufficient_sets_satisfied": [
+          [
+            "disruption_required",
+            "disruption_means"
+          ]
+        ],
+        "contraindications_present": [],
+        "action_cost": 0.66,
+        "goal_progress_before": 0.875,
+        "goal_progress_after": 1,
+        "causal_goal_support_before": 0.985,
+        "causal_goal_support_after": 1,
+        "llm_selected": false,
+        "cascade_predecessor_action_key": "breach",
+        "cascade_pair_status": "EVENT_OR_CONTEXT_REQUIRED",
+        "cascade_pair_rule": "NO_DEFAULT_EDGE",
+        "cascade_pair_rationale": "No default immediate cascade is asserted. The successor may still become legal after an enemy reaction, decision point, branch/sequel, intervening Atomic Action, independent parallel thread, or mission-specific state update.",
+        "fsm_mode": "OFF",
+        "fsm_transition_allowed": true,
+        "fsm_failed_guards": [],
+        "fsm_checked_guards": [],
+        "action_validation_level": "RESEARCH_VALIDATED",
+        "condition_library_source": "v0.8.8.1 authoring/validation workbench"
+      }
+    ],
+    "initial_state": [
+      "access_available",
+      "ambush_opportunity",
+      "blocking_capability",
+      "breach_capability",
+      "c2_available",
+      "clearance_capability",
+      "clearance_required",
+      "combat_capability",
+      "communications_available",
+      "concealment_available",
+      "construction_capability",
+      "containment_required",
+      "control_capability",
+      "coordination_available",
+      "coordination_required",
+      "disruption_means",
+      "disruption_required",
+      "engagement_capability",
+      "engagement_required",
+      "engineer_capability",
+      "friendly_force_available",
+      "hostile_contest",
+      "identification_required",
+      "information_need",
+      "materials_available",
+      "mission_received",
+      "mobility_available",
+      "movement_required",
+      "objective_control_required",
+      "objective_known",
+      "observation_area_exists",
+      "observation_capability",
+      "obstacle_exists",
+      "passage_required",
+      "planning_problem_exists",
+      "route_available",
+      "security_capability",
+      "security_required",
+      "support_available",
+      "terrain_known",
+      "time_available",
+      "weapons_control_capability"
+    ],
+    "final_state": [
+      "access_available",
+      "ambush_opportunity",
+      "blocking_capability",
+      "breach_capability",
+      "c2_available",
+      "clearance_capability",
+      "clearance_required",
+      "combat_capability",
+      "communications_available",
+      "concealment_available",
+      "construction_capability",
+      "containment_required",
+      "control_capability",
+      "control_evidence_available",
+      "control_verification_required",
+      "coordination_available",
+      "coordination_required",
+      "decision_information_sufficient",
+      "discriminating_information",
+      "disruption_means",
+      "disruption_required",
+      "enemy_force_contained",
+      "enemy_tempo_disrupted",
+      "enemy_timetable_interrupted",
+      "enemy_withdrawal_restricted",
+      "engagement_capability",
+      "engagement_required",
+      "engineer_capability",
+      "entity_identified",
+      "friendly_force_available",
+      "hostile_contest",
+      "identification_required",
+      "information_available",
+      "information_need",
+      "materials_available",
+      "mission_received",
+      "mobility_available",
+      "movement_required",
+      "objective_accessible",
+      "objective_control_required",
+      "objective_controlled",
+      "objective_known",
+      "observation_area_exists",
+      "observation_capability",
+      "obstacle_exists",
+      "opposing_function_degraded",
+      "opposing_movement_limited",
+      "passage_available",
+      "passage_required",
+      "planning_problem_exists",
+      "position_updated",
+      "reportable_information",
+      "route_available",
+      "security_capability",
+      "security_established",
+      "security_required",
+      "support_available",
+      "terrain_known",
+      "time_available",
+      "weapons_control_capability"
+    ],
+    "hard_goals": [
+      "entity_identified",
+      "information_available",
+      "objective_controlled",
+      "opposing_function_degraded",
+      "opposing_movement_limited",
+      "passage_available",
+      "position_updated",
+      "security_established"
+    ],
+    "soft_goals": [
+      "position_prepared",
+      "route_blocked",
+      "security_established"
+    ],
+    "unsatisfied_goals": [],
+    "soft_goals_achieved": [
+      "security_established"
+    ],
+    "hard_goal_causal_support": 1,
+    "root_blockers_by_goal": {},
+    "expansions": 2560,
+    "generated_states": 2628,
+    "max_depth_reached": 14,
+    "search_limits": {
+      "max_depth": 32,
+      "max_expansions": 20000
+    },
+    "total_cost": 4.7,
+    "blocked_actions_at_final_state": [
+      {
+        "action_key": "continue_engage",
+        "action": "Continue to Engage",
+        "missing_preconditions": [
+          "engagement_in_progress"
+        ],
+        "missing_precondition_any_groups": [],
+        "missing_necessary": [
+          "continuation_criteria"
+        ],
+        "missing_necessary_any_groups": [],
+        "deferred_execution_gates": [],
+        "contextual_action_gates": []
+      },
+      {
+        "action_key": "establish_presence",
+        "action": "Establish Presence",
+        "missing_preconditions": [
+          "presence_required"
+        ],
+        "missing_precondition_any_groups": [],
+        "missing_necessary": [],
+        "missing_necessary_any_groups": [],
+        "deferred_execution_gates": [],
+        "contextual_action_gates": []
+      },
+      {
+        "action_key": "confirm",
+        "action": "Confirm",
+        "missing_preconditions": [],
+        "missing_precondition_any_groups": [
+          [
+            "confirmation_required",
+            "uncertainty_exists"
+          ]
+        ],
+        "missing_necessary": [],
+        "missing_necessary_any_groups": [],
+        "deferred_execution_gates": [],
+        "contextual_action_gates": []
+      },
+      {
+        "action_key": "construct",
+        "action": "Construct",
+        "missing_preconditions": [
+          "construction_required"
+        ],
+        "missing_precondition_any_groups": [],
+        "missing_necessary": [
+          "capabilities_synchronized"
+        ],
+        "missing_necessary_any_groups": [],
+        "deferred_execution_gates": [],
+        "contextual_action_gates": []
+      },
+      {
+        "action_key": "adapt",
+        "action": "Adapt",
+        "missing_preconditions": [
+          "situation_changed",
+          "plan_adjusted"
+        ],
+        "missing_precondition_any_groups": [],
+        "missing_necessary": [
+          "plan_flexible",
+          "alternate_response_available"
+        ],
+        "missing_necessary_any_groups": [],
+        "deferred_execution_gates": [],
+        "contextual_action_gates": []
+      },
+      {
+        "action_key": "decide",
+        "action": "Decide",
+        "missing_preconditions": [
+          "decision_required",
+          "alternatives_available"
+        ],
+        "missing_precondition_any_groups": [],
+        "missing_necessary": [
+          "decision_authority"
+        ],
+        "missing_necessary_any_groups": [],
+        "deferred_execution_gates": [],
+        "contextual_action_gates": []
+      },
+      {
+        "action_key": "reorient",
+        "action": "Re-Orient",
+        "missing_preconditions": [
+          "new_priority"
+        ],
+        "missing_precondition_any_groups": [],
+        "missing_necessary": [],
+        "missing_necessary_any_groups": [],
+        "deferred_execution_gates": [],
+        "contextual_action_gates": []
+      },
+      {
+        "action_key": "adjust",
+        "action": "Adjust",
+        "missing_preconditions": [
+          "adjustment_required"
+        ],
+        "missing_precondition_any_groups": [],
+        "missing_necessary": [],
+        "missing_necessary_any_groups": [],
+        "deferred_execution_gates": [
+          "adjustment_authority"
+        ],
+        "contextual_action_gates": []
+      },
+      {
+        "action_key": "demonstrate",
+        "action": "Demonstrate",
+        "missing_preconditions": [
+          "shaping_required"
+        ],
+        "missing_precondition_any_groups": [],
+        "missing_necessary": [
+          "demonstration_resources",
+          "no_contact_intended"
+        ],
+        "missing_necessary_any_groups": [],
+        "deferred_execution_gates": [],
+        "contextual_action_gates": []
+      },
+      {
+        "action_key": "block",
+        "action": "Block",
+        "missing_preconditions": [
+          "blocking_required"
+        ],
+        "missing_precondition_any_groups": [],
+        "missing_necessary": [],
+        "missing_necessary_any_groups": [],
+        "deferred_execution_gates": [],
+        "contextual_action_gates": []
+      },
+      {
+        "action_key": "report",
+        "action": "Report",
+        "missing_preconditions": [
+          "report_required"
+        ],
+        "missing_precondition_any_groups": [],
+        "missing_necessary": [],
+        "missing_necessary_any_groups": [],
+        "deferred_execution_gates": [],
+        "contextual_action_gates": []
+      },
+      {
+        "action_key": "withdraw",
+        "action": "Withdraw",
+        "missing_preconditions": [
+          "withdrawal_required"
+        ],
+        "missing_precondition_any_groups": [],
+        "missing_necessary": [
+          "friendly_force_in_contact",
+          "disengagement_feasible",
+          "rearward_route_available"
+        ],
+        "missing_necessary_any_groups": [],
+        "deferred_execution_gates": [],
+        "contextual_action_gates": []
+      },
+      {
+        "action_key": "avoid_decisive",
+        "action": "Do not seek a decisive engagement",
+        "missing_preconditions": [
+          "freedom_of_action_required"
+        ],
+        "missing_precondition_any_groups": [],
+        "missing_necessary": [
+          "avoidance_feasible"
+        ],
+        "missing_necessary_any_groups": [],
+        "deferred_execution_gates": [],
+        "contextual_action_gates": []
+      },
+      {
+        "action_key": "disassemble_disarm",
+        "action": "Disassemble/Disarm",
+        "missing_preconditions": [
+          "disablement_required"
+        ],
+        "missing_precondition_any_groups": [],
+        "missing_necessary": [
+          "weapons_or_system_present"
+        ],
+        "missing_necessary_any_groups": [],
+        "deferred_execution_gates": [
+          "disablement_authority"
+        ],
+        "contextual_action_gates": []
+      },
+      {
+        "action_key": "ambush",
+        "action": "Ambush",
+        "missing_preconditions": [],
+        "missing_precondition_any_groups": [],
+        "missing_necessary": [
+          "target_moving_or_temporarily_halted"
+        ],
+        "missing_necessary_any_groups": [],
+        "deferred_execution_gates": [
+          "action_authorized"
+        ],
+        "contextual_action_gates": []
+      }
+    ],
+    "algorithm": "A* / best-first forward state-space search with relaxed causal-support partial-plan ranking + monotonic derived-effect closure",
+    "fsm_pruning": {
+      "mode": "OFF",
+      "mapping_version": "0.13.0",
+      "candidate_checks": 0,
+      "pruned_candidate_checks": 0,
+      "failed_guard_counts": {},
+      "note": "STRICT adds the v0.13 finite-domain guard bridge over the preserved proposition-level applicability model. Candidate-generation authority remains deferred during COA development; entity-scoped typed FSM validation remains stronger than this compatibility bridge."
+    },
+    "action_cascade_pruning": {
+      "mode": "OFF",
+      "registry_version": "0.13.2",
+      "candidate_pair_checks": 0,
+      "pruned_candidate_checks": 0,
+      "pruned_by_status": {},
+      "context_override_action_keys": [],
+      "policy": {
+        "default_mode": "OFF",
+        "experimental_mode": "PRUNE_DEFAULT",
+        "context_override_allowed": true,
+        "pair_count": 784,
+        "retained_edges": 184,
+        "direct_causal_edges": 43,
+        "direct_plausible_edges": 141,
+        "context_bridge_pairs": 600,
+        "validated_release": "0.13.2",
+        "validation_promotions": 6,
+        "recommended_application_scope": "SAME_ACTOR_OR_SAME_TASK_THREAD; do not constrain arbitrary cross-actor parallel linearizations",
+        "solution_recall_policy": "PRUNE_DEFAULT is experimental; OFF remains backward-compatible default until validation threshold is accepted."
+      },
+      "note": "OFF preserves the baseline. PRUNE_DEFAULT admits default immediate successors; pairs requiring an event or context bridge are not expanded without explicit support."
+    },
+    "all_28_actions_considered": true,
+    "derived_rule_count": 0,
+    "contextual_action_gate_count": 0,
+    "initial_derived_rules_fired": [],
+    "profile_is_soft_tiebreaker_only": true,
+    "soft_goal_oversubscription_search": true,
+    "llm_action_selection": false,
+    "monotonic_add_effects_only": true,
+    "planning_phase": "COA_DEVELOPMENT",
+    "candidate_generation_execution_authority_deferred": true,
+    "deferred_execution_gate_policy": [
+      "action_authorized",
+      "adjustment_authority",
+      "ambush_authority",
+      "combat_authority",
+      "disablement_authority",
+      "engagement_authority"
+    ],
+    "condition_library_policy": "STRICT_VALIDATED_ONLY",
+    "condition_library_version": "0.8.8.1",
+    "note": null,
+    "state_grounding": {
+      "fluents": [
+        "access_available",
+        "ambush_opportunity",
+        "blocking_capability",
+        "breach_capability",
+        "c2_available",
+        "clearance_capability",
+        "clearance_required",
+        "combat_capability",
+        "communications_available",
+        "concealment_available",
+        "construction_capability",
+        "containment_required",
+        "control_capability",
+        "coordination_available",
+        "coordination_required",
+        "disruption_means",
+        "disruption_required",
+        "engagement_capability",
+        "engagement_required",
+        "engineer_capability",
+        "friendly_force_available",
+        "hostile_contest",
+        "identification_required",
+        "information_need",
+        "materials_available",
+        "mission_received",
+        "mobility_available",
+        "movement_required",
+        "objective_control_required",
+        "objective_known",
+        "observation_area_exists",
+        "observation_capability",
+        "obstacle_exists",
+        "passage_required",
+        "planning_problem_exists",
+        "route_available",
+        "security_capability",
+        "security_required",
+        "support_available",
+        "terrain_known",
+        "time_available",
+        "weapons_control_capability"
+      ],
+      "provenance": {
+        "mission_received": [
+          {
+            "why": "A non-empty mission statement was received.",
+            "source": "research grounding rule"
+          }
+        ],
+        "planning_problem_exists": [
+          {
+            "why": "Mission text is present.",
+            "source": "mission statement"
+          }
+        ],
+        "objective_control_required": [
+          {
+            "why": "Mission-language cue grounded requirement: seize.",
+            "source": "mission/end-state grounding"
+          }
+        ],
+        "security_required": [
+          {
+            "why": "Mission-language cue grounded requirement: protect.",
+            "source": "mission/end-state grounding"
+          }
+        ],
+        "information_need": [
+          {
+            "why": "Mission-language cue grounded requirement: early warning.",
+            "source": "mission/end-state grounding"
+          }
+        ],
+        "identification_required": [
+          {
+            "why": "Mission-language cue grounded requirement: identify.",
+            "source": "mission/end-state grounding"
+          },
+          {
+            "why": "Enemy information is relevant to identification/assessment.",
+            "source": "evidence 29: Enemy mechanized division consisting of multiple mechanized and armored maneuver elements."
+          },
+          {
+            "why": "Enemy information is relevant to identification/assessment.",
+            "source": "evidence 30: A tank-heavy brigade-sized element is assessed to provide significant armored combat power."
+          },
+          {
+            "why": "Enemy information is relevant to identification/assessment.",
+            "source": "evidence 31: A tank task force-sized element is available to the enemy division."
+          },
+          {
+            "why": "Enemy information is relevant to identification/assessment.",
+            "source": "evidence 32: A divisional cavalry squadron and mechanized infantry TCF are present."
+          },
+          {
+            "why": "Enemy information is relevant to identification/assessment.",
+            "source": "evidence 33: Enemy mechanized forces are distributed across the northern and southern portions of the division sector."
+          },
+          {
+            "why": "Enemy information is relevant to identification/assessment.",
+            "source": "evidence 34: Mechanized and armored elements are observed generally east of PL AMBER and along routes providing access toward the friendly defensive area."
+          },
+          {
+            "why": "Enemy information is relevant to identification/assessment.",
+            "source": "evidence 35: A tank-heavy element is positioned where it could support or reinforce operations toward OBJ SLAM."
+          },
+          {
+            "why": "Enemy information is relevant to identification/assessment.",
+            "source": "evidence 36: An additional tank task force-sized element is located behind forward enemy maneuver forces."
+          },
+          {
+            "why": "Enemy information is relevant to identification/assessment.",
+            "source": "evidence 37: Enemy cavalry operates on the northern flank."
+          },
+          {
+            "why": "Enemy information is relevant to identification/assessment.",
+            "source": "evidence 38: Enemy TCF is located in the vicinity of METRO CITY."
+          },
+          {
+            "why": "Enemy information is relevant to identification/assessment.",
+            "source": "evidence 39: Enemy armored forces are capable of rapid maneuver, reinforcement, exploitation, and countering friendly maneuver forces."
+          },
+          {
+            "why": "Enemy information is relevant to identification/assessment.",
+            "source": "evidence 40: Enemy mechanized forces are prepared defensive positions when supported by engineers and fires."
+          },
+          {
+            "why": "Enemy information is relevant to identification/assessment.",
+            "source": "evidence 41: Enemy engineers are capable of reducing obstacles and supporting mobility."
+          },
+          {
+            "why": "Enemy information is relevant to identification/assessment.",
+            "source": "evidence 42: Enemy cavalry can conduct reconnaissance, security, and early warning."
+          },
+          {
+            "why": "Enemy information is relevant to identification/assessment.",
+            "source": "evidence 43: Concentrated enemy armor may present a significant breakthrough threat if a breach is achieved."
+          },
+          {
+            "why": "Enemy information is relevant to identification/assessment.",
+            "source": "evidence 44: Enemy mechanized forces show indications of preparation for offensive operations."
+          },
+          {
+            "why": "Enemy information is relevant to identification/assessment.",
+            "source": "evidence 45: Increased maneuver activity is observed in the vicinity of PL AMBER and along approaches toward the friendly defensive sector."
+          },
+          {
+            "why": "Enemy information is relevant to identification/assessment.",
+            "source": "evidence 46: Enemy armored forces appear capable of reinforcing either the northern or southern portion of the sector."
+          },
+          {
+            "why": "Enemy information is relevant to identification/assessment.",
+            "source": "evidence 47: Enemy cavalry activity is observed on the northern flank."
+          },
+          {
+            "why": "Enemy information is relevant to identification/assessment.",
+            "source": "evidence 48: Enemy artillery and supporting elements appear prepared to support maneuver operations."
+          },
+          {
+            "why": "Enemy information is relevant to identification/assessment.",
+            "source": "evidence 49: No information."
+          },
+          {
+            "why": "Enemy information is relevant to identification/assessment.",
+            "source": "evidence 50: No information."
+          }
+        ],
+        "movement_required": [
+          {
+            "why": "Mission-language cue grounded requirement: maneuver.",
+            "source": "mission/end-state grounding"
+          },
+          {
+            "why": "Penetration/passage explicitly requires maneuver of the supported force through the corridor.",
+            "source": "v0.9.1 research task-decomposition bridge"
+          }
+        ],
+        "passage_required": [
+          {
+            "why": "Mission-language cue grounded requirement: breach.",
+            "source": "mission/end-state grounding"
+          },
+          {
+            "why": "Mission explicitly requires penetration/passage of the main effort.",
+            "source": "v0.9.1 research task-decomposition bridge"
+          }
+        ],
+        "clearance_required": [
+          {
+            "why": "Mission-language cue grounded requirement: penetrat.",
+            "source": "mission/end-state grounding"
+          },
+          {
+            "why": "Penetration is decomposed to the existing Clear operator so a usable maneuver corridor can be established; this does NOT assert that a physical obstacle breach is required.",
+            "source": "v0.9.1 research task-decomposition bridge"
+          }
+        ],
+        "disruption_required": [
+          {
+            "why": "Mission-language cue grounded requirement: disrupt.",
+            "source": "mission/end-state grounding"
+          }
+        ],
+        "containment_required": [
+          {
+            "why": "Mission-language cue grounded requirement: contain.",
+            "source": "mission/end-state grounding"
+          }
+        ],
+        "engagement_required": [
+          {
+            "why": "Mission-language cue grounded requirement: attack.",
+            "source": "mission/end-state grounding"
+          }
+        ],
+        "hostile_contest": [
+          {
+            "why": "Mission-language cue grounded requirement: combat.",
+            "source": "mission/end-state grounding"
+          }
+        ],
+        "coordination_required": [
+          {
+            "why": "Mission-language cue grounded requirement: coordinate.",
+            "source": "mission/end-state grounding"
+          }
+        ],
+        "mobility_available": [
+          {
+            "why": "Friendly capability evidence supports mobility.",
+            "source": "evidence 2: Maintain control of key terrain and preserve freedom of maneuver for friendly armored forces."
+          },
+          {
+            "why": "Friendly capability evidence supports mobility.",
+            "source": "evidence 4: Prevent enemy mechanized and armored forces from achieving a decisive breakthrough."
+          },
+          {
+            "why": "Friendly capability evidence supports mobility.",
+            "source": "evidence 5: Disrupt enemy offensive maneuver through fires and defensive operations."
+          },
+          {
+            "why": "Friendly capability evidence supports mobility.",
+            "source": "evidence 6: Use armored forces to reinforce threatened sectors or conduct counterattacks."
+          },
+          {
+            "why": "Friendly capability evidence supports mobility.",
+            "source": "evidence 10: Protect artillery and armored counterattack forces from enemy deep operations."
+          },
+          {
+            "why": "Friendly capability evidence supports mobility.",
+            "source": "evidence 16: Armored reserves should be preserved until the enemy main effort is identified."
+          },
+          {
+            "why": "Friendly capability evidence supports mobility.",
+            "source": "evidence 19: Prevent the seizure of OBJ SLAM. Disrupt the enemy main effort with concentrated fires, contain the penetration with defending forces, and employ armored forces to reinforce or counterattack before the enemy can exploit eastward."
+          },
+          {
+            "why": "Friendly capability evidence supports mobility.",
+            "source": "evidence 20: Prevent the enemy mechanized division from breaking through the defensive sector and gaining access to OBJ SLAM and the terrain toward RIVER TOWN."
+          },
+          {
+            "why": "Friendly capability evidence supports mobility.",
+            "source": "evidence 22: Friendly infantry, armored, and artillery forces retain sufficient combat capability."
+          },
+          {
+            "why": "Friendly capability evidence supports mobility.",
+            "source": "evidence 25: Enemy tank-heavy main effort is prevented from exploiting the breach."
+          },
+          {
+            "why": "Friendly capability evidence supports mobility.",
+            "source": "evidence 27: Friendly armored forces remain capable of reinforcing or counterattacking."
+          },
+          {
+            "why": "Friendly capability evidence supports mobility.",
+            "source": "evidence 29: Enemy mechanized division consisting of multiple mechanized and armored maneuver elements."
+          },
+          {
+            "why": "Friendly capability evidence supports mobility.",
+            "source": "evidence 30: A tank-heavy brigade-sized element is assessed to provide significant armored combat power."
+          },
+          {
+            "why": "Friendly capability evidence supports mobility.",
+            "source": "evidence 31: A tank task force-sized element is available to the enemy division."
+          },
+          {
+            "why": "Friendly capability evidence supports mobility.",
+            "source": "evidence 32: A divisional cavalry squadron and mechanized infantry TCF are present."
+          },
+          {
+            "why": "Friendly capability evidence supports mobility.",
+            "source": "evidence 33: Enemy mechanized forces are distributed across the northern and southern portions of the division sector."
+          },
+          {
+            "why": "Friendly capability evidence supports mobility.",
+            "source": "evidence 34: Mechanized and armored elements are observed generally east of PL AMBER and along routes providing access toward the friendly defensive area."
+          },
+          {
+            "why": "Friendly capability evidence supports mobility.",
+            "source": "evidence 35: A tank-heavy element is positioned where it could support or reinforce operations toward OBJ SLAM."
+          },
+          {
+            "why": "Friendly capability evidence supports mobility.",
+            "source": "evidence 36: An additional tank task force-sized element is located behind forward enemy maneuver forces."
+          },
+          {
+            "why": "Friendly capability evidence supports mobility.",
+            "source": "evidence 39: Enemy armored forces are capable of rapid maneuver, reinforcement, exploitation, and countering friendly maneuver forces."
+          },
+          {
+            "why": "Friendly capability evidence supports mobility.",
+            "source": "evidence 40: Enemy mechanized forces are prepared defensive positions when supported by engineers and fires."
+          },
+          {
+            "why": "Friendly capability evidence supports mobility.",
+            "source": "evidence 41: Enemy engineers are capable of reducing obstacles and supporting mobility."
+          },
+          {
+            "why": "Friendly capability evidence supports mobility.",
+            "source": "evidence 44: Enemy mechanized forces show indications of preparation for offensive operations."
+          },
+          {
+            "why": "Friendly capability evidence supports mobility.",
+            "source": "evidence 45: Increased maneuver activity is observed in the vicinity of PL AMBER and along approaches toward the friendly defensive sector."
+          },
+          {
+            "why": "Friendly capability evidence supports mobility.",
+            "source": "evidence 46: Enemy armored forces appear capable of reinforcing either the northern or southern portion of the sector."
+          },
+          {
+            "why": "Friendly capability evidence supports mobility.",
+            "source": "evidence 48: Enemy artillery and supporting elements appear prepared to support maneuver operations."
+          },
+          {
+            "why": "Friendly capability evidence supports mobility.",
+            "source": "evidence 55: MUDDY RIVER restricts east-west maneuver."
+          },
+          {
+            "why": "Friendly capability evidence supports mobility.",
+            "source": "evidence 56: NORTHERN MTNS and SOUTHERN MTNS restrict or canalize maneuver."
+          },
+          {
+            "why": "Friendly capability evidence supports mobility.",
+            "source": "evidence 59: Open terrain around the primary maneuver corridor provides comparatively limited concealment."
+          },
+          {
+            "why": "Friendly capability evidence supports mobility.",
+            "source": "evidence 62: Tank battalion (-)."
+          },
+          {
+            "why": "Friendly capability evidence supports mobility.",
+            "source": "evidence 63: Tank regiment (-)."
+          },
+          {
+            "why": "Friendly capability evidence supports mobility.",
+            "source": "evidence 66: Armored forces are capable of maneuvering to reinforce the defense or counterattack enemy forces."
+          },
+          {
+            "why": "Friendly capability evidence supports mobility.",
+            "source": "evidence 68: Tank battalion (-) positioned south of WEST TOWN."
+          },
+          {
+            "why": "Friendly capability evidence supports mobility.",
+            "source": "evidence 69: Tank regiment (-) positioned north of EAST TOWN."
+          },
+          {
+            "why": "Friendly capability evidence supports mobility.",
+            "source": "evidence 72: Available infantry, armored, and artillery forces are assessed as operationally capable of defending the sector."
+          },
+          {
+            "why": "Friendly capability evidence supports mobility.",
+            "source": "evidence 75: Armored forces are available to reinforce threatened sectors or conduct counterattacks."
+          }
+        ],
+        "engagement_capability": [
+          {
+            "why": "Combat/fires capability is available.",
+            "source": "evidence 4: Prevent enemy mechanized and armored forces from achieving a decisive breakthrough."
+          },
+          {
+            "why": "Combat/fires capability is available.",
+            "source": "evidence 5: Disrupt enemy offensive maneuver through fires and defensive operations."
+          },
+          {
+            "why": "Combat/fires capability is available.",
+            "source": "evidence 19: Prevent the seizure of OBJ SLAM. Disrupt the enemy main effort with concentrated fires, contain the penetration with defending forces, and employ armored forces to reinforce or counterattack before the enemy can exploit eastward."
+          },
+          {
+            "why": "Combat/fires capability is available.",
+            "source": "evidence 20: Prevent the enemy mechanized division from breaking through the defensive sector and gaining access to OBJ SLAM and the terrain toward RIVER TOWN."
+          },
+          {
+            "why": "Combat/fires capability is available.",
+            "source": "evidence 22: Friendly infantry, armored, and artillery forces retain sufficient combat capability."
+          },
+          {
+            "why": "Combat/fires capability is available.",
+            "source": "evidence 25: Enemy tank-heavy main effort is prevented from exploiting the breach."
+          },
+          {
+            "why": "Combat/fires capability is available.",
+            "source": "evidence 29: Enemy mechanized division consisting of multiple mechanized and armored maneuver elements."
+          },
+          {
+            "why": "Combat/fires capability is available.",
+            "source": "evidence 30: A tank-heavy brigade-sized element is assessed to provide significant armored combat power."
+          },
+          {
+            "why": "Combat/fires capability is available.",
+            "source": "evidence 31: A tank task force-sized element is available to the enemy division."
+          },
+          {
+            "why": "Combat/fires capability is available.",
+            "source": "evidence 32: A divisional cavalry squadron and mechanized infantry TCF are present."
+          },
+          {
+            "why": "Combat/fires capability is available.",
+            "source": "evidence 33: Enemy mechanized forces are distributed across the northern and southern portions of the division sector."
+          },
+          {
+            "why": "Combat/fires capability is available.",
+            "source": "evidence 34: Mechanized and armored elements are observed generally east of PL AMBER and along routes providing access toward the friendly defensive area."
+          },
+          {
+            "why": "Combat/fires capability is available.",
+            "source": "evidence 35: A tank-heavy element is positioned where it could support or reinforce operations toward OBJ SLAM."
+          },
+          {
+            "why": "Combat/fires capability is available.",
+            "source": "evidence 36: An additional tank task force-sized element is located behind forward enemy maneuver forces."
+          },
+          {
+            "why": "Combat/fires capability is available.",
+            "source": "evidence 40: Enemy mechanized forces are prepared defensive positions when supported by engineers and fires."
+          },
+          {
+            "why": "Combat/fires capability is available.",
+            "source": "evidence 44: Enemy mechanized forces show indications of preparation for offensive operations."
+          },
+          {
+            "why": "Combat/fires capability is available.",
+            "source": "evidence 51: Open terrain along the PL AMBER–OBJ SLAM approach supports observation and long-range fires."
+          },
+          {
+            "why": "Combat/fires capability is available.",
+            "source": "evidence 67: Artillery is capable of massing fires against enemy forces."
+          },
+          {
+            "why": "Combat/fires capability is available.",
+            "source": "evidence 72: Available infantry, armored, and artillery forces are assessed as operationally capable of defending the sector."
+          },
+          {
+            "why": "Combat/fires capability is available.",
+            "source": "evidence 74: Artillery support is available and capable of massing fires against the enemy."
+          }
+        ],
+        "combat_capability": [
+          {
+            "why": "Combat capability is available.",
+            "source": "evidence 4: Prevent enemy mechanized and armored forces from achieving a decisive breakthrough."
+          },
+          {
+            "why": "Combat capability is available.",
+            "source": "evidence 5: Disrupt enemy offensive maneuver through fires and defensive operations."
+          },
+          {
+            "why": "Combat capability is available.",
+            "source": "evidence 19: Prevent the seizure of OBJ SLAM. Disrupt the enemy main effort with concentrated fires, contain the penetration with defending forces, and employ armored forces to reinforce or counterattack before the enemy can exploit eastward."
+          },
+          {
+            "why": "Combat capability is available.",
+            "source": "evidence 20: Prevent the enemy mechanized division from breaking through the defensive sector and gaining access to OBJ SLAM and the terrain toward RIVER TOWN."
+          },
+          {
+            "why": "Combat capability is available.",
+            "source": "evidence 22: Friendly infantry, armored, and artillery forces retain sufficient combat capability."
+          },
+          {
+            "why": "Combat capability is available.",
+            "source": "evidence 25: Enemy tank-heavy main effort is prevented from exploiting the breach."
+          },
+          {
+            "why": "Combat capability is available.",
+            "source": "evidence 29: Enemy mechanized division consisting of multiple mechanized and armored maneuver elements."
+          },
+          {
+            "why": "Combat capability is available.",
+            "source": "evidence 30: A tank-heavy brigade-sized element is assessed to provide significant armored combat power."
+          },
+          {
+            "why": "Combat capability is available.",
+            "source": "evidence 31: A tank task force-sized element is available to the enemy division."
+          },
+          {
+            "why": "Combat capability is available.",
+            "source": "evidence 32: A divisional cavalry squadron and mechanized infantry TCF are present."
+          },
+          {
+            "why": "Combat capability is available.",
+            "source": "evidence 33: Enemy mechanized forces are distributed across the northern and southern portions of the division sector."
+          },
+          {
+            "why": "Combat capability is available.",
+            "source": "evidence 34: Mechanized and armored elements are observed generally east of PL AMBER and along routes providing access toward the friendly defensive area."
+          },
+          {
+            "why": "Combat capability is available.",
+            "source": "evidence 35: A tank-heavy element is positioned where it could support or reinforce operations toward OBJ SLAM."
+          },
+          {
+            "why": "Combat capability is available.",
+            "source": "evidence 36: An additional tank task force-sized element is located behind forward enemy maneuver forces."
+          },
+          {
+            "why": "Combat capability is available.",
+            "source": "evidence 40: Enemy mechanized forces are prepared defensive positions when supported by engineers and fires."
+          },
+          {
+            "why": "Combat capability is available.",
+            "source": "evidence 44: Enemy mechanized forces show indications of preparation for offensive operations."
+          },
+          {
+            "why": "Combat capability is available.",
+            "source": "evidence 51: Open terrain along the PL AMBER–OBJ SLAM approach supports observation and long-range fires."
+          },
+          {
+            "why": "Combat capability is available.",
+            "source": "evidence 67: Artillery is capable of massing fires against enemy forces."
+          },
+          {
+            "why": "Combat capability is available.",
+            "source": "evidence 72: Available infantry, armored, and artillery forces are assessed as operationally capable of defending the sector."
+          },
+          {
+            "why": "Combat capability is available.",
+            "source": "evidence 74: Artillery support is available and capable of massing fires against the enemy."
+          }
+        ],
+        "disruption_means": [
+          {
+            "why": "A disruption means is represented.",
+            "source": "evidence 4: Prevent enemy mechanized and armored forces from achieving a decisive breakthrough."
+          },
+          {
+            "why": "A disruption means is represented.",
+            "source": "evidence 5: Disrupt enemy offensive maneuver through fires and defensive operations."
+          },
+          {
+            "why": "A disruption means is represented.",
+            "source": "evidence 19: Prevent the seizure of OBJ SLAM. Disrupt the enemy main effort with concentrated fires, contain the penetration with defending forces, and employ armored forces to reinforce or counterattack before the enemy can exploit eastward."
+          },
+          {
+            "why": "A disruption means is represented.",
+            "source": "evidence 20: Prevent the enemy mechanized division from breaking through the defensive sector and gaining access to OBJ SLAM and the terrain toward RIVER TOWN."
+          },
+          {
+            "why": "A disruption means is represented.",
+            "source": "evidence 22: Friendly infantry, armored, and artillery forces retain sufficient combat capability."
+          },
+          {
+            "why": "A disruption means is represented.",
+            "source": "evidence 25: Enemy tank-heavy main effort is prevented from exploiting the breach."
+          },
+          {
+            "why": "A disruption means is represented.",
+            "source": "evidence 29: Enemy mechanized division consisting of multiple mechanized and armored maneuver elements."
+          },
+          {
+            "why": "A disruption means is represented.",
+            "source": "evidence 30: A tank-heavy brigade-sized element is assessed to provide significant armored combat power."
+          },
+          {
+            "why": "A disruption means is represented.",
+            "source": "evidence 31: A tank task force-sized element is available to the enemy division."
+          },
+          {
+            "why": "A disruption means is represented.",
+            "source": "evidence 32: A divisional cavalry squadron and mechanized infantry TCF are present."
+          },
+          {
+            "why": "A disruption means is represented.",
+            "source": "evidence 33: Enemy mechanized forces are distributed across the northern and southern portions of the division sector."
+          },
+          {
+            "why": "A disruption means is represented.",
+            "source": "evidence 34: Mechanized and armored elements are observed generally east of PL AMBER and along routes providing access toward the friendly defensive area."
+          },
+          {
+            "why": "A disruption means is represented.",
+            "source": "evidence 35: A tank-heavy element is positioned where it could support or reinforce operations toward OBJ SLAM."
+          },
+          {
+            "why": "A disruption means is represented.",
+            "source": "evidence 36: An additional tank task force-sized element is located behind forward enemy maneuver forces."
+          },
+          {
+            "why": "A disruption means is represented.",
+            "source": "evidence 40: Enemy mechanized forces are prepared defensive positions when supported by engineers and fires."
+          },
+          {
+            "why": "A disruption means is represented.",
+            "source": "evidence 44: Enemy mechanized forces show indications of preparation for offensive operations."
+          },
+          {
+            "why": "A disruption means is represented.",
+            "source": "evidence 51: Open terrain along the PL AMBER–OBJ SLAM approach supports observation and long-range fires."
+          },
+          {
+            "why": "A disruption means is represented.",
+            "source": "evidence 67: Artillery is capable of massing fires against enemy forces."
+          },
+          {
+            "why": "A disruption means is represented.",
+            "source": "evidence 72: Available infantry, armored, and artillery forces are assessed as operationally capable of defending the sector."
+          },
+          {
+            "why": "A disruption means is represented.",
+            "source": "evidence 74: Artillery support is available and capable of massing fires against the enemy."
+          }
+        ],
+        "clearance_capability": [
+          {
+            "why": "Attack-capable maneuver formations can support the abstract clearance task used for penetration-corridor planning.",
+            "source": "evidence 4: Prevent enemy mechanized and armored forces from achieving a decisive breakthrough."
+          },
+          {
+            "why": "Friendly force capability can support clearance in the abstract research model.",
+            "source": "evidence 13: Coordinate infantry, armor, and artillery to contain any breach."
+          },
+          {
+            "why": "Attack-capable maneuver formations can support the abstract clearance task used for penetration-corridor planning.",
+            "source": "evidence 20: Prevent the enemy mechanized division from breaking through the defensive sector and gaining access to OBJ SLAM and the terrain toward RIVER TOWN."
+          },
+          {
+            "why": "Friendly force capability can support clearance in the abstract research model.",
+            "source": "evidence 22: Friendly infantry, armored, and artillery forces retain sufficient combat capability."
+          },
+          {
+            "why": "Attack-capable maneuver formations can support the abstract clearance task used for penetration-corridor planning.",
+            "source": "evidence 25: Enemy tank-heavy main effort is prevented from exploiting the breach."
+          },
+          {
+            "why": "Attack-capable maneuver formations can support the abstract clearance task used for penetration-corridor planning.",
+            "source": "evidence 29: Enemy mechanized division consisting of multiple mechanized and armored maneuver elements."
+          },
+          {
+            "why": "Attack-capable maneuver formations can support the abstract clearance task used for penetration-corridor planning.",
+            "source": "evidence 30: A tank-heavy brigade-sized element is assessed to provide significant armored combat power."
+          },
+          {
+            "why": "Attack-capable maneuver formations can support the abstract clearance task used for penetration-corridor planning.",
+            "source": "evidence 31: A tank task force-sized element is available to the enemy division."
+          },
+          {
+            "why": "Friendly force capability can support clearance in the abstract research model.",
+            "source": "evidence 32: A divisional cavalry squadron and mechanized infantry TCF are present."
+          },
+          {
+            "why": "Attack-capable maneuver formations can support the abstract clearance task used for penetration-corridor planning.",
+            "source": "evidence 32: A divisional cavalry squadron and mechanized infantry TCF are present."
+          },
+          {
+            "why": "Attack-capable maneuver formations can support the abstract clearance task used for penetration-corridor planning.",
+            "source": "evidence 33: Enemy mechanized forces are distributed across the northern and southern portions of the division sector."
+          },
+          {
+            "why": "Attack-capable maneuver formations can support the abstract clearance task used for penetration-corridor planning.",
+            "source": "evidence 34: Mechanized and armored elements are observed generally east of PL AMBER and along routes providing access toward the friendly defensive area."
+          },
+          {
+            "why": "Attack-capable maneuver formations can support the abstract clearance task used for penetration-corridor planning.",
+            "source": "evidence 35: A tank-heavy element is positioned where it could support or reinforce operations toward OBJ SLAM."
+          },
+          {
+            "why": "Friendly force capability can support clearance in the abstract research model.",
+            "source": "evidence 36: An additional tank task force-sized element is located behind forward enemy maneuver forces."
+          },
+          {
+            "why": "Attack-capable maneuver formations can support the abstract clearance task used for penetration-corridor planning.",
+            "source": "evidence 36: An additional tank task force-sized element is located behind forward enemy maneuver forces."
+          },
+          {
+            "why": "Friendly force capability can support clearance in the abstract research model.",
+            "source": "evidence 39: Enemy armored forces are capable of rapid maneuver, reinforcement, exploitation, and countering friendly maneuver forces."
+          },
+          {
+            "why": "Attack-capable maneuver formations can support the abstract clearance task used for penetration-corridor planning.",
+            "source": "evidence 40: Enemy mechanized forces are prepared defensive positions when supported by engineers and fires."
+          },
+          {
+            "why": "Friendly force capability can support clearance in the abstract research model.",
+            "source": "evidence 42: Enemy cavalry can conduct reconnaissance, security, and early warning."
+          },
+          {
+            "why": "Attack-capable maneuver formations can support the abstract clearance task used for penetration-corridor planning.",
+            "source": "evidence 44: Enemy mechanized forces show indications of preparation for offensive operations."
+          },
+          {
+            "why": "Friendly force capability can support clearance in the abstract research model.",
+            "source": "evidence 61: Infantry regiment (-)."
+          },
+          {
+            "why": "Friendly force capability can support clearance in the abstract research model.",
+            "source": "evidence 65: Infantry forces are capable of defending the PL AMBER–OBJ SLAM approach."
+          },
+          {
+            "why": "Friendly force capability can support clearance in the abstract research model.",
+            "source": "evidence 72: Available infantry, armored, and artillery forces are assessed as operationally capable of defending the sector."
+          },
+          {
+            "why": "Attack-capable maneuver formations can support the abstract clearance task used for penetration-corridor planning.",
+            "source": "evidence 72: Available infantry, armored, and artillery forces are assessed as operationally capable of defending the sector."
+          },
+          {
+            "why": "Engineer/combat capability supports abstract clearance capability.",
+            "source": "research implication"
+          }
+        ],
+        "control_capability": [
+          {
+            "why": "Attack-capable maneuver formations can support objective control in the abstract planner.",
+            "source": "evidence 4: Prevent enemy mechanized and armored forces from achieving a decisive breakthrough."
+          },
+          {
+            "why": "Friendly control capability is stated.",
+            "source": "evidence 13: Coordinate infantry, armor, and artillery to contain any breach."
+          },
+          {
+            "why": "Attack-capable maneuver formations can support objective control in the abstract planner.",
+            "source": "evidence 20: Prevent the enemy mechanized division from breaking through the defensive sector and gaining access to OBJ SLAM and the terrain toward RIVER TOWN."
+          },
+          {
+            "why": "Friendly control capability is stated.",
+            "source": "evidence 22: Friendly infantry, armored, and artillery forces retain sufficient combat capability."
+          },
+          {
+            "why": "Attack-capable maneuver formations can support objective control in the abstract planner.",
+            "source": "evidence 25: Enemy tank-heavy main effort is prevented from exploiting the breach."
+          },
+          {
+            "why": "Attack-capable maneuver formations can support objective control in the abstract planner.",
+            "source": "evidence 29: Enemy mechanized division consisting of multiple mechanized and armored maneuver elements."
+          },
+          {
+            "why": "Attack-capable maneuver formations can support objective control in the abstract planner.",
+            "source": "evidence 30: A tank-heavy brigade-sized element is assessed to provide significant armored combat power."
+          },
+          {
+            "why": "Attack-capable maneuver formations can support objective control in the abstract planner.",
+            "source": "evidence 31: A tank task force-sized element is available to the enemy division."
+          },
+          {
+            "why": "Friendly control capability is stated.",
+            "source": "evidence 32: A divisional cavalry squadron and mechanized infantry TCF are present."
+          },
+          {
+            "why": "Attack-capable maneuver formations can support objective control in the abstract planner.",
+            "source": "evidence 32: A divisional cavalry squadron and mechanized infantry TCF are present."
+          },
+          {
+            "why": "Attack-capable maneuver formations can support objective control in the abstract planner.",
+            "source": "evidence 33: Enemy mechanized forces are distributed across the northern and southern portions of the division sector."
+          },
+          {
+            "why": "Attack-capable maneuver formations can support objective control in the abstract planner.",
+            "source": "evidence 34: Mechanized and armored elements are observed generally east of PL AMBER and along routes providing access toward the friendly defensive area."
+          },
+          {
+            "why": "Attack-capable maneuver formations can support objective control in the abstract planner.",
+            "source": "evidence 35: A tank-heavy element is positioned where it could support or reinforce operations toward OBJ SLAM."
+          },
+          {
+            "why": "Friendly control capability is stated.",
+            "source": "evidence 36: An additional tank task force-sized element is located behind forward enemy maneuver forces."
+          },
+          {
+            "why": "Attack-capable maneuver formations can support objective control in the abstract planner.",
+            "source": "evidence 36: An additional tank task force-sized element is located behind forward enemy maneuver forces."
+          },
+          {
+            "why": "Friendly control capability is stated.",
+            "source": "evidence 39: Enemy armored forces are capable of rapid maneuver, reinforcement, exploitation, and countering friendly maneuver forces."
+          },
+          {
+            "why": "Attack-capable maneuver formations can support objective control in the abstract planner.",
+            "source": "evidence 40: Enemy mechanized forces are prepared defensive positions when supported by engineers and fires."
+          },
+          {
+            "why": "Friendly control capability is stated.",
+            "source": "evidence 42: Enemy cavalry can conduct reconnaissance, security, and early warning."
+          },
+          {
+            "why": "Attack-capable maneuver formations can support objective control in the abstract planner.",
+            "source": "evidence 44: Enemy mechanized forces show indications of preparation for offensive operations."
+          },
+          {
+            "why": "Friendly control capability is stated.",
+            "source": "evidence 61: Infantry regiment (-)."
+          },
+          {
+            "why": "Friendly control capability is stated.",
+            "source": "evidence 65: Infantry forces are capable of defending the PL AMBER–OBJ SLAM approach."
+          },
+          {
+            "why": "Friendly control capability is stated.",
+            "source": "evidence 72: Available infantry, armored, and artillery forces are assessed as operationally capable of defending the sector."
+          },
+          {
+            "why": "Attack-capable maneuver formations can support objective control in the abstract planner.",
+            "source": "evidence 72: Available infantry, armored, and artillery forces are assessed as operationally capable of defending the sector."
+          }
+        ],
+        "security_capability": [
+          {
+            "why": "Attack-capable maneuver formations can support security in the abstract planner.",
+            "source": "evidence 4: Prevent enemy mechanized and armored forces from achieving a decisive breakthrough."
+          },
+          {
+            "why": "Friendly security/control capability is stated.",
+            "source": "evidence 13: Coordinate infantry, armor, and artillery to contain any breach."
+          },
+          {
+            "why": "Attack-capable maneuver formations can support security in the abstract planner.",
+            "source": "evidence 20: Prevent the enemy mechanized division from breaking through the defensive sector and gaining access to OBJ SLAM and the terrain toward RIVER TOWN."
+          },
+          {
+            "why": "Friendly security/control capability is stated.",
+            "source": "evidence 22: Friendly infantry, armored, and artillery forces retain sufficient combat capability."
+          },
+          {
+            "why": "Attack-capable maneuver formations can support security in the abstract planner.",
+            "source": "evidence 25: Enemy tank-heavy main effort is prevented from exploiting the breach."
+          },
+          {
+            "why": "Attack-capable maneuver formations can support security in the abstract planner.",
+            "source": "evidence 29: Enemy mechanized division consisting of multiple mechanized and armored maneuver elements."
+          },
+          {
+            "why": "Attack-capable maneuver formations can support security in the abstract planner.",
+            "source": "evidence 30: A tank-heavy brigade-sized element is assessed to provide significant armored combat power."
+          },
+          {
+            "why": "Attack-capable maneuver formations can support security in the abstract planner.",
+            "source": "evidence 31: A tank task force-sized element is available to the enemy division."
+          },
+          {
+            "why": "Friendly security/control capability is stated.",
+            "source": "evidence 32: A divisional cavalry squadron and mechanized infantry TCF are present."
+          },
+          {
+            "why": "Attack-capable maneuver formations can support security in the abstract planner.",
+            "source": "evidence 32: A divisional cavalry squadron and mechanized infantry TCF are present."
+          },
+          {
+            "why": "Attack-capable maneuver formations can support security in the abstract planner.",
+            "source": "evidence 33: Enemy mechanized forces are distributed across the northern and southern portions of the division sector."
+          },
+          {
+            "why": "Attack-capable maneuver formations can support security in the abstract planner.",
+            "source": "evidence 34: Mechanized and armored elements are observed generally east of PL AMBER and along routes providing access toward the friendly defensive area."
+          },
+          {
+            "why": "Attack-capable maneuver formations can support security in the abstract planner.",
+            "source": "evidence 35: A tank-heavy element is positioned where it could support or reinforce operations toward OBJ SLAM."
+          },
+          {
+            "why": "Friendly security/control capability is stated.",
+            "source": "evidence 36: An additional tank task force-sized element is located behind forward enemy maneuver forces."
+          },
+          {
+            "why": "Attack-capable maneuver formations can support security in the abstract planner.",
+            "source": "evidence 36: An additional tank task force-sized element is located behind forward enemy maneuver forces."
+          },
+          {
+            "why": "Friendly security/control capability is stated.",
+            "source": "evidence 39: Enemy armored forces are capable of rapid maneuver, reinforcement, exploitation, and countering friendly maneuver forces."
+          },
+          {
+            "why": "Attack-capable maneuver formations can support security in the abstract planner.",
+            "source": "evidence 40: Enemy mechanized forces are prepared defensive positions when supported by engineers and fires."
+          },
+          {
+            "why": "Friendly security/control capability is stated.",
+            "source": "evidence 42: Enemy cavalry can conduct reconnaissance, security, and early warning."
+          },
+          {
+            "why": "Attack-capable maneuver formations can support security in the abstract planner.",
+            "source": "evidence 44: Enemy mechanized forces show indications of preparation for offensive operations."
+          },
+          {
+            "why": "Friendly security/control capability is stated.",
+            "source": "evidence 61: Infantry regiment (-)."
+          },
+          {
+            "why": "Friendly security/control capability is stated.",
+            "source": "evidence 65: Infantry forces are capable of defending the PL AMBER–OBJ SLAM approach."
+          },
+          {
+            "why": "Friendly security/control capability is stated.",
+            "source": "evidence 72: Available infantry, armored, and artillery forces are assessed as operationally capable of defending the sector."
+          },
+          {
+            "why": "Attack-capable maneuver formations can support security in the abstract planner.",
+            "source": "evidence 72: Available infantry, armored, and artillery forces are assessed as operationally capable of defending the sector."
+          }
+        ],
+        "observation_capability": [
+          {
+            "why": "Friendly capability evidence supports observation/intelligence.",
+            "source": "evidence 9: Maintain observation and early warning along likely enemy avenues of approach."
+          },
+          {
+            "why": "Friendly capability evidence supports observation/intelligence.",
+            "source": "evidence 32: A divisional cavalry squadron and mechanized infantry TCF are present."
+          },
+          {
+            "why": "Friendly capability evidence supports observation/intelligence.",
+            "source": "evidence 37: Enemy cavalry operates on the northern flank."
+          },
+          {
+            "why": "Friendly capability evidence supports observation/intelligence.",
+            "source": "evidence 42: Enemy cavalry can conduct reconnaissance, security, and early warning."
+          },
+          {
+            "why": "Friendly capability evidence supports observation/intelligence.",
+            "source": "evidence 47: Enemy cavalry activity is observed on the northern flank."
+          },
+          {
+            "why": "Friendly capability evidence supports observation/intelligence.",
+            "source": "evidence 51: Open terrain along the PL AMBER–OBJ SLAM approach supports observation and long-range fires."
+          },
+          {
+            "why": "Friendly capability evidence supports observation/intelligence.",
+            "source": "evidence 52: NORTHERN MTNS and SOUTHERN MTNS may restrict observation and fields of fire."
+          },
+          {
+            "why": "Friendly capability evidence supports observation/intelligence.",
+            "source": "evidence 76: No specific engineer, aviation, intelligence, or signal support is stated."
+          }
+        ],
+        "engineer_capability": [
+          {
+            "why": "Engineer/breach capability evidence is present.",
+            "source": "evidence 13: Coordinate infantry, armor, and artillery to contain any breach."
+          },
+          {
+            "why": "Engineer/breach capability evidence is present.",
+            "source": "evidence 25: Enemy tank-heavy main effort is prevented from exploiting the breach."
+          },
+          {
+            "why": "Engineer/breach capability evidence is present.",
+            "source": "evidence 40: Enemy mechanized forces are prepared defensive positions when supported by engineers and fires."
+          },
+          {
+            "why": "Engineer/breach capability evidence is present.",
+            "source": "evidence 41: Enemy engineers are capable of reducing obstacles and supporting mobility."
+          },
+          {
+            "why": "Engineer/breach capability evidence is present.",
+            "source": "evidence 43: Concentrated enemy armor may present a significant breakthrough threat if a breach is achieved."
+          },
+          {
+            "why": "Engineer/breach capability evidence is present.",
+            "source": "evidence 76: No specific engineer, aviation, intelligence, or signal support is stated."
+          }
+        ],
+        "breach_capability": [
+          {
+            "why": "Engineer/breach capability evidence is present.",
+            "source": "evidence 13: Coordinate infantry, armor, and artillery to contain any breach."
+          },
+          {
+            "why": "Engineer/breach capability evidence is present.",
+            "source": "evidence 25: Enemy tank-heavy main effort is prevented from exploiting the breach."
+          },
+          {
+            "why": "Engineer/breach capability evidence is present.",
+            "source": "evidence 40: Enemy mechanized forces are prepared defensive positions when supported by engineers and fires."
+          },
+          {
+            "why": "Engineer/breach capability evidence is present.",
+            "source": "evidence 41: Enemy engineers are capable of reducing obstacles and supporting mobility."
+          },
+          {
+            "why": "Engineer/breach capability evidence is present.",
+            "source": "evidence 43: Concentrated enemy armor may present a significant breakthrough threat if a breach is achieved."
+          },
+          {
+            "why": "Engineer/breach capability evidence is present.",
+            "source": "evidence 76: No specific engineer, aviation, intelligence, or signal support is stated."
+          }
+        ],
+        "construction_capability": [
+          {
+            "why": "Engineer/breach capability evidence is present.",
+            "source": "evidence 13: Coordinate infantry, armor, and artillery to contain any breach."
+          },
+          {
+            "why": "Engineer/breach capability evidence is present.",
+            "source": "evidence 25: Enemy tank-heavy main effort is prevented from exploiting the breach."
+          },
+          {
+            "why": "Engineer/breach capability evidence is present.",
+            "source": "evidence 40: Enemy mechanized forces are prepared defensive positions when supported by engineers and fires."
+          },
+          {
+            "why": "Engineer/breach capability evidence is present.",
+            "source": "evidence 41: Enemy engineers are capable of reducing obstacles and supporting mobility."
+          },
+          {
+            "why": "Engineer/breach capability evidence is present.",
+            "source": "evidence 43: Concentrated enemy armor may present a significant breakthrough threat if a breach is achieved."
+          },
+          {
+            "why": "Engineer/breach capability evidence is present.",
+            "source": "evidence 76: No specific engineer, aviation, intelligence, or signal support is stated."
+          }
+        ],
+        "support_available": [
+          {
+            "why": "Support evidence exists.",
+            "source": "evidence 18: Artillery and reinforcing forces must remain capable of supporting the decisive defensive sector."
+          },
+          {
+            "why": "Support evidence exists.",
+            "source": "evidence 26: Friendly artillery remains capable of supporting the defense."
+          },
+          {
+            "why": "Support evidence exists.",
+            "source": "evidence 35: A tank-heavy element is positioned where it could support or reinforce operations toward OBJ SLAM."
+          },
+          {
+            "why": "Support evidence exists.",
+            "source": "evidence 40: Enemy mechanized forces are prepared defensive positions when supported by engineers and fires."
+          },
+          {
+            "why": "Support evidence exists.",
+            "source": "evidence 41: Enemy engineers are capable of reducing obstacles and supporting mobility."
+          },
+          {
+            "why": "Support evidence exists.",
+            "source": "evidence 48: Enemy artillery and supporting elements appear prepared to support maneuver operations."
+          },
+          {
+            "why": "Support evidence exists.",
+            "source": "evidence 51: Open terrain along the PL AMBER–OBJ SLAM approach supports observation and long-range fires."
+          },
+          {
+            "why": "Support evidence exists.",
+            "source": "evidence 70: Artillery forces support the defense."
+          },
+          {
+            "why": "Support evidence exists.",
+            "source": "evidence 74: Artillery support is available and capable of massing fires against the enemy."
+          },
+          {
+            "why": "Support evidence exists.",
+            "source": "evidence 76: No specific engineer, aviation, intelligence, or signal support is stated."
+          }
+        ],
+        "coordination_available": [
+          {
+            "why": "Support/coordination evidence exists.",
+            "source": "evidence 18: Artillery and reinforcing forces must remain capable of supporting the decisive defensive sector."
+          },
+          {
+            "why": "Support/coordination evidence exists.",
+            "source": "evidence 26: Friendly artillery remains capable of supporting the defense."
+          },
+          {
+            "why": "Support/coordination evidence exists.",
+            "source": "evidence 35: A tank-heavy element is positioned where it could support or reinforce operations toward OBJ SLAM."
+          },
+          {
+            "why": "Support/coordination evidence exists.",
+            "source": "evidence 40: Enemy mechanized forces are prepared defensive positions when supported by engineers and fires."
+          },
+          {
+            "why": "Support/coordination evidence exists.",
+            "source": "evidence 41: Enemy engineers are capable of reducing obstacles and supporting mobility."
+          },
+          {
+            "why": "Support/coordination evidence exists.",
+            "source": "evidence 48: Enemy artillery and supporting elements appear prepared to support maneuver operations."
+          },
+          {
+            "why": "Support/coordination evidence exists.",
+            "source": "evidence 51: Open terrain along the PL AMBER–OBJ SLAM approach supports observation and long-range fires."
+          },
+          {
+            "why": "Support/coordination evidence exists.",
+            "source": "evidence 70: Artillery forces support the defense."
+          },
+          {
+            "why": "Support/coordination evidence exists.",
+            "source": "evidence 74: Artillery support is available and capable of massing fires against the enemy."
+          },
+          {
+            "why": "Support/coordination evidence exists.",
+            "source": "evidence 76: No specific engineer, aviation, intelligence, or signal support is stated."
+          },
+          {
+            "why": "C2 availability supports coordination.",
+            "source": "research implication"
+          }
+        ],
+        "observation_area_exists": [
+          {
+            "why": "Enemy-related area/entity exists for observation.",
+            "source": "evidence 29: Enemy mechanized division consisting of multiple mechanized and armored maneuver elements."
+          },
+          {
+            "why": "Enemy-related area/entity exists for observation.",
+            "source": "evidence 30: A tank-heavy brigade-sized element is assessed to provide significant armored combat power."
+          },
+          {
+            "why": "Enemy-related area/entity exists for observation.",
+            "source": "evidence 31: A tank task force-sized element is available to the enemy division."
+          },
+          {
+            "why": "Enemy-related area/entity exists for observation.",
+            "source": "evidence 32: A divisional cavalry squadron and mechanized infantry TCF are present."
+          },
+          {
+            "why": "Enemy-related area/entity exists for observation.",
+            "source": "evidence 33: Enemy mechanized forces are distributed across the northern and southern portions of the division sector."
+          },
+          {
+            "why": "Enemy-related area/entity exists for observation.",
+            "source": "evidence 34: Mechanized and armored elements are observed generally east of PL AMBER and along routes providing access toward the friendly defensive area."
+          },
+          {
+            "why": "Enemy-related area/entity exists for observation.",
+            "source": "evidence 35: A tank-heavy element is positioned where it could support or reinforce operations toward OBJ SLAM."
+          },
+          {
+            "why": "Enemy-related area/entity exists for observation.",
+            "source": "evidence 36: An additional tank task force-sized element is located behind forward enemy maneuver forces."
+          },
+          {
+            "why": "Enemy-related area/entity exists for observation.",
+            "source": "evidence 37: Enemy cavalry operates on the northern flank."
+          },
+          {
+            "why": "Enemy-related area/entity exists for observation.",
+            "source": "evidence 38: Enemy TCF is located in the vicinity of METRO CITY."
+          },
+          {
+            "why": "Enemy-related area/entity exists for observation.",
+            "source": "evidence 39: Enemy armored forces are capable of rapid maneuver, reinforcement, exploitation, and countering friendly maneuver forces."
+          },
+          {
+            "why": "Enemy-related area/entity exists for observation.",
+            "source": "evidence 40: Enemy mechanized forces are prepared defensive positions when supported by engineers and fires."
+          },
+          {
+            "why": "Enemy-related area/entity exists for observation.",
+            "source": "evidence 41: Enemy engineers are capable of reducing obstacles and supporting mobility."
+          },
+          {
+            "why": "Enemy-related area/entity exists for observation.",
+            "source": "evidence 42: Enemy cavalry can conduct reconnaissance, security, and early warning."
+          },
+          {
+            "why": "Enemy-related area/entity exists for observation.",
+            "source": "evidence 43: Concentrated enemy armor may present a significant breakthrough threat if a breach is achieved."
+          },
+          {
+            "why": "Enemy-related area/entity exists for observation.",
+            "source": "evidence 44: Enemy mechanized forces show indications of preparation for offensive operations."
+          },
+          {
+            "why": "Enemy-related area/entity exists for observation.",
+            "source": "evidence 45: Increased maneuver activity is observed in the vicinity of PL AMBER and along approaches toward the friendly defensive sector."
+          },
+          {
+            "why": "Enemy-related area/entity exists for observation.",
+            "source": "evidence 46: Enemy armored forces appear capable of reinforcing either the northern or southern portion of the sector."
+          },
+          {
+            "why": "Enemy-related area/entity exists for observation.",
+            "source": "evidence 47: Enemy cavalry activity is observed on the northern flank."
+          },
+          {
+            "why": "Enemy-related area/entity exists for observation.",
+            "source": "evidence 48: Enemy artillery and supporting elements appear prepared to support maneuver operations."
+          },
+          {
+            "why": "Enemy-related area/entity exists for observation.",
+            "source": "evidence 49: No information."
+          },
+          {
+            "why": "Enemy-related area/entity exists for observation.",
+            "source": "evidence 50: No information."
+          },
+          {
+            "why": "Observation/fields-of-fire evidence is present.",
+            "source": "evidence 51: Open terrain along the PL AMBER–OBJ SLAM approach supports observation and long-range fires."
+          },
+          {
+            "why": "Observation/fields-of-fire evidence is present.",
+            "source": "evidence 52: NORTHERN MTNS and SOUTHERN MTNS may restrict observation and fields of fire."
+          }
+        ],
+        "terrain_known": [
+          {
+            "why": "Terrain/weather evidence is present.",
+            "source": "evidence 51: Open terrain along the PL AMBER–OBJ SLAM approach supports observation and long-range fires."
+          },
+          {
+            "why": "Terrain/weather evidence is present.",
+            "source": "evidence 52: NORTHERN MTNS and SOUTHERN MTNS may restrict observation and fields of fire."
+          },
+          {
+            "why": "Terrain/weather evidence is present.",
+            "source": "evidence 53: No information."
+          },
+          {
+            "why": "Terrain/weather evidence is present.",
+            "source": "evidence 54: Terrain south and west of RIVER TOWN."
+          },
+          {
+            "why": "Terrain/weather evidence is present.",
+            "source": "evidence 55: MUDDY RIVER restricts east-west maneuver."
+          },
+          {
+            "why": "Terrain/weather evidence is present.",
+            "source": "evidence 56: NORTHERN MTNS and SOUTHERN MTNS restrict or canalize maneuver."
+          },
+          {
+            "why": "Terrain/weather evidence is present.",
+            "source": "evidence 57: Urban areas including WEST TOWN and RIVER TOWN may constrain movement."
+          },
+          {
+            "why": "Terrain/weather evidence is present.",
+            "source": "evidence 58: Towns and mountainous terrain provide potential cover and concealment."
+          },
+          {
+            "why": "Terrain/weather evidence is present.",
+            "source": "evidence 59: Open terrain around the primary maneuver corridor provides comparatively limited concealment."
+          },
+          {
+            "why": "Terrain/weather evidence is present.",
+            "source": "evidence 60: No specific weather, visibility, wind, or precipitation constraints are stated."
+          },
+          {
+            "why": "Validated control-measure/terrain observation exists.",
+            "source": "validated diagram observation: PL ORANGE (phase-line)"
+          },
+          {
+            "why": "Validated control-measure/terrain observation exists.",
+            "source": "validated diagram observation: PL AMBER (phase-line)"
+          },
+          {
+            "why": "Validated control-measure/terrain observation exists.",
+            "source": "validated diagram observation: PL GREEN (phase-line)"
+          },
+          {
+            "why": "Validated control-measure/terrain observation exists.",
+            "source": "validated diagram observation: PL BLUE (phase-line)"
+          },
+          {
+            "why": "Validated control-measure/terrain observation exists.",
+            "source": "validated diagram observation: PL RED (phase-line)"
+          },
+          {
+            "why": "Validated control-measure/terrain observation exists.",
+            "source": "validated diagram observation: NORTH TOWN (terrain)"
+          },
+          {
+            "why": "Validated control-measure/terrain observation exists.",
+            "source": "validated diagram observation: BIG TOWN (terrain)"
+          },
+          {
+            "why": "Validated control-measure/terrain observation exists.",
+            "source": "validated diagram observation: METRO CITY (terrain)"
+          },
+          {
+            "why": "Validated control-measure/terrain observation exists.",
+            "source": "validated diagram observation: WEST TOWN (terrain)"
+          },
+          {
+            "why": "Validated control-measure/terrain observation exists.",
+            "source": "validated diagram observation: RIVER TOWN (terrain)"
+          },
+          {
+            "why": "Validated control-measure/terrain observation exists.",
+            "source": "validated diagram observation: MUDDY RIVER (terrain)"
+          },
+          {
+            "why": "Validated control-measure/terrain observation exists.",
+            "source": "validated diagram observation: NORTHERN MTNS (terrain)"
+          },
+          {
+            "why": "Validated control-measure/terrain observation exists.",
+            "source": "validated diagram observation: SOUTHERN MTNS (terrain)"
+          },
+          {
+            "why": "Validated control-measure/terrain observation exists.",
+            "source": "validated diagram observation: EAST TOWN (terrain)"
+          }
+        ],
+        "obstacle_exists": [
+          {
+            "why": "Terrain evidence describes an obstacle/constraint.",
+            "source": "evidence 55: MUDDY RIVER restricts east-west maneuver."
+          },
+          {
+            "why": "Terrain evidence describes an obstacle/constraint.",
+            "source": "evidence 57: Urban areas including WEST TOWN and RIVER TOWN may constrain movement."
+          },
+          {
+            "why": "Validated terrain observation indicates an obstacle/constraint cue.",
+            "source": "validated diagram observation: RIVER TOWN (terrain)"
+          },
+          {
+            "why": "Validated terrain observation indicates an obstacle/constraint cue.",
+            "source": "validated diagram observation: MUDDY RIVER (terrain)"
+          }
+        ],
+        "concealment_available": [
+          {
+            "why": "Terrain evidence describes cover/concealment.",
+            "source": "evidence 58: Towns and mountainous terrain provide potential cover and concealment."
+          },
+          {
+            "why": "Terrain evidence describes cover/concealment.",
+            "source": "evidence 59: Open terrain around the primary maneuver corridor provides comparatively limited concealment."
+          }
+        ],
+        "friendly_force_available": [
+          {
+            "why": "Friendly force/support evidence exists.",
+            "source": "evidence 61: Infantry regiment (-)."
+          },
+          {
+            "why": "Friendly force/support evidence exists.",
+            "source": "evidence 62: Tank battalion (-)."
+          },
+          {
+            "why": "Friendly force/support evidence exists.",
+            "source": "evidence 63: Tank regiment (-)."
+          },
+          {
+            "why": "Friendly force/support evidence exists.",
+            "source": "evidence 64: Artillery forces."
+          },
+          {
+            "why": "Friendly force/support evidence exists.",
+            "source": "evidence 65: Infantry forces are capable of defending the PL AMBER–OBJ SLAM approach."
+          },
+          {
+            "why": "Friendly force/support evidence exists.",
+            "source": "evidence 66: Armored forces are capable of maneuvering to reinforce the defense or counterattack enemy forces."
+          },
+          {
+            "why": "Friendly force/support evidence exists.",
+            "source": "evidence 67: Artillery is capable of massing fires against enemy forces."
+          },
+          {
+            "why": "Friendly force/support evidence exists.",
+            "source": "evidence 68: Tank battalion (-) positioned south of WEST TOWN."
+          },
+          {
+            "why": "Friendly force/support evidence exists.",
+            "source": "evidence 69: Tank regiment (-) positioned north of EAST TOWN."
+          },
+          {
+            "why": "Friendly force/support evidence exists.",
+            "source": "evidence 70: Artillery forces support the defense."
+          },
+          {
+            "why": "Friendly force/support evidence exists.",
+            "source": "evidence 71: No specific personnel or equipment shortages are stated."
+          },
+          {
+            "why": "Friendly force/support evidence exists.",
+            "source": "evidence 72: Available infantry, armored, and artillery forces are assessed as operationally capable of defending the sector."
+          },
+          {
+            "why": "Friendly force/support evidence exists.",
+            "source": "evidence 73: No specific sustainment, supply, fuel, maintenance, or medical information is available."
+          },
+          {
+            "why": "Friendly force/support evidence exists.",
+            "source": "evidence 74: Artillery support is available and capable of massing fires against the enemy."
+          },
+          {
+            "why": "Friendly force/support evidence exists.",
+            "source": "evidence 75: Armored forces are available to reinforce threatened sectors or conduct counterattacks."
+          },
+          {
+            "why": "Friendly force/support evidence exists.",
+            "source": "evidence 76: No specific engineer, aviation, intelligence, or signal support is stated."
+          }
+        ],
+        "materials_available": [
+          {
+            "why": "Sustainment evidence abstracts required material availability.",
+            "source": "evidence 73: No specific sustainment, supply, fuel, maintenance, or medical information is available."
+          }
+        ],
+        "communications_available": [
+          {
+            "why": "Signal/communications support is available.",
+            "source": "evidence 76: No specific engineer, aviation, intelligence, or signal support is stated."
+          }
+        ],
+        "c2_available": [
+          {
+            "why": "Communications evidence supports C2.",
+            "source": "evidence 76: No specific engineer, aviation, intelligence, or signal support is stated."
+          }
+        ],
+        "time_available": [
+          {
+            "why": "Time-available evidence exists.",
+            "source": "evidence 77: No specific information."
+          },
+          {
+            "why": "Time-available evidence exists.",
+            "source": "evidence 78: No specific information."
+          },
+          {
+            "why": "Time-available evidence exists.",
+            "source": "evidence 79: No specific information."
+          },
+          {
+            "why": "Time-available evidence exists.",
+            "source": "evidence 80: No specific information."
+          },
+          {
+            "why": "Time-available evidence exists.",
+            "source": "evidence 81: No specific information."
+          }
+        ],
+        "route_available": [
+          {
+            "why": "Validated diagram observation is used as an abstract route/control-measure cue.",
+            "source": "validated diagram observation: PL ORANGE (phase-line)"
+          },
+          {
+            "why": "Validated diagram observation is used as an abstract route/control-measure cue.",
+            "source": "validated diagram observation: PL AMBER (phase-line)"
+          },
+          {
+            "why": "Validated diagram observation is used as an abstract route/control-measure cue.",
+            "source": "validated diagram observation: PL GREEN (phase-line)"
+          },
+          {
+            "why": "Validated diagram observation is used as an abstract route/control-measure cue.",
+            "source": "validated diagram observation: PL BLUE (phase-line)"
+          }
+        ],
+        "objective_known": [
+          {
+            "why": "A validated objective annotation exists.",
+            "source": "validated diagram observation: OBJ SLAM (objective)"
+          }
+        ],
+        "blocking_capability": [
+          {
+            "why": "Control capability is abstracted as a possible blocking capability.",
+            "source": "research implication"
+          }
+        ],
+        "access_available": [
+          {
+            "why": "A validated usable route/control measure provides abstract access in the research planner.",
+            "source": "research implication"
+          }
+        ],
+        "weapons_control_capability": [
+          {
+            "why": "Control capability is abstracted as a possible weapons-control capability for the research disarmament operator.",
+            "source": "research implication"
+          }
+        ],
+        "ambush_opportunity": [
+          {
+            "why": "Concealment plus combat capability creates an abstract ambush-opportunity hypothesis; human validation remains required.",
+            "source": "research implication"
+          }
+        ]
+      },
+      "grounding_is_research_heuristic": true,
+      "unknown_is_not_false": true
+    },
+    "goal_grounding": {
+      "hard_goals": [
+        "entity_identified",
+        "information_available",
+        "objective_controlled",
+        "opposing_function_degraded",
+        "opposing_movement_limited",
+        "passage_available",
+        "position_updated",
+        "security_established"
+      ],
+      "provenance": {
+        "objective_controlled": [
+          {
+            "why": "Mission/end-state cue: seize",
+            "source": "mission statement / Mission METT-TC fields"
+          }
+        ],
+        "security_established": [
+          {
+            "why": "Mission/end-state cue: protect",
+            "source": "mission statement / Mission METT-TC fields"
+          }
+        ],
+        "information_available": [
+          {
+            "why": "Mission/end-state cue: early warning",
+            "source": "mission statement / Mission METT-TC fields"
+          }
+        ],
+        "entity_identified": [
+          {
+            "why": "Mission/end-state cue: identify",
+            "source": "mission statement / Mission METT-TC fields"
+          }
+        ],
+        "passage_available": [
+          {
+            "why": "Mission/end-state cue: breach",
+            "source": "mission statement / Mission METT-TC fields"
+          }
+        ],
+        "position_updated": [
+          {
+            "why": "Mission/end-state cue: maneuver",
+            "source": "mission statement / Mission METT-TC fields"
+          }
+        ],
+        "opposing_function_degraded": [
+          {
+            "why": "Mission/end-state cue: disrupt",
+            "source": "mission statement / Mission METT-TC fields"
+          }
+        ],
+        "opposing_movement_limited": [
+          {
+            "why": "Mission/end-state cue: contain",
+            "source": "mission statement / Mission METT-TC fields"
+          }
+        ]
+      },
+      "goal_grounding_is_research_heuristic": true,
+      "note": "Hard goals are grounded from mission/end-state cues and, in v0.24.4, constrained to the selected mission-family terminal effects. COA-form preferences remain soft goals."
+    }
+  },
+  "partial_fallback": null,
+  "comparison": {
+    "internal_complete": true,
+    "tfd_complete": true,
+    "internal_step_count": 8,
+    "tfd_step_count": 9,
+    "same_action_set": false,
+    "action_set_jaccard": 0.8889,
+    "same_linear_sequence": false,
+    "internal_linear_sequence": [
+      "observe",
+      "identify",
+      "move",
+      "seize",
+      "establish_security",
+      "contain",
+      "breach",
+      "disrupt"
+    ],
+    "tfd_temporal_sequence": [
+      "observe",
+      "identify",
+      "clear",
+      "seize",
+      "disrupt",
+      "contain",
+      "breach",
+      "move",
+      "establish_security"
+    ],
+    "tfd_makespan": 2.017,
+    "tfd_overlap_pair_count": 22,
+    "interpretation": "TFD and the ontology-aware planner need not produce the same linear order. Compare hard-goal achievement, action set, causal validity, and temporal overlap; optimization objectives differ."
+  },
+  "stdout": "Parsing...\nContains quantified condition(s): False\nInstantiating...\nTrivial rules: Converted to facts.\nStarting instantiation [140 rules]...\nFinding invariants...\nFinding invariants... 59 initial candidates\n[0.000s CPU, 0.001s wall-clock]\nChecking invariant weight... [0.000s CPU, 0.000s wall-clock]\nInstantiating groups...\nChoosing groups...\n33 uncovered facts (before using the results from the invariant synthesis)\n33 uncovered facts\nBuilding translation key...\nBuilding STRIPS to SAS dictionary...\nTranslating task...\nProcessing axioms...\nFound 0 axioms that are always true and 0 that are always false\nconstrained 0 conditions\nWriting output...\nDone!\ncontains_quantified_conditions: 0\nBuilding causal graph...\nThe causal graph is not acyclic.\nvariable var27 is not necessary!\n33 variables of 34 necessary\n14 of 15 operators necessary.\n0 of 0 Axiom_relational rules necessary.\n0 of 0 Axiom_functional rules necessary.\nBuilding domain transition graphs...\nsolveable in poly time 0\nBuilding successor generator...\nall_operator_indices.size(): 14\nWriting output...\nprinting SG \n33\ndone\n\n\nPlanner Paramters:\nAnytime Search: Disabled\nTimeout if plan was found: 0 seconds (no timeout)\nTimeout while no plan was found: 0 seconds (no timeout)\nGreedy Search: Disabled\nVerbose: Enabled\nLazy Heuristic Evaluation: Enabled\nUse caching in heuristic.\nCyclic CG heuristic: Enabled \tPreferred Operators: Enabled\nMakespan heuristic: Disabled \tPreferred Operators: Disabled\nNo Heuristic: Disabled\nCg Heuristic Zero Cost Waiting Transitions: Enabled\nCg Heuristic Fire Waiting Transitions Only If Local Problems Matches State: Disabled\nPrefOpsOrderedMode: Enabled with 1 goals\nPrefOpsCheapestMode: Enabled with 1 goals\nPrefOpsMostExpensiveMode: Disabled with 1000 goals\nPrefOpsRandMode: Disabled with 1000 goals\nPrefOpsConcurrentMode: Disabled\nReset after solution was found: Enabled\nReward only preferred operators queue: Disabled\nGValues by: Timestamp\nQueue management mode: Priority based\nKnown by logical state only filtering: Disabled\nuse_subgoals_to_break_makespan_ties: Disabled\nReschedule plans: Enabled\nEpsilonize internally: Enabled\nEpsilonize externally: Disabled\nKeep original plans: Enabled\nPlan name: \"/home/planning/project/planning_system/FM1015_COA_PhD_Ontology_v0.24.5/runtime/tfd/537f7d6c8cae/areadefenseoption/tfd_plan.txt\"\nPlan monitor file: \"\" (no monitoring)\nMonitoring verify timestamps: Disabled\n\nContains universal conditions: 0\nGiving prior boost to open list 0\nINIT\nOpen list sizes (priorities): 0 (-5000),  0 (0),  0 (0),  0 (0), \nInitializing cyclic causal graph heuristic...done.\nBest heuristic values of queues: 10/-1/-1/-1 [expanded 1 state(s)]\nBest heuristic values of queues: 8.98/-1/-1/-1 [expanded 2 state(s)]\nBest heuristic values of queues: 8/-1/-1/-1 [expanded 3 state(s)]\nBest heuristic values of queues: 7.98/-1/-1/-1 [expanded 4 state(s)]\nBest heuristic values of queues: 7/-1/-1/-1 [expanded 5 state(s)]\nBest heuristic values of queues: 6.98/-1/-1/-1 [expanded 6 state(s)]\nBest heuristic values of queues: 6/-1/-1/-1 [expanded 7 state(s)]\nBest heuristic values of queues: 5.98/-1/-1/-1 [expanded 8 state(s)]\nBest heuristic values of queues: 5/-1/-1/-1 [expanded 9 state(s)]\nBest heuristic values of queues: 4.98/-1/-1/-1 [expanded 10 state(s)]\nBest heuristic values of queues: 4/-1/-1/-1 [expanded 11 state(s)]\nBest heuristic values of queues: 3.98/-1/-1/-1 [expanded 12 state(s)]\nBest heuristic values of queues: 3/-1/-1/-1 [expanded 13 state(s)]\nBest heuristic values of queues: 2.98/-1/-1/-1 [expanded 14 state(s)]\nBest heuristic values of queues: 2/-1/-1/-1 [expanded 15 state(s)]\nBest heuristic values of queues: 1.98/-1/-1/-1 [expanded 16 state(s)]\nBest heuristic values of queues: 1/-1/-1/-1 [expanded 17 state(s)]\nBest heuristic values of queues: 0/-1/-1/-1 [expanded 19 state(s)]\nNew solution has been found.\n\nFound new plan:\n0.00000000: (aa-observe ) [1.00000000]\n1.01000000: (aa-identify ) [1.00000000]\n2.02000000: (aa-clear ) [1.00000000]\n3.03000000: (aa-seize ) [1.00000000]\n4.04000000: (aa-disrupt ) [1.00000000]\n5.05000000: (aa-contain ) [1.00000000]\n6.06000000: (aa-breach ) [1.00000000]\n7.07000000: (aa-move ) [1.00000000]\n8.08000000: (aa-establish_security ) [1.00000000]\nRescheduled Plan:\n0.00100000: (aa-observe ) [1.00000000]\n1.01600000: (aa-identify ) [1.00000000]\n0.00200000: (aa-clear ) [1.00000000]\n1.01700000: (aa-seize ) [1.00000000]\n0.00300000: (aa-disrupt ) [1.00000000]\n0.00400000: (aa-contain ) [1.00000000]\n0.00500000: (aa-breach ) [1.00000000]\n0.00500000: (aa-move ) [1.00000000]\n0.00600000: (aa-establish_security ) [1.00000000]\nSolution with original makespan 9.08 found (ignoring no-moving-targets-rule).\nPlan length: 9 step(s).\nMakespan   : 2.017\nRescheduled Makespan   : 2.017\nSearch time: 0 seconds - Walltime: 0.00429296 seconds\nTotal time: 0 seconds - Walltime: 0.00519705 seconds\n('translate/translate.py', '/home/planning/project/planning_system/FM1015_COA_PhD_Ontology_v0.24.5/runtime/tfd/537f7d6c8cae/areadefenseoption/domain.pddl', '/home/planning/project/planning_system/FM1015_COA_PhD_Ontology_v0.24.5/runtime/tfd/537f7d6c8cae/areadefenseoption/problem.pddl') {}\n('preprocess/preprocess',) {'stdin': <_io.TextIOWrapper name='output.sas' mode='r' encoding='UTF-8'>}\n('search/search', 'y+Y+e+r+O+1+C+1+b', 'p', '/home/planning/project/planning_system/FM1015_COA_PhD_Ontology_v0.24.5/runtime/tfd/537f7d6c8cae/areadefenseoption/tfd_plan.txt') {'stdin': <_io.TextIOWrapper name='output' mode='r' encoding='UTF-8'>}\n",
+  "stderr": "",
+  "research_sandbox_only": true
+}

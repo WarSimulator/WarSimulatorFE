@@ -22,6 +22,7 @@ import {
 
 type TacticalMapProps = {
   runtime: SimulationRuntimeState;
+  playbackRef?: { current: SimulationRuntimeState };
   units: SimulationUnit[];
   result: SimulationResult;
   deployment?: DeploymentSetup;
@@ -125,6 +126,8 @@ function toObjectiveFeatures(deployment?: DeploymentSetup): GeoJSON.FeatureColle
 
 type ActionEffectFeatureProperties = { kind: 'action-line' | 'action-marker'; color: string; radius: number; action: string };
 
+const FIRE_ACTIONS = new Set(['Disrupt', 'Engage', 'Fight', 'Continue to Engage', 'Ambush', 'Contain']);
+
 function toActionEffectFeatures(
   result: SimulationResult,
   simulationTime: number,
@@ -144,8 +147,8 @@ function toActionEffectFeatures(
       : typeof effect.parameters.effectArea === 'string' ? effect.parameters.effectArea
         : typeof effect.parameters.result === 'string' ? effect.parameters.result
           : typeof effect.parameters.recipient === 'string' ? effect.parameters.recipient : undefined;
-    const color = colorByAction[effect.action];
-    if (!color) continue;
+    const actionColor = colorByAction[effect.action];
+    if (!actionColor) continue;
     const origin = positions.find((position) => position.unitId === effect.unitId || position.actor === effect.actor)?.position ?? effect.origin;
     // Plans target stable unit IDs (for example, "blue-main-tank"), while
     // tracks also carry a human-readable designation. Resolve either form
@@ -154,16 +157,24 @@ function toActionEffectFeatures(
       ? positions.find((position) => position.unitId === target || position.actor === target)?.position ?? resolvePlanReference(deployment, target)
       : origin;
     if (!origin || !targetPosition) continue;
-    const elapsed = (simulationTime - effect.startTime) / Math.max(0.01, effect.endTime - effect.startTime);
+    const targetIsUnit = target && positions.some((position) => position.unitId === target || position.actor === target);
+    const isFireLine = FIRE_ACTIONS.has(effect.action) && targetIsUnit;
+    const color = isFireLine ? '#ff4d4f' : actionColor;
     features.push({ type: 'Feature', id: `action-line-${effect.actionSequence}`, properties: { kind: 'action-line', color, radius: 0, action: effect.action }, geometry: { type: 'LineString', coordinates: [[origin.longitude, origin.latitude], [targetPosition.longitude, targetPosition.latitude]] } });
-    features.push({ type: 'Feature', id: `action-marker-${effect.actionSequence}`, properties: { kind: 'action-marker', color, radius: 12 + Math.round(elapsed * 16), action: effect.action }, geometry: { type: 'Point', coordinates: [targetPosition.longitude, targetPosition.latitude] } });
+    if (!isFireLine) {
+      const elapsed = (simulationTime - effect.startTime) / Math.max(0.01, effect.endTime - effect.startTime);
+      features.push({ type: 'Feature', id: `action-marker-${effect.actionSequence}`, properties: { kind: 'action-marker', color, radius: 12 + Math.round(elapsed * 16), action: effect.action }, geometry: { type: 'Point', coordinates: [targetPosition.longitude, targetPosition.latitude] } });
+    }
   }
   return { type: 'FeatureCollection', features };
 }
 
-export function TacticalMap({ runtime, units, result, deployment, onSelectUnit }: TacticalMapProps) {
+export function TacticalMap({ runtime, playbackRef, units, result, deployment, onSelectUnit }: TacticalMapProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<MapLibreMap | null>(null);
+  const fallbackPlaybackRef = useRef(runtime);
+  useEffect(() => { fallbackPlaybackRef.current = runtime; }, [runtime]);
+  const clock = playbackRef ?? fallbackPlaybackRef;
   const [mapReady, setMapReady] = useState(false);
   const [mapError, setMapError] = useState(false);
   const mapCenter = useMemo(() => getMapCenter(result, deployment), [deployment, result]);
@@ -172,20 +183,13 @@ export function TacticalMap({ runtime, units, result, deployment, onSelectUnit }
   const tacticalGraphicFeatures = useMemo(() => toTacticalGraphicFeatureCollection(deployment), [deployment]);
   const axisArrowFeatures = useMemo(() => toTacticalGraphicAxisArrowFeatures(deployment), [deployment]);
   const objectiveFeatures = useMemo(() => toObjectiveFeatures(deployment), [deployment]);
-  const observationSectorFeatures = useMemo(
-    () => toObservationSectorFeatures(result, runtime.simulationTime, deployment),
-    [deployment, result, runtime.simulationTime],
-  );
-  const actionEffectFeatures = useMemo(
-    () => toActionEffectFeatures(result, runtime.simulationTime, deployment),
-    [deployment, result, runtime.simulationTime],
-  );
 
   useEffect(() => {
     if (!containerRef.current || mapRef.current) {
       return;
     }
 
+    setMapReady(false);
     const map = new maplibregl.Map({
       container: containerRef.current,
       style: getMapStyleUrl() ?? createDefaultMapStyle(),
@@ -242,48 +246,49 @@ export function TacticalMap({ runtime, units, result, deployment, onSelectUnit }
       map.remove();
       mapRef.current = null;
     };
-  }, [mapCenter, mapZoom, onSelectUnit, units]);
-
-  useEffect(() => {
-    if (!mapReady || !mapRef.current) {
-      return;
-    }
-
-    const unitSource = mapRef.current.getSource(UNIT_SOURCE_ID) as GeoJSONSource | undefined;
-    unitSource?.setData(toUnitFeatures(result, units, runtime.simulationTime));
-  }, [mapReady, result, runtime.simulationTime, units]);
-
-  useEffect(() => {
-    if (!mapReady || !mapRef.current) {
-      return;
-    }
-
-    const observationSource = mapRef.current.getSource(OBSERVATION_SECTOR_SOURCE_ID) as GeoJSONSource | undefined;
-    observationSource?.setData(observationSectorFeatures);
-  }, [mapReady, observationSectorFeatures]);
+  // Agent state changes every playback frame. Recreating the MapLibre map for
+  // those state updates races style loading and crashes on setPaintProperty.
+  }, [mapCenter, mapZoom, onSelectUnit]);
 
   useEffect(() => {
     if (!mapReady || !mapRef.current) return;
-    const source = mapRef.current.getSource(ACTION_EFFECT_SOURCE_ID) as GeoJSONSource | undefined;
-    source?.setData(actionEffectFeatures);
-  }, [actionEffectFeatures, mapReady]);
-
-  useEffect(() => {
-    if (!mapReady || !mapRef.current) {
-      return;
-    }
-
     const map = mapRef.current;
-    if (observationSectorFeatures.features.length === 0) {
-      map.setPaintProperty('observation-sector-fill', 'fill-opacity', 0.16);
-      map.setPaintProperty('observation-sector-outline', 'line-opacity', 0.7);
-      return;
-    }
-
-    const phase = (Math.sin(runtime.simulationTime * Math.PI / 2) + 1) / 2;
-    map.setPaintProperty('observation-sector-fill', 'fill-opacity', 0.18 + phase * 0.16);
-    map.setPaintProperty('observation-sector-outline', 'line-opacity', 0.72 + phase * 0.28);
-  }, [mapReady, observationSectorFeatures.features.length, runtime.simulationTime]);
+    const sent = new Map<string, string>();
+    let frame = 0;
+    let lastTime: number | undefined;
+    let lastSend = -Infinity;
+    let pending: [string, GeoJSON.FeatureCollection][] = [];
+    const tick = (timestamp: number) => {
+      const { simulationTime, isPlaying } = clock.current;
+      // Coordinates/effects still follow every simulation frame. Coalesce worker
+      // submissions to 20 Hz rather than repeatedly rebuilding symbol tile atlases.
+      if (simulationTime !== lastTime) {
+        pending = [
+          [UNIT_SOURCE_ID, toUnitFeatures(result, units, simulationTime)],
+          [OBSERVATION_SECTOR_SOURCE_ID, toObservationSectorFeatures(result, simulationTime, deployment)],
+          [ACTION_EFFECT_SOURCE_ID, toActionEffectFeatures(result, simulationTime, deployment)],
+        ];
+        lastTime = simulationTime;
+      }
+      if (pending.length && (!isPlaying || timestamp - lastSend >= 50)) {
+        pending = pending.filter(([id, data]) => {
+          const source = map.getSource(id) as GeoJSONSource | undefined;
+          if (!source) return false;
+          const serialized = JSON.stringify(data);
+          if (sent.get(id) === serialized) return false;
+          // Do not queue obsolete snapshots behind an in-flight worker update.
+          if (!source.loaded()) return true;
+          source.setData(data);
+          sent.set(id, serialized);
+          return false;
+        });
+        lastSend = timestamp;
+      }
+      frame = requestAnimationFrame(tick);
+    };
+    frame = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(frame);
+  }, [clock, deployment, mapReady, result, units]);
 
   useEffect(() => {
     if (!mapReady || !mapRef.current) {
@@ -307,7 +312,7 @@ export function TacticalMap({ runtime, units, result, deployment, onSelectUnit }
   }, [axisArrowFeatures, mapReady, objectiveFeatures, routeFeatures, runtime.tacticalLayers.routes, tacticalGraphicFeatures]);
 
   useEffect(() => {
-    if (!mapReady || !mapRef.current) {
+    if (!mapReady || !mapRef.current?.isStyleLoaded()) {
       return;
     }
 

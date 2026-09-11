@@ -18,8 +18,15 @@ export function interpolatePosition(
   };
 }
 
+const keyframeCache = new WeakMap<SimulationUnitTrack, SimulationKeyframe[]>();
+
+/** Track keyframes are immutable after a result is built. Sort them once, not per animation frame. */
 function sortedKeyframes(track: SimulationUnitTrack): SimulationKeyframe[] {
-  return track.segments.flatMap((segment) => segment.keyframes).sort((first, second) => first.time - second.time);
+  const cached = keyframeCache.get(track);
+  if (cached) return cached;
+  const keyframes = track.segments.flatMap((segment) => segment.keyframes).sort((first, second) => first.time - second.time);
+  keyframeCache.set(track, keyframes);
+  return keyframes;
 }
 
 export function getPositionAtTime(track: SimulationUnitTrack, simulationTime: number): SimulationResultPosition | undefined {
@@ -39,15 +46,20 @@ export function getPositionAtTime(track: SimulationUnitTrack, simulationTime: nu
     return last.position;
   }
 
-  for (let index = 0; index < keyframes.length - 1; index += 1) {
-    const previous = keyframes[index];
-    const next = keyframes[index + 1];
+  let low = 0;
+  let high = keyframes.length - 1;
+  while (low <= high) {
+    const middle = Math.floor((low + high) / 2);
+    if (keyframes[middle].time <= simulationTime) low = middle + 1;
+    else high = middle - 1;
+  }
 
-    if (simulationTime >= previous.time && simulationTime <= next.time) {
-      const duration = next.time - previous.time;
-      const progress = duration === 0 ? 1 : (simulationTime - previous.time) / duration;
-      return interpolatePosition(previous.position, next.position, progress);
-    }
+  const previous = keyframes[Math.max(0, high)];
+  const next = keyframes[Math.min(keyframes.length - 1, high + 1)];
+  if (previous && next) {
+    const duration = next.time - previous.time;
+    const progress = duration === 0 ? 1 : (simulationTime - previous.time) / duration;
+    return interpolatePosition(previous.position, next.position, progress);
   }
 
   return last.position;

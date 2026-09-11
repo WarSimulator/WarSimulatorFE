@@ -101,13 +101,7 @@ export function addDeploymentSourcesAndLayers(map: MapLibreMap) {
     id: 'observation-sector-fill',
     type: 'fill',
     source: OBSERVATION_SECTOR_SOURCE_ID,
-    paint: { 'fill-color': ['case', ['get', 'targetInRange'], '#58c7ff', '#ffb95f'], 'fill-opacity': 0.2 },
-  });
-  map.addLayer({
-    id: 'observation-sector-outline',
-    type: 'line',
-    source: OBSERVATION_SECTOR_SOURCE_ID,
-    paint: { 'line-color': ['case', ['get', 'targetInRange'], '#8ad9ff', '#ffcf8a'], 'line-width': 2.5, 'line-opacity': 0.9 },
+    paint: { 'fill-color': ['case', ['get', 'targetInRange'], '#58c7ff', '#ffb95f'], 'fill-opacity': ['get', 'opacity'] },
   });
   map.addLayer({
     id: 'deployment-axis-arrows',

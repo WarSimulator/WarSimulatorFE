@@ -141,6 +141,9 @@ function normalizeDeployment(payload: unknown): DeploymentSetup {
       symbolScale: finite(unit.symbolScale, .72),
       symbolRotation: finite(unit.symbolRotation ?? unit.heading, 0),
       position: unitPosition,
+      initialState: unit.initialState && typeof unit.initialState === 'object' && !Array.isArray(unit.initialState)
+        ? unit.initialState as DeploymentUnit['initialState']
+        : undefined,
     };
   });
 

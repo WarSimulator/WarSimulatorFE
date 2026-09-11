@@ -4,54 +4,31 @@ import alphaLocalStorageDeployment from '../../../fixtures/alphaDeployment.json'
 import alphaLocalStorageSimulationResult from '../../../fixtures/alphaDeploymentTfdSimulationResult.json';
 import engineSimulationResult from '../../../fixtures/engineSimulationResult.json';
 import alphaDeployment from '../../../../deployment.json';
-import type { DeploymentSetup, SimulationResult, SimulationUnit } from '../../../types';
+import type { DeploymentSetup, SimulationResult, SimulationUnit, UnitAgentState } from '../../../types';
 import { getUnitSidc } from './sidc';
 import { getFinalSimulation, getFinalSimulationDeployment } from './finalSimulation';
+import { getUnitAgentState } from './unitAgent';
 
 const result = pipelineSimulationResult as SimulationResult;
 const exampleDeployment = pipelineDeployment as DeploymentSetup;
 const alphaDeploymentExample = alphaLocalStorageDeployment as unknown as DeploymentSetup;
 const alphaResultExample = alphaLocalStorageSimulationResult as SimulationResult;
 
-const actorLabels: Record<string, Pick<SimulationUnit, 'name' | 'type' | 'status' | 'combatPower' | 'currentOrder' | 'personnel' | 'ammunition' | 'mobility' | 'icon' | 'timeline' | 'log'>> = {
+const actorPresentation: Record<string, Pick<SimulationUnit, 'name' | 'type' | 'icon'>> = {
   alpha_coy: {
     name: 'ALPHA COY',
     type: 'INF CO',
-    status: 'MOVING',
-    combatPower: 86,
-    currentOrder: 'Move from current position to LD LINE GOLD.',
-    personnel: '94%',
-    ammunition: '78%',
-    mobility: 'MOBILE',
     icon: 'security',
-    timeline: ['H+00 ACTION_STARTED Move', 'H+10 ACTION_COMPLETED Move'],
-    log: ['Move action started.', 'Tracking toward LD LINE GOLD.'],
   },
   bravo_coy: {
     name: 'BRAVO COY',
     type: 'MECH INF CO',
-    status: 'MOVING',
-    combatPower: 82,
-    currentOrder: 'Move from current position to LD LINE GOLD.',
-    personnel: '91%',
-    ammunition: '74%',
-    mobility: 'MOBILE',
     icon: 'directions_car',
-    timeline: ['H+00 ACTION_STARTED Move', 'H+10 ACTION_COMPLETED Move'],
-    log: ['Move action started.', 'Maintaining parallel axis.'],
   },
   charlie_coy: {
     name: 'CHARLIE COY',
     type: 'ARMOR CO',
-    status: 'MOVING',
-    combatPower: 89,
-    currentOrder: 'Move from current position to LD LINE GOLD.',
-    personnel: '96%',
-    ammunition: '81%',
-    mobility: 'MOBILE',
     icon: 'local_shipping',
-    timeline: ['H+00 ACTION_STARTED Move', 'H+10 ACTION_COMPLETED Move'],
-    log: ['Move action started.', 'Advancing on assigned endpoint.'],
   },
 };
 
@@ -99,7 +76,7 @@ export function validateSimulationResultReferences(simulationResult: SimulationR
   }
 }
 
-export function getSimulationResultUnits(simulationResult: SimulationResult, deployment?: DeploymentSetup): SimulationUnit[] {
+export function getSimulationResultUnits(simulationResult: SimulationResult, deployment?: DeploymentSetup, simulationTime = simulationResult.startTime): SimulationUnit[] {
   const symbolScaleByUnitId = new Map(deployment?.units.map((unit) => [unit.id, unit.symbolScale ?? 1]));
 
   const tracks = [...simulationResult.unitTracks];
@@ -121,14 +98,8 @@ export function getSimulationResultUnits(simulationResult: SimulationResult, dep
   }
   return tracks.map((track, index) => {
     const deploymentUnit = deployment?.units.find((unit) => unit.id === track.unitId);
-    const metadata = actorLabels[track.actor] ?? actorLabels.alpha_coy;
-    const unitEffects = (simulationResult.actionEffects ?? []).filter((effect) => effect.unitId === track.unitId).sort((a, b) => a.startTime - b.startTime);
-    const firstEffect = unitEffects[0];
-    const target = firstEffect && (firstEffect.parameters.target ?? firstEffect.parameters.destination ?? firstEffect.parameters.result);
-    const generatedTimeline = simulationResult.events
-      .filter((event) => event.actor === track.actor)
-      .slice(0, 8)
-      .map((event) => `H+${event.time.toFixed(1)} ${event.type} ${event.action}`);
+    const metadata = actorPresentation[track.actor] ?? { name: track.actor || track.unitId, type: 'UNIT', icon: 'security' };
+    const agentState = getUnitAgentState(simulationResult, deploymentUnit, track.unitId, simulationTime);
     const firstPosition = track.segments[0]?.keyframes[0]?.position
       ?? simulationResult.actionEffects?.find((effect) => effect.unitId === track.unitId)?.origin
       ?? deploymentUnit?.position;
@@ -138,16 +109,17 @@ export function getSimulationResultUnits(simulationResult: SimulationResult, dep
       name: deploymentUnit?.designation || metadata.name,
       allegiance: deploymentUnit?.affiliation === 'enemy' ? 'Enemy' : 'Friendly',
       type: deploymentUnit?.symbolLabel ?? metadata.type,
-      status: firstEffect ? 'ACTIVE' : metadata.status,
-      combatPower: metadata.combatPower,
-      currentOrder: firstEffect ? `${firstEffect.action}${typeof target === 'string' ? ` · ${target}` : ''}` : metadata.currentOrder,
-      personnel: metadata.personnel,
-      ammunition: metadata.ammunition,
-      mobility: metadata.mobility,
+      status: agentState.commandState,
+      combatPower: agentState.combatPowerPct,
+      currentOrder: agentState.currentOrder,
+      personnel: `${agentState.combatPowerPct}%`,
+      ammunition: `${agentState.ammunitionPct}%`,
+      mobility: `${agentState.mobilityPct}%`,
       position: { x: 35 + index * 12, y: 45 },
       icon: metadata.icon,
-      timeline: generatedTimeline.length ? generatedTimeline : metadata.timeline,
-      log: unitEffects.slice(0, 6).map((effect) => `${effect.action} · ${effect.startTime.toFixed(1)}–${effect.endTime.toFixed(1)}`),
+      timeline: agentState.reports.map(report => `H+${report.time.toFixed(1)} ${report.message}`),
+      log: agentState.reports.map(report => report.message),
+      agentState,
       // Engine actors are scenario identifiers, whereas map symbols are owned by
       // the Deployment unit IDs. Prefer the latter so arbitrary plan actors render.
       sidc: deploymentUnit?.sidc ?? actorSidc[track.actor],
@@ -157,4 +129,32 @@ export function getSimulationResultUnits(simulationResult: SimulationResult, dep
       geographicPosition: firstPosition,
     } satisfies SimulationUnit & { sidc?: string; geographicPosition?: { longitude: number; latitude: number } };
   });
+}
+
+/** Resolves only one live unit for the detail panel, avoiding a full roster rebuild on every frame. */
+export function getSimulationResultUnit(
+  simulationResult: SimulationResult,
+  deployment: DeploymentSetup | undefined,
+  unitId: string,
+  simulationTime: number,
+  roster?: SimulationUnit[],
+  runtimeAgentState?: UnitAgentState,
+): SimulationUnit | undefined {
+  const staticUnit = (roster ?? getSimulationResultUnits(simulationResult, deployment, simulationResult.startTime))
+    .find((unit) => unit.id === unitId);
+  if (!staticUnit) return undefined;
+  const deploymentUnit = deployment?.units.find((unit) => unit.id === unitId);
+  const agentState = runtimeAgentState ?? getUnitAgentState(simulationResult, deploymentUnit, unitId, simulationTime);
+  return {
+    ...staticUnit,
+    status: agentState.commandState,
+    combatPower: agentState.combatPowerPct,
+    currentOrder: agentState.currentOrder,
+    personnel: `${agentState.combatPowerPct}%`,
+    ammunition: `${agentState.ammunitionPct}%`,
+    mobility: `${agentState.mobilityPct}%`,
+    timeline: agentState.reports.map(report => `H+${report.time.toFixed(1)} ${report.message}`),
+    log: agentState.reports.map(report => report.message),
+    agentState,
+  };
 }

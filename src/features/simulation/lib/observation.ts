@@ -4,17 +4,18 @@ import { getUnitPositionAtTime } from './playback';
 import { observationPolygon } from '@atlas/atomic-actions';
 export { destinationPoint } from '@atlas/atomic-actions';
 
-type ObservationSectorProperties = { actionSequence: number; actor: string; target: string; targetInRange: boolean };
+type ObservationSectorProperties = { actionSequence: number; actor: string; target: string; targetInRange: boolean; opacity: number };
 
-export function buildObservationSector(effect: ObservationEffect): GeoJSON.Feature<GeoJSON.Polygon, ObservationSectorProperties> {
+export function buildObservationSector(effect: ObservationEffect, opacity = 0.1, idSuffix = ''): GeoJSON.Feature<GeoJSON.Polygon, ObservationSectorProperties> {
   return {
     type: 'Feature',
-    id: `observation-${effect.actionSequence}`,
+    id: `observation-${effect.actionSequence}${idSuffix}`,
     properties: {
       actionSequence: effect.actionSequence,
       actor: effect.actor,
       target: effect.target,
       targetInRange: effect.targetInRange,
+      opacity,
     },
     geometry: observationPolygon(effect),
   };
@@ -34,13 +35,23 @@ export function toObservationSectorFeatures(
     features: getActiveObservationEffects(result, simulationTime).flatMap(effect => {
       const elapsed = simulationTime - effect.startTime;
       const origin = getUnitPositionAtTime(effect.actor, simulationTime, result, deployment) ?? effect.origin;
-      const liveEffect = { ...effect, origin };
-      const sweep = buildObservationSector({ ...liveEffect,
-        direction: effect.direction + Math.sin(elapsed * Math.PI / 2) * effect.fovDegrees * 0.43,
-        fovDegrees: Math.min(6, effect.fovDegrees),
-      });
-      sweep.id = `observation-sweep-${effect.actor}-${effect.actionSequence}`;
-      return [buildObservationSector(liveEffect), sweep];
+      const liveEffect = {
+        ...effect,
+        origin,
+        direction: effect.direction + Math.sin(elapsed * Math.PI / 2) * effect.fovDegrees * 0.1,
+      };
+      // MapLibre fill layers do not support radial gradients. Overlapping cones
+      // approximate a flashlight beam: the far end is faint and the origin is dense.
+      return [
+        [1, 0.04],
+        [0.76, 0.06],
+        [0.53, 0.1],
+        [0.31, 0.16],
+      ].map(([rangeScale, opacity], index) => buildObservationSector(
+        { ...liveEffect, displayRangeMeters: liveEffect.displayRangeMeters * rangeScale },
+        opacity,
+        `-falloff-${index}`,
+      ));
     }),
   };
 }

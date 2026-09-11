@@ -16,7 +16,7 @@
   },
   "dependencies": {
     "@armyc2.c5isr.renderer/mil-sym-ts-web": "^2.10.4",
-    "@atlas/atomic-actions": "file:../AtomicActionVisualizer",
+    "@atlas/atomic-actions": "file:../../AtomicActionVisualizer",
     "@mapbox/mapbox-gl-draw": "^1.5.1",
     "@vitejs/plugin-react": "^5.0.0",
     "autoprefixer": "^10.4.21",

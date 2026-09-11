@@ -69,8 +69,68 @@ export type SimulationUnit = {
   /** Clockwise symbol rotation in degrees. Defaults to 0. */
   symbolRotation?: number;
   geographicPosition?: SimulationResultPosition;
+  agentState?: UnitAgentState;
   log: string[];
   timeline: string[];
+};
+
+export type UnitCommandState = 'READY' | 'EXECUTING' | 'HOLD' | 'STOPPED';
+export type UnitExecutionMode = 'MOVE' | 'OBSERVE' | 'FIRE' | 'TASK' | null;
+export type UnitReadinessState = 'EFFECTIVE' | 'DEGRADED' | 'CRITICAL' | 'COMBAT_INEFFECTIVE';
+
+export type UnitInitialState = {
+  combatPowerPct?: number;
+  ammunitionPct?: number;
+  mobilityPct?: number;
+  fatiguePct?: number;
+  suppressionPct?: number;
+};
+
+export type UnitAgentReport = {
+  id: string;
+  time: number;
+  unitId: string;
+  recipient: 'ai-commander';
+  type: UnitAgentReportType;
+  severity: UnitAgentReportSeverity;
+  action?: string;
+  target?: string;
+  reason?: string;
+  state: UnitAgentReportState;
+  message: string;
+};
+
+export type UnitAgentReportType =
+  | 'AGENT_INITIALIZED'
+  | 'COMMAND_ACCEPTED'
+  | 'EXECUTION_STARTED'
+  | 'EXECUTION_COMPLETED'
+  | 'GUARD_BLOCKED'
+  | 'READINESS_CHANGED'
+  | 'AMMUNITION_THRESHOLD';
+
+export type UnitAgentReportSeverity = 'info' | 'warning' | 'critical';
+
+export type UnitAgentReportState = Pick<
+  UnitAgentState,
+  'commandState' | 'readinessState' | 'combatPowerPct' | 'ammunitionPct' | 'mobilityPct' | 'fatiguePct' | 'suppressionPct'
+>;
+
+export type UnitAgentState = {
+  commandState: UnitCommandState;
+  executionMode: UnitExecutionMode;
+  readinessState: UnitReadinessState;
+  combatPowerPct: number;
+  damagePct: number;
+  ammunitionPct: number;
+  mobilityPct: number;
+  fatiguePct: number;
+  suppressionPct: number;
+  currentOrder: string;
+  canMove: boolean;
+  canFire: boolean;
+  canObserve: boolean;
+  reports: UnitAgentReport[];
 };
 
 export type TacticalLayers = {
@@ -268,6 +328,7 @@ export type DeploymentUnit = {
   /** Clockwise symbol rotation in degrees. Defaults to 0. */
   symbolRotation?: number;
   position: DeploymentPosition;
+  initialState?: UnitInitialState;
 };
 
 export type DeploymentObjective = {

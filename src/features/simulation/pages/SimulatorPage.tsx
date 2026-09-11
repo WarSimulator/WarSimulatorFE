@@ -4,7 +4,10 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { createInitialRuntimeState, SIMULATION_PLAYBACK_RATE } from '../lib/runtime';
 import { getDeploymentById } from '../lib/deploymentStorage';
 import { clampResultTime } from '../lib/playback';
-import { getSimulationResult, getSimulationResultDeployment, getSimulationResultUnits } from '../lib/simulationResultService';
+import { getSimulationResult, getSimulationResultDeployment, getSimulationResultUnit, getSimulationResultUnits } from '../lib/simulationResultService';
+import { getCommanderReports } from '../lib/unitAgent';
+import { CommanderInbox } from '../components/CommanderInbox';
+import { createUnitAgentRuntime } from '../lib/unitAgentRuntime';
 import { ExitSimulationDialog } from '../components/ExitSimulationDialog';
 import { PlaybackControls } from '../components/PlaybackControls';
 import { SimulatorHeader } from '../components/SimulatorHeader';
@@ -23,29 +26,47 @@ export function SimulatorPage() {
       ?? (simulationResult.deploymentId ? getDeploymentById(simulationResult.deploymentId) : undefined),
     [simulationResult],
   );
-  const resultUnits = useMemo(() => getSimulationResultUnits(simulationResult, deployment), [deployment, simulationResult]);
+  const rosterUnits = useMemo(() => getSimulationResultUnits(simulationResult, deployment), [deployment, simulationResult]);
+  const agentRuntime = useMemo(
+    () => createUnitAgentRuntime(simulationResult, deployment, rosterUnits.map(unit => unit.id)),
+    [deployment, rosterUnits, simulationResult],
+  );
+  const commanderReports = useMemo(
+    () => getCommanderReports(simulationResult, deployment),
+    [deployment, simulationResult],
+  );
   const [runtime, setRuntime] = useState(() => ({
     ...createInitialRuntimeState(),
     simulationTime: simulationResult.startTime,
-    selectedUnitId: resultUnits[0]?.id ?? '',
+    selectedUnitId: rosterUnits[0]?.id ?? '',
     playbackSpeed: 0.5,
   }));
   const [exitDialogOpen, setExitDialogOpen] = useState(false);
   const lastFrameTimeRef = useRef<number | undefined>(undefined);
   const runtimeRef = useRef(runtime);
+  const publishTimeRef = useRef(0);
+  // This ref is the authoritative clock. React receives display snapshots only.
+  const updateRuntime = useCallback((change: Partial<typeof runtime>) => {
+    const next = { ...runtimeRef.current, ...change };
+    runtimeRef.current = next;
+    setRuntime(next);
+  }, []);
   const selectedUnit = useMemo(
-    () => resultUnits.find((unit) => unit.id === runtime.selectedUnitId) ?? resultUnits[0],
-    [resultUnits, runtime.selectedUnitId],
+    () => getSimulationResultUnit(
+      simulationResult,
+      deployment,
+      runtime.selectedUnitId,
+      runtime.simulationTime,
+      rosterUnits,
+      agentRuntime.getState(runtime.selectedUnitId, runtime.simulationTime),
+    ) ?? rosterUnits[0],
+    [agentRuntime, deployment, rosterUnits, runtime.selectedUnitId, runtime.simulationTime, simulationResult],
   );
 
   const requestExit = () => {
-    setRuntime((current) => ({ ...current, isPlaying: false }));
+    updateRuntime({ isPlaying: false });
     setExitDialogOpen(true);
   };
-
-  useEffect(() => {
-    runtimeRef.current = runtime;
-  }, [runtime]);
 
   useEffect(() => {
     if (!runtime.isPlaying) {
@@ -59,6 +80,7 @@ export function SimulatorPage() {
       const deltaSeconds = Math.max(0, timestamp - previousTimestamp) / 1000;
       lastFrameTimeRef.current = Math.max(previousTimestamp, timestamp);
       const current = runtimeRef.current;
+      if (!current.isPlaying) return;
       const nextTime = clampResultTime(
         simulationResult,
         current.simulationTime + deltaSeconds * current.playbackSpeed * SIMULATION_PLAYBACK_RATE,
@@ -69,13 +91,19 @@ export function SimulatorPage() {
         simulationTime: nextTime,
         isPlaying: nextTime < simulationResult.endTime,
       };
+      agentRuntime.advanceTo(nextTime);
       runtimeRef.current = nextRuntime;
-      setRuntime(nextRuntime);
+      // Panels do not need sixty React renders per second. The map reads the
+      // authoritative ref on its own animation clock, including between renders.
+      if (timestamp - publishTimeRef.current >= 100 || !nextRuntime.isPlaying) {
+        publishTimeRef.current = timestamp;
+        setRuntime(nextRuntime);
+      }
     };
 
     const tick = (timestamp: number) => {
       advance(timestamp);
-      animationFrameId = window.requestAnimationFrame(tick);
+      if (runtimeRef.current.isPlaying) animationFrameId = window.requestAnimationFrame(tick);
     };
 
     animationFrameId = window.requestAnimationFrame(tick);
@@ -83,17 +111,24 @@ export function SimulatorPage() {
     return () => {
       window.cancelAnimationFrame(animationFrameId);
     };
-  }, [runtime.isPlaying, simulationResult]);
+  }, [agentRuntime, runtime.isPlaying, simulationResult]);
 
   const selectUnit = useCallback((selectedUnitId: string) => {
-    setRuntime((current) => ({ ...current, selectedUnitId }));
-  }, []);
+    updateRuntime({ selectedUnitId });
+  }, [updateRuntime]);
+
+  const setTacticalLayers = useCallback((tacticalLayers: typeof runtime.tacticalLayers) => {
+    updateRuntime({ tacticalLayers });
+  }, [updateRuntime]);
 
   const setSimulationTime = useCallback(
     (simulationTime: number) => {
-      setRuntime((current) => ({ ...current, simulationTime: clampResultTime(simulationResult, simulationTime) }));
+      const nextTime = clampResultTime(simulationResult, simulationTime);
+      agentRuntime.seekTo(nextTime);
+      lastFrameTimeRef.current = undefined;
+      updateRuntime({ simulationTime: nextTime });
     },
-    [simulationResult],
+    [agentRuntime, simulationResult, updateRuntime],
   );
 
   useEffect(() => {
@@ -135,24 +170,29 @@ export function SimulatorPage() {
       <SimulatorHeader
         runtime={runtime}
         onExit={requestExit}
-        onTabChange={(activeTab) => setRuntime((current) => ({ ...current, activeTab }))}
+        onTabChange={(activeTab) => updateRuntime({ activeTab })}
       />
 
       <div className="flex min-h-0 flex-1">
         <UnitListPanel
-          units={resultUnits}
+          units={rosterUnits}
           selectedUnitId={runtime.selectedUnitId}
           tacticalLayers={runtime.tacticalLayers}
           onSelectUnit={selectUnit}
-          onLayerChange={(tacticalLayers) => setRuntime((current) => ({ ...current, tacticalLayers }))}
+          onLayerChange={setTacticalLayers}
         />
-        <TacticalMap
-          runtime={runtime}
-          units={resultUnits}
-          result={simulationResult}
-          deployment={deployment}
-          onSelectUnit={selectUnit}
-        />
+        {runtime.activeTab === 'order' ? (
+          <CommanderInbox reports={commanderReports} simulationTime={runtime.simulationTime} onSelectUnit={selectUnit} />
+        ) : (
+          <TacticalMap
+            runtime={runtime}
+            playbackRef={runtimeRef}
+            units={rosterUnits}
+            result={simulationResult}
+            deployment={deployment}
+            onSelectUnit={selectUnit}
+          />
+        )}
         <aside className="w-[380px] shrink-0 overflow-y-auto border-l border-outline-variant bg-surface p-3">
           <AtomicActionView result={simulationResult} simulationTime={runtime.simulationTime} unitId={runtime.selectedUnitId} onSelectUnit={selectUnit} />
           {selectedUnit && <UnitDetailPanel unit={selectedUnit} />}
@@ -167,8 +207,8 @@ export function SimulatorPage() {
         endTime={simulationResult.endTime}
         events={simulationResult.events}
         onTimeChange={setSimulationTime}
-        onPlayingChange={(isPlaying) => setRuntime((current) => ({ ...current, isPlaying }))}
-        onSpeedChange={(playbackSpeed) => setRuntime((current) => ({ ...current, playbackSpeed }))}
+        onPlayingChange={(isPlaying) => updateRuntime({ isPlaying })}
+        onSpeedChange={(playbackSpeed) => updateRuntime({ playbackSpeed })}
       />
 
       <ExitSimulationDialog
