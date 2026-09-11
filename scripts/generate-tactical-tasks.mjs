@@ -12,7 +12,7 @@ const omitted=[];
 let rendererErrors=[];
 const logException=ErrorLogger.LogException;
 ErrorLogger.LogException=(...args)=>rendererErrors.push(String(args[1]));
-for (const [version, standard] of [[13,'2525E'],[10,'APP6D']]) {
+for (const [version, standard] of [[13,'2525E']]) {
  for(const id of lookup.getIDList(version)) {
   const info=lookup.getMSLInfo(id,version);
   if(info.getSymbolSet()!==25 || !(String(info.getEntityCode()).startsWith('34') || [151204,151205].includes(info.getEntityCode())) || info.getMinPointCount()<1) continue;

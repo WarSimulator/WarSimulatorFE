@@ -26,6 +26,13 @@ export function SimulationFinalPage() {
 
   const start = async () => {
     if (!files.offensive || !files.defensive || !files.deployment) return;
+    const analysisWindow = window.open('about:blank', '_blank', 'popup=yes,width=1400,height=900');
+    if (!analysisWindow) {
+      setError('상태 분석 화면을 열 수 없습니다. 이 사이트의 팝업을 허용한 뒤 다시 실행해 주세요.');
+      return;
+    }
+    analysisWindow.document.title = 'ATLAS 상태 분석 준비 중';
+    analysisWindow.document.body.innerHTML = '<p style="font:16px sans-serif;padding:24px">시뮬레이션 상태 분석 화면을 준비하고 있습니다…</p>';
     setLoading(true); setError('');
     try {
       const [offensive, defensive, withdrawal, deployment] = await Promise.all([
@@ -33,8 +40,10 @@ export function SimulationFinalPage() {
       ]);
       const build = await buildFinalSimulation({ offensive, defensive, withdrawal, deployment });
       saveFinalSimulation(build);
-      navigate(`/simulations/${build.simulationId}/run`);
+      analysisWindow.location.href = new URL(`/simulations/${build.simulationId}/run?view=analysis`, window.location.origin).href;
+      navigate(`/simulations/${build.simulationId}/run?view=tactical`);
     } catch (caught) {
+      analysisWindow.close();
       setError(caught instanceof Error ? caught.message : '파일을 처리하지 못했습니다.');
       setLoading(false);
     }

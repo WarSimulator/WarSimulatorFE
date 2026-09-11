@@ -136,7 +136,7 @@ function normalizeDeployment(payload: unknown): DeploymentSetup {
       unitType,
       echelon,
       sidc: String(unit.sidc ?? '') || createSidc(affiliation, unitType, echelon),
-      symbolStandard: unit.symbolStandard === 'APP6' ? 'APP6' : '2525',
+      symbolStandard: '2525',
       symbolLabel: String(unit.symbolLabel ?? unit.label ?? unitType),
       symbolScale: finite(unit.symbolScale, .72),
       symbolRotation: finite(unit.symbolRotation ?? unit.heading, 0),
@@ -378,7 +378,9 @@ export async function buildFinalSimulation(inputs: FinalSimulationInputs): Promi
         origin, targetPoint, direction: finite(parameters.observation_bearing_deg ?? parameters.direction, bearingDegrees(origin, targetPoint)),
         fovDegrees: Math.max(10, Math.min(160, finite(parameters.field_of_view_deg ?? parameters.fov_degrees, 70))),
         rangeMeters, targetDistanceMeters, targetInRange: targetDistanceMeters <= rangeMeters,
-        displayRangeMeters: Math.max(rangeMeters, targetDistanceMeters * 1.08),
+        // Draw the sensor's actual coverage. A target outside that coverage must
+        // remain beyond the sector instead of stretching the sector to reach it.
+        displayRangeMeters: rangeMeters,
       };
       observationEffects.push(observation);
     }

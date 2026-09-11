@@ -4,13 +4,14 @@ import { UnitStateGraphs } from './UnitStateGraphs';
 
 type UnitDetailPanelProps = {
   unit: SimulationUnit;
+  wide?: boolean;
 };
 
-export function UnitDetailPanel({ unit }: UnitDetailPanelProps) {
+export function UnitDetailPanel({ unit, wide = false }: UnitDetailPanelProps) {
   const agent = unit.agentState;
   const metric = (value: number | undefined) => `${Math.round(value ?? 0)}%`;
   return (
-    <aside className="flex h-full w-[340px] flex-col border-l border-outline-variant bg-surface-container/95">
+    <aside className={`flex h-full flex-col bg-surface-container/95 ${wide ? 'w-full rounded border border-outline-variant' : 'w-[340px] border-l border-outline-variant'}`}>
       <div className="border-b border-outline-variant bg-surface-container-highest p-4">
         <p className="font-label-caps text-label-caps text-on-surface-variant">SELECTED UNIT</p>
         <div className="mt-3 flex items-center gap-3">

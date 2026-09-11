@@ -58,8 +58,8 @@
         "actor_unit_id": "red-recon",
         "parameters": {
           "target": "blue-main-tank",
-          "sensor_range_m": 2400,
-          "field_of_view_deg": 65
+          "sensor_range_m": 900,
+          "field_of_view_deg": 38
         }
       },
       {

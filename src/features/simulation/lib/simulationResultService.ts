@@ -123,7 +123,6 @@ export function getSimulationResultUnits(simulationResult: SimulationResult, dep
       // Engine actors are scenario identifiers, whereas map symbols are owned by
       // the Deployment unit IDs. Prefer the latter so arbitrary plan actors render.
       sidc: deploymentUnit?.sidc ?? actorSidc[track.actor],
-      symbolStandard: deploymentUnit?.symbolStandard,
       symbolScale: symbolScaleByUnitId.get(track.unitId) ?? 1,
       symbolRotation: deployment?.units.find(unit => unit.id === track.unitId)?.symbolRotation ?? 0,
       geographicPosition: firstPosition,

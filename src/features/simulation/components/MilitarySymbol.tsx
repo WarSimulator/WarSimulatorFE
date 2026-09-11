@@ -5,13 +5,12 @@ type MilitarySymbolProps = {
   sidc: string;
   size?: number;
   label?: string;
-  standard?: '2525' | 'APP6';
 };
 
-export function MilitarySymbol({ sidc, size = 42, label, standard }: MilitarySymbolProps) {
+export function MilitarySymbol({ sidc, size = 42, label }: MilitarySymbolProps) {
   const svg = useMemo(
-    () => createMilitarySymbolSvg(sidc, size, label, standard),
-    [label, sidc, size, standard],
+    () => createMilitarySymbolSvg(sidc, size, label),
+    [label, sidc, size],
   );
 
   return <span className="inline-flex items-center justify-center" dangerouslySetInnerHTML={{ __html: svg }} />;

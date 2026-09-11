@@ -1,6 +1,6 @@
 import { AtomicActionView } from '../components/AtomicActionView';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { createInitialRuntimeState, SIMULATION_PLAYBACK_RATE } from '../lib/runtime';
 import { getDeploymentById } from '../lib/deploymentStorage';
 import { clampResultTime } from '../lib/playback';
@@ -14,10 +14,14 @@ import { SimulatorHeader } from '../components/SimulatorHeader';
 import { TacticalMap } from '../components/TacticalMap';
 import { UnitDetailPanel } from '../components/UnitDetailPanel';
 import { UnitListPanel } from '../components/UnitListPanel';
+import type { SimulationRuntimeState } from '../../../types';
 
 export function SimulatorPage() {
   const { simulationId } = useParams();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const viewMode = searchParams.get('view') === 'analysis' ? 'analysis' : 'tactical';
+  const isAnalysisView = viewMode === 'analysis';
   const simulationResult = useMemo(() => getSimulationResult(simulationId), [simulationId]);
   const deployment = useMemo(
     // Paired result fixtures must win over an older browser copy with the same
@@ -35,22 +39,29 @@ export function SimulatorPage() {
     () => getCommanderReports(simulationResult, deployment),
     [deployment, simulationResult],
   );
-  const [runtime, setRuntime] = useState(() => ({
+  const [runtime, setRuntime] = useState<SimulationRuntimeState>(() => ({
     ...createInitialRuntimeState(),
     simulationTime: simulationResult.startTime,
     selectedUnitId: rosterUnits[0]?.id ?? '',
     playbackSpeed: 0.5,
+    activeTab: isAnalysisView ? 'analysis' : 'map',
   }));
   const [exitDialogOpen, setExitDialogOpen] = useState(false);
   const lastFrameTimeRef = useRef<number | undefined>(undefined);
   const runtimeRef = useRef(runtime);
   const publishTimeRef = useRef(0);
+  const syncChannelRef = useRef<BroadcastChannel | null>(null);
+  const syncSourceRef = useRef(crypto.randomUUID());
+  const publishRuntime = useCallback((next: typeof runtime) => {
+    syncChannelRef.current?.postMessage({ type: 'state', source: syncSourceRef.current, runtime: next });
+  }, []);
   // This ref is the authoritative clock. React receives display snapshots only.
   const updateRuntime = useCallback((change: Partial<typeof runtime>) => {
     const next = { ...runtimeRef.current, ...change };
     runtimeRef.current = next;
     setRuntime(next);
-  }, []);
+    publishRuntime(next);
+  }, [publishRuntime]);
   const selectedUnit = useMemo(
     () => getSimulationResultUnit(
       simulationResult,
@@ -63,13 +74,40 @@ export function SimulatorPage() {
     [agentRuntime, deployment, rosterUnits, runtime.selectedUnitId, runtime.simulationTime, simulationResult],
   );
 
+  useEffect(() => {
+    const channel = new BroadcastChannel(`atlas-simulation-${simulationId ?? 'current'}`);
+    syncChannelRef.current = channel;
+    channel.onmessage = (event: MessageEvent<{ type: string; source?: string; runtime?: typeof runtime }>) => {
+      const message = event.data;
+      if (message.source === syncSourceRef.current) return;
+      if (message.type === 'request') {
+        publishRuntime(runtimeRef.current);
+        return;
+      }
+      if (message.type !== 'state' || !message.runtime) return;
+      const next = {
+        ...runtimeRef.current,
+        ...message.runtime,
+        activeTab: isAnalysisView ? 'analysis' as const : message.runtime.activeTab === 'order' ? 'order' as const : 'map' as const,
+      };
+      agentRuntime.seekTo(next.simulationTime);
+      runtimeRef.current = next;
+      setRuntime(next);
+    };
+    channel.postMessage({ type: 'request', source: syncSourceRef.current });
+    return () => {
+      channel.close();
+      if (syncChannelRef.current === channel) syncChannelRef.current = null;
+    };
+  }, [agentRuntime, isAnalysisView, publishRuntime, simulationId]);
+
   const requestExit = () => {
     updateRuntime({ isPlaying: false });
     setExitDialogOpen(true);
   };
 
   useEffect(() => {
-    if (!runtime.isPlaying) {
+    if (!runtime.isPlaying || isAnalysisView) {
       lastFrameTimeRef.current = undefined;
       return;
     }
@@ -98,6 +136,7 @@ export function SimulatorPage() {
       if (timestamp - publishTimeRef.current >= 100 || !nextRuntime.isPlaying) {
         publishTimeRef.current = timestamp;
         setRuntime(nextRuntime);
+        publishRuntime(nextRuntime);
       }
     };
 
@@ -111,7 +150,7 @@ export function SimulatorPage() {
     return () => {
       window.cancelAnimationFrame(animationFrameId);
     };
-  }, [agentRuntime, runtime.isPlaying, simulationResult]);
+  }, [agentRuntime, isAnalysisView, publishRuntime, runtime.isPlaying, simulationResult]);
 
   const selectUnit = useCallback((selectedUnitId: string) => {
     updateRuntime({ selectedUnitId });
@@ -171,33 +210,48 @@ export function SimulatorPage() {
         runtime={runtime}
         onExit={requestExit}
         onTabChange={(activeTab) => updateRuntime({ activeTab })}
+        viewMode={viewMode}
       />
 
-      <div className="flex min-h-0 flex-1">
-        <UnitListPanel
-          units={rosterUnits}
-          selectedUnitId={runtime.selectedUnitId}
-          tacticalLayers={runtime.tacticalLayers}
-          onSelectUnit={selectUnit}
-          onLayerChange={setTacticalLayers}
-        />
-        {runtime.activeTab === 'order' ? (
-          <CommanderInbox reports={commanderReports} simulationTime={runtime.simulationTime} onSelectUnit={selectUnit} />
-        ) : (
-          <TacticalMap
-            runtime={runtime}
-            playbackRef={runtimeRef}
+      {isAnalysisView ? (
+        <div className="flex min-h-0 flex-1">
+          <UnitListPanel
             units={rosterUnits}
-            result={simulationResult}
-            deployment={deployment}
+            selectedUnitId={runtime.selectedUnitId}
+            tacticalLayers={runtime.tacticalLayers}
             onSelectUnit={selectUnit}
+            onLayerChange={setTacticalLayers}
           />
-        )}
-        <aside className="w-[380px] shrink-0 overflow-y-auto border-l border-outline-variant bg-surface p-3">
-          <AtomicActionView result={simulationResult} simulationTime={runtime.simulationTime} unitId={runtime.selectedUnitId} onSelectUnit={selectUnit} />
-          {selectedUnit && <UnitDetailPanel unit={selectedUnit} />}
-        </aside>
-      </div>
+          <main className="min-w-0 flex-1 overflow-y-auto bg-surface p-4">
+            <div className="grid items-start gap-4 xl:grid-cols-[minmax(0,1.35fr)_minmax(420px,0.65fr)]">
+              <AtomicActionView result={simulationResult} simulationTime={runtime.simulationTime} unitId={runtime.selectedUnitId} onSelectUnit={selectUnit} />
+              {selectedUnit && <UnitDetailPanel unit={selectedUnit} wide />}
+            </div>
+          </main>
+        </div>
+      ) : (
+        <div className="flex min-h-0 flex-1">
+          <UnitListPanel
+            units={rosterUnits}
+            selectedUnitId={runtime.selectedUnitId}
+            tacticalLayers={runtime.tacticalLayers}
+            onSelectUnit={selectUnit}
+            onLayerChange={setTacticalLayers}
+          />
+          {runtime.activeTab === 'order' ? (
+            <CommanderInbox reports={commanderReports} simulationTime={runtime.simulationTime} onSelectUnit={selectUnit} />
+          ) : (
+            <TacticalMap
+              runtime={runtime}
+              playbackRef={runtimeRef}
+              units={rosterUnits}
+              result={simulationResult}
+              deployment={deployment}
+              onSelectUnit={selectUnit}
+            />
+          )}
+        </div>
+      )}
 
       <PlaybackControls
         simulationTime={runtime.simulationTime}

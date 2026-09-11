@@ -6,6 +6,7 @@ type SimulatorHeaderProps = {
   runtime: SimulationRuntimeState;
   onTabChange: (tab: SimulationRuntimeState['activeTab']) => void;
   onExit: () => void;
+  viewMode?: 'tactical' | 'analysis';
 };
 
 const tabs: Array<{ id: SimulationRuntimeState['activeTab']; label: string }> = [
@@ -14,7 +15,7 @@ const tabs: Array<{ id: SimulationRuntimeState['activeTab']; label: string }> = 
   { id: 'analysis', label: '분석 결과' },
 ];
 
-export function SimulatorHeader({ runtime, onTabChange, onExit }: SimulatorHeaderProps) {
+export function SimulatorHeader({ runtime, onTabChange, onExit, viewMode = 'tactical' }: SimulatorHeaderProps) {
   return (
     <header className="flex h-14 items-center justify-between border-b border-outline-variant bg-surface-container-high px-4">
       <div className="flex h-full items-center gap-4">
@@ -26,9 +27,9 @@ export function SimulatorHeader({ runtime, onTabChange, onExit }: SimulatorHeade
           EXIT SIMULATOR
         </button>
         <div className="h-5 w-px bg-outline-variant" />
-        <h1 className="font-headline-md text-[18px] font-bold text-primary">ATLAS COA SIMULATION</h1>
-        <nav className="flex h-full items-center gap-1">
-          {tabs.map((tab) => (
+        <h1 className="font-headline-md text-[18px] font-bold text-primary">{viewMode === 'analysis' ? 'ATLAS UNIT STATE ANALYSIS' : 'ATLAS COA SIMULATION'}</h1>
+        {viewMode === 'tactical' && <nav className="flex h-full items-center gap-1">
+          {tabs.filter(tab => tab.id !== 'analysis').map((tab) => (
             <button
               key={tab.id}
               className={`h-full border-b-2 px-4 font-label-caps text-label-caps transition-colors ${
@@ -41,7 +42,7 @@ export function SimulatorHeader({ runtime, onTabChange, onExit }: SimulatorHeade
               {tab.label}
             </button>
           ))}
-        </nav>
+        </nav>}
       </div>
       <div className="flex items-center gap-4">
         <span className="flex items-center gap-2 font-data-mono text-[11px] text-secondary">

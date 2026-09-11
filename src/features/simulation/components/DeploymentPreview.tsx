@@ -48,7 +48,7 @@ function toUnitFeatures(deployment: DeploymentSetup): GeoJSON.FeatureCollection<
         id: unit.id,
         designation: unit.designation,
         sidc: unit.sidc,
-        imageId: getMilitarySymbolImageId(unit.sidc, unit.symbolStandard),
+        imageId: getMilitarySymbolImageId(unit.sidc),
         affiliation: unit.affiliation,
         unitType: unit.unitType,
         echelon: unit.echelon,
@@ -162,7 +162,7 @@ export function DeploymentPreview({ deployment }: DeploymentPreviewProps) {
       try {
         await ensureObjectiveImage(map);
         await ensureAxisArrowImage(map);
-        await Promise.all(deployment.units.map((unit) => ensureMilitarySymbolImage(map, unit.sidc, unit.symbolStandard)));
+        await Promise.all(deployment.units.map((unit) => ensureMilitarySymbolImage(map, unit.sidc)));
         addDeploymentSourcesAndLayers(map);
         setMapReady(true);
       } catch (error) {
@@ -184,7 +184,7 @@ export function DeploymentPreview({ deployment }: DeploymentPreviewProps) {
     if (!mapReady || !mapRef.current) return;
     const map = mapRef.current;
 
-    void Promise.all(deployment.units.map((unit) => ensureMilitarySymbolImage(map, unit.sidc, unit.symbolStandard))).then(() => {
+    void Promise.all(deployment.units.map((unit) => ensureMilitarySymbolImage(map, unit.sidc))).then(() => {
       (map.getSource(UNIT_SOURCE_ID) as GeoJSONSource | undefined)?.setData(toUnitFeatures(deployment));
       (map.getSource(OBJECTIVE_SOURCE_ID) as GeoJSONSource | undefined)?.setData(toObjectiveFeatures(deployment));
       (map.getSource(GRAPHICS_SOURCE_ID) as GeoJSONSource | undefined)?.setData(toGraphicFeatureCollection(deployment));

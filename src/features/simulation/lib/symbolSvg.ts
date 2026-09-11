@@ -1,9 +1,9 @@
 import ms from 'milsymbol';
 
-export function createMilitarySymbolSvg(sidc: string, size = 42, label?: string, standard?: '2525' | 'APP6') {
+export function createMilitarySymbolSvg(sidc: string, size = 42, label?: string) {
   return new ms.Symbol(sidc, {
     size,
-    standard,
+    standard: '2525',
     // A light halo preserves black linework against dark terrain and UI surfaces.
     outlineColor: '#f8fafc',
     outlineWidth: 3,

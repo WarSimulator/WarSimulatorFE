@@ -3,11 +3,9 @@
 import fs from 'node:fs';
 import ms from 'milsymbol';
 import modern from 'milstandard-e';
-import nato from 'stanag-app6';
 
 const standards = [
   ['2525E', 'MIL-STD-2525E', modern.ms2525e, '2525', '13'],
-  ['APP6D', 'APP-6D', nato.app6d, 'APP6', '10'],
 ];
 const symbols = [];
 const omitted = [];

@@ -21,11 +21,11 @@ function TaskPreview({ task }: { task: TacticalTaskDefinition }) {
     {task.samplePoints.map((p, i) => <g key={i}><circle cx={x(p[0])} cy={y(p[1])} r="7" fill="#1d4ed8" /><text x={x(p[0])} y={y(p[1]) + 3} fill="white" fontSize="9" textAnchor="middle">{i + 1}</text></g>)}
   </svg>;
 }
-export function TacticalTaskPicker({ mode, onModeChange, affiliation, standard, query }: {
+export function TacticalTaskPicker({ mode, onModeChange, affiliation, query }: {
   mode: DeploymentEditorMode; onModeChange: (mode: DeploymentEditorMode) => void; affiliation: DeploymentAffiliation;
-  standard: string; query: string;
+  query: string;
 }) {
-  const tasks = useMemo(() => tacticalTasks.filter(t => (standard === 'all' || t.standard === standard) && taskLabel(t).toLowerCase().includes(query.trim().toLowerCase())), [standard, query]);
+  const tasks = useMemo(() => tacticalTasks.filter(t => taskLabel(t).toLowerCase().includes(query.trim().toLowerCase())), [query]);
   return <section className="space-y-3">
     <h3 className="font-label-caps text-xs text-secondary">전술 과업 · {tasks.length}개</h3>
     <p className="text-xs text-on-surface-variant">카드를 선택한 뒤, 미리보기의 번호 순서대로 지도에 기준점을 찍으세요.</p>
@@ -37,7 +37,7 @@ export function TacticalTaskPicker({ mode, onModeChange, affiliation, standard, 
         onClick={() => onModeChange({ type: 'draw-task', definitionId: task.id, affiliation })}>
         <TaskPreview task={task} />
         <span className="block text-[13px] text-on-surface">{taskLabel(task)}</span>
-        <span className="block text-[11px] text-secondary">{task.standard === '2525E' ? 'MIL-STD-2525E' : 'NATO APP-6D'} · 기준점 {task.minPoints === task.maxPoints ? task.minPoints : `${task.minPoints}–${task.maxPoints}`}개</span>
+        <span className="block text-[11px] text-secondary">MIL-STD-2525E · 기준점 {task.minPoints === task.maxPoints ? task.minPoints : `${task.minPoints}–${task.maxPoints}`}개</span>
       </button>)}
     </div>
   </section>;

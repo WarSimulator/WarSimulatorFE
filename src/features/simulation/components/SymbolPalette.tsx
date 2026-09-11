@@ -2,7 +2,7 @@ import { DrawToolPreview } from './DrawToolPreview';
 import { echelonOptions } from '../lib/echelons';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import type { DeploymentAffiliation, DeploymentEchelon, DeploymentEditorMode, MilitarySymbolDefinition, TacticalGraphicType } from '../../../types';
-import { catalogStandards, createPaletteItem, symbolCatalog } from '../lib/sidc';
+import { createPaletteItem, symbolCatalog } from '../lib/sidc';
 import { getSymbolCategoryLabel } from '../lib/symbolCategoryLabels';
 import { TacticalTaskPicker } from './TacticalTaskPicker';
 import { MilitarySymbol } from './MilitarySymbol';
@@ -39,17 +39,15 @@ export function SymbolPalette({ mode, onModeChange, isOpen, onToggle }: SymbolPa
   const [paletteTab, setPaletteTab] = useState<'symbols' | 'draw'>('symbols');
   const [drawQuery, setDrawQuery] = useState('');
   const [drawCategory, setDrawCategory] = useState('all');
-  const [standard, setStandard] = useState('all');
   const [category, setCategory] = useState('all');
   const [page, setPage] = useState(0);
-  const catalog = useMemo(() => symbolCatalog.filter(item => standard === 'all' || item.standardId === standard), [standard]);
-  const categories = useMemo(() => [...new Set(catalog.map(item => item.category))].sort(), [catalog]);
+  const categories = useMemo(() => [...new Set(symbolCatalog.map(item => item.category))].sort(), []);
   const filtered = useMemo(() => {
     const words = query.trim().toLowerCase().split(/\s+/).filter(Boolean);
-    return catalog.filter(item => (category === 'all' || item.category === category) && words.every(word =>
+    return symbolCatalog.filter(item => (category === 'all' || item.category === category) && words.every(word =>
       `${item.label} ${getSymbolCategoryLabel(item.category)} ${item.standardId ?? ''} ${item.sidc ?? ''} ${item.id}`.toLowerCase().includes(word),
     ));
-  }, [catalog, category, query]);
+  }, [category, query]);
   const pageCount = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
   const currentPage = Math.min(page, pageCount - 1);
   const visible = filtered.slice(currentPage * PAGE_SIZE, (currentPage + 1) * PAGE_SIZE);
@@ -84,15 +82,9 @@ export function SymbolPalette({ mode, onModeChange, isOpen, onToggle }: SymbolPa
           </div>
         </div>
         <div className="overflow-x-auto pb-1">
-        <div className="grid min-w-[690px] grid-cols-[1fr_0.9fr_1.3fr_0.65fr_1.1fr] items-end gap-2">
+        <div className="grid min-w-[590px] grid-cols-[1fr_1.3fr_0.65fr_1.1fr] items-end gap-2">
         <label className="min-w-0 space-y-1"><span className="text-[10px] text-outline">SEARCH (검색)</span>
         <input aria-label={paletteTab === 'symbols' ? 'Search symbols' : 'Search drawing tools'} className={inputClass} placeholder={paletteTab === 'symbols' ? '이름 / SIDC' : '도형 / 과업 검색'} value={paletteTab === 'symbols' ? query : drawQuery} onChange={event => { if (paletteTab === 'symbols') { setQuery(event.target.value); setPage(0); } else { setDrawQuery(event.target.value); } }} />
-        </label>
-        <label className="min-w-0 space-y-1"><span className="text-[10px] text-outline">STANDARD (표준)</span>
-        <select aria-label="Symbol standard" className={inputClass} value={standard} onChange={event => { setStandard(event.target.value); setCategory('all'); setPage(0); }}>
-          <option value="all">All standards</option>
-          {catalogStandards.map(item => <option key={item.id} value={item.id}>{item.label}</option>)}
-        </select>
         </label>
         <label className="min-w-0 space-y-1"><span className="text-[10px] text-outline">CATEGORY (카테고리)</span>
         {paletteTab === 'symbols' ? <select aria-label="Symbol category" title={category === 'all' ? '전체 카테고리' : getSymbolCategoryLabel(category)} className={inputClass} value={category} onChange={event => { setCategory(event.target.value); setPage(0); }}>
@@ -124,7 +116,7 @@ export function SymbolPalette({ mode, onModeChange, isOpen, onToggle }: SymbolPa
       <div hidden={paletteTab !== 'symbols'} className="min-h-0 flex-1 space-y-3 overflow-y-auto overscroll-contain p-4" aria-label="심볼 목록">
         <p role="status" className="font-data-mono text-[10px] text-outline">{filtered.length.toLocaleString()} symbols · Page {currentPage + 1}/{pageCount}</p>
         {visible.length === 0 && <p className="py-4 text-sm text-on-surface-variant">No matching symbols. Try another name or category.</p>}
-        <div className="grid grid-cols-[repeat(auto-fit,minmax(220px,1fr))] gap-2" key={`${standard}:${category}:${query}:${currentPage}`}>
+        <div className="grid grid-cols-[repeat(auto-fit,minmax(220px,1fr))] gap-2" key={`${category}:${query}:${currentPage}`}>
           {visible.map(definition => {
             const item = createPaletteItem({ definition, affiliation, echelon });
             if (item.kind !== 'unit') return null;
@@ -132,7 +124,7 @@ export function SymbolPalette({ mode, onModeChange, isOpen, onToggle }: SymbolPa
             const parts = definition.label.split(' / ');
             return (
               <button key={definition.id} draggable aria-pressed={selected} title={`${definition.label}\n${getSymbolCategoryLabel(definition.category)}\n${item.sidc}`} className={`flex w-full min-w-0 cursor-grab items-center gap-3 rounded border bg-surface p-3 text-left hover:border-secondary active:cursor-grabbing ${selected ? 'border-secondary bg-secondary/10' : 'border-outline-variant'}`} onClick={() => onModeChange({ type: 'place', item })} onDragStart={event => dragSymbol(event, definition)}>
-                <span className="flex h-14 w-14 shrink-0 items-center justify-center rounded bg-slate-100 p-1 [&>span]:max-w-full [&_svg]:h-auto [&_svg]:max-h-12 [&_svg]:max-w-full"><MilitarySymbol sidc={item.sidc} standard={item.symbolStandard} size={34} /></span>
+                <span className="flex h-14 w-14 shrink-0 items-center justify-center rounded bg-slate-100 p-1 [&>span]:max-w-full [&_svg]:h-auto [&_svg]:max-h-12 [&_svg]:max-w-full"><MilitarySymbol sidc={item.sidc} size={34} /></span>
                 <span className="min-w-0">
                   <span className="block break-words font-data-mono text-[13px] text-on-surface">{parts.at(-1)}</span>
                   {parts.length > 1 && <span className="block truncate text-[11px] text-on-surface-variant">{parts.slice(0, -1).join(' / ')}</span>}
@@ -160,7 +152,7 @@ export function SymbolPalette({ mode, onModeChange, isOpen, onToggle }: SymbolPa
             <DrawToolPreview type={tool.type} label={tool.label} /><span className="block">{tool.label}</span>
           </button>)}</div>
         </section>}
-        {drawCategory !== 'basic' && <TacticalTaskPicker mode={mode} onModeChange={onModeChange} affiliation={affiliation} standard={standard} query={drawQuery} />}
+        {drawCategory !== 'basic' && <TacticalTaskPicker mode={mode} onModeChange={onModeChange} affiliation={affiliation} query={drawQuery} />}
       </div>
     </aside>
     </>
