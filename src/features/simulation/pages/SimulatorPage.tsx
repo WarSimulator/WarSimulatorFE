@@ -221,6 +221,7 @@ export function SimulatorPage() {
         runtime={runtime}
         onExit={requestExit}
         onTabChange={(activeTab) => updateRuntime({ activeTab })}
+        onWorldClockCountryChange={(worldClockCountryCode) => updateRuntime({ worldClockCountryCode })}
         viewMode={viewMode}
       />
 

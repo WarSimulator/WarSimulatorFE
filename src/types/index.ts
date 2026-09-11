@@ -146,6 +146,7 @@ export type SimulationRuntimeState = {
   selectedUnitId: string;
   activeTab: 'map' | 'order' | 'analysis';
   tacticalLayers: TacticalLayers;
+  worldClockCountryCode: string;
 };
 
 export type SimulationStatus = 'planning' | 'running' | 'completed' | 'failed';

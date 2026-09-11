@@ -16,14 +16,16 @@ export function createInitialRuntimeState(): SimulationRuntimeState {
       controlLines: true,
       labels: true,
     },
+    worldClockCountryCode: 'KR',
   };
 }
 
 export function formatSimulationClock(seconds: number) {
   const clamped = Math.max(0, Math.floor(seconds));
-  const minutes = String(Math.floor(clamped / 60)).padStart(2, '0');
+  const hours = String(Math.floor(clamped / 3_600)).padStart(2, '0');
+  const minutes = String(Math.floor(clamped % 3_600 / 60)).padStart(2, '0');
   const secs = String(clamped % 60).padStart(2, '0');
-  return `04:${minutes}:${secs}`;
+  return `${hours}:${minutes}:${secs}`;
 }
 
 export function clampSimulationTime(seconds: number) {
