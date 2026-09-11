@@ -7,15 +7,16 @@ type UnitListPanelProps = {
   tacticalLayers: TacticalLayers;
   onSelectUnit: (unitId: string) => void;
   onLayerChange: (layers: TacticalLayers) => void;
+  actionsByUnitId?: Record<string, string>;
 };
 
-export function UnitListPanel({ units, selectedUnitId, tacticalLayers, onSelectUnit, onLayerChange }: UnitListPanelProps) {
+export function UnitListPanel({ units, selectedUnitId, tacticalLayers, onSelectUnit, onLayerChange, actionsByUnitId }: UnitListPanelProps) {
   const setLayer = (key: keyof SimulationRuntimeState['tacticalLayers'], value: boolean) => {
     onLayerChange({ ...tacticalLayers, [key]: value });
   };
 
   return (
-    <aside className="flex h-full w-[300px] flex-col border-r border-outline-variant bg-surface-container/95">
+    <aside className={`flex h-full flex-col border-r border-outline-variant bg-surface-container/95 ${actionsByUnitId ? 'w-[360px]' : 'w-[300px]'}`}>
       <div className="border-b border-outline-variant bg-surface-container-highest p-4">
         <p className="font-label-caps text-label-caps text-on-surface-variant">ACTIVE SCENARIO</p>
         <h2 className="mt-1 font-headline-md text-[17px] text-primary">OP. ALPHA DEFENSE</h2>
@@ -55,9 +56,12 @@ export function UnitListPanel({ units, selectedUnitId, tacticalLayers, onSelectU
                   name={unit.icon}
                   className={`text-[18px] ${unit.allegiance === 'Enemy' ? 'text-error' : unit.allegiance === 'Objective' ? 'text-secondary' : 'text-primary'}`}
                 />
-                <div>
-                  <p className="font-data-mono text-[12px]">{unit.name}</p>
-                  <p className="font-data-mono text-[10px] text-on-surface-variant">{unit.type}</p>
+                <div className="min-w-0 flex-1">
+                  <div className="flex items-center justify-between gap-2">
+                    <p className="truncate font-data-mono text-[12px]">{unit.name}</p>
+                    {actionsByUnitId && <span className={`shrink-0 rounded border px-2 py-0.5 font-data-mono text-[10px] ${actionsByUnitId[unit.id] === '대기' ? 'border-outline-variant text-on-surface-variant' : 'border-secondary/60 bg-secondary/10 text-secondary'}`}>{actionsByUnitId[unit.id] ?? '대기'}</span>}
+                  </div>
+                  <p className="truncate font-data-mono text-[10px] text-on-surface-variant">{unit.type}</p>
                 </div>
               </button>
             ))}

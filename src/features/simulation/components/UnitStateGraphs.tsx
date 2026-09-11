@@ -25,10 +25,10 @@ export const UnitStateGraphs = memo(function UnitStateGraphs({ command, readines
   const marker = `fsm-arrow-${useId().replace(/:/g, '')}`;
   const arrow = `url(#${marker})`;
   return (
-    <section className="space-y-3" aria-label="선택 유닛 FSM 상태도">
-      <div className="rounded border border-outline-variant bg-surface p-2">
+    <section className="grid grid-cols-2 items-start gap-3" aria-label="선택 유닛 FSM 상태도">
+      <div className="min-w-0 rounded border border-outline-variant bg-surface p-2">
         <h3 className="font-label-caps text-[10px] text-on-surface-variant">Command FSM</h3>
-        <svg viewBox="0 0 280 170" className="mt-1 w-full" role="img"
+        <svg viewBox="0 0 280 170" className="mt-1 max-h-[160px] w-full" role="img"
           aria-label={`Command FSM 현재 상태: ${command ?? '정보 없음'}`}>
           <defs>
             <marker id={marker} viewBox="0 0 8 8" refX="7" refY="4" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
@@ -55,9 +55,9 @@ export const UnitStateGraphs = memo(function UnitStateGraphs({ command, readines
         <p className="font-data-mono text-[10px] text-secondary">● 현재: {command ?? '정보 없음'}</p>
       </div>
 
-      <div className="rounded border border-outline-variant bg-surface p-2">
+      <div className="min-w-0 rounded border border-outline-variant bg-surface p-2">
         <h3 className="font-label-caps text-[10px] text-on-surface-variant">Readiness FSM</h3>
-        <svg viewBox="0 0 280 146" className="mt-1 w-full" role="img"
+        <svg viewBox="0 0 280 146" className="mt-1 max-h-[160px] w-full" role="img"
           aria-label={`Readiness FSM 현재 상태: ${readiness ?? '정보 없음'}`}>
           <g fill="none" className="stroke-outline" strokeWidth="1" markerEnd={arrow}>
             <path d="M124 34 H156" />

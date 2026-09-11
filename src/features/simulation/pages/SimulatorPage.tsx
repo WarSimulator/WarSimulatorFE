@@ -1,4 +1,3 @@
-import { AtomicActionView } from '../components/AtomicActionView';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { createInitialRuntimeState, SIMULATION_PLAYBACK_RATE } from '../lib/runtime';
@@ -73,6 +72,16 @@ export function SimulatorPage() {
     ) ?? rosterUnits[0],
     [agentRuntime, deployment, rosterUnits, runtime.selectedUnitId, runtime.simulationTime, simulationResult],
   );
+  const currentActions = useMemo(() => Object.fromEntries(rosterUnits.map((unit) => {
+    const effect = (simulationResult.actionEffects ?? []).find(item =>
+      item.unitId === unit.id && item.startTime <= runtime.simulationTime && runtime.simulationTime < item.endTime,
+    );
+    if (effect) return [unit.id, effect.action];
+    const segment = simulationResult.unitTracks.find(track => track.unitId === unit.id)?.segments.find(item =>
+      item.startTime <= runtime.simulationTime && runtime.simulationTime < item.endTime,
+    );
+    return [unit.id, segment && segment.action.toLowerCase() !== 'hold' ? segment.action : '대기'];
+  })), [rosterUnits, runtime.simulationTime, simulationResult]);
 
   useEffect(() => {
     const channel = new BroadcastChannel(`atlas-simulation-${simulationId ?? 'current'}`);
@@ -221,12 +230,10 @@ export function SimulatorPage() {
             tacticalLayers={runtime.tacticalLayers}
             onSelectUnit={selectUnit}
             onLayerChange={setTacticalLayers}
+            actionsByUnitId={currentActions}
           />
           <main className="min-w-0 flex-1 overflow-y-auto bg-surface p-4">
-            <div className="grid items-start gap-4 xl:grid-cols-[minmax(0,1.35fr)_minmax(420px,0.65fr)]">
-              <AtomicActionView result={simulationResult} simulationTime={runtime.simulationTime} unitId={runtime.selectedUnitId} onSelectUnit={selectUnit} />
-              {selectedUnit && <UnitDetailPanel unit={selectedUnit} wide />}
-            </div>
+            {selectedUnit && <UnitDetailPanel unit={selectedUnit} wide />}
           </main>
         </div>
       ) : (
