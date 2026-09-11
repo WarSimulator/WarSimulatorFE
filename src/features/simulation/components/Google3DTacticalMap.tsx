@@ -24,6 +24,14 @@ export type Maps3DLibrary = {
 };
 type GoogleMapsRuntime = { maps: { importLibrary: (name: string) => Promise<unknown> } };
 
+// A mesh follows the visible 3D surface (terrain, buildings, and vegetation),
+// unlike the bare-earth ground model. Densifying paths keeps straight segments
+// from cutting through a ridge or structure between distant control points.
+export const SURFACE_ALTITUDE_MODE = 'RELATIVE_TO_MESH';
+export const SURFACE_DRAWS_OCCLUDED_SEGMENTS = false;
+const SURFACE_SAMPLE_METERS = 25;
+const MAX_SURFACE_SAMPLES_PER_SEGMENT = 128;
+
 let googleMapsLoad: Promise<GoogleMapsRuntime> | undefined;
 
 export function loadGoogleMaps(apiKey: string) {
@@ -66,6 +74,23 @@ function getCameraRange(result: SimulationResult, center: Position3D) {
     return Math.max(maximum, Math.hypot(latitudeMeters, longitudeMeters));
   }, 0);
   return Math.max(1_500, Math.min(30_000, farthest * 3));
+}
+
+export function toSurfacePath(points: readonly Position3D[]): Position3D[] {
+  if (points.length < 2) return [...points];
+  const path: Position3D[] = [{ lat: points[0].lat, lng: points[0].lng }];
+  for (let index = 1; index < points.length; index += 1) {
+    const start = points[index - 1];
+    const end = points[index];
+    const latitudeMeters = (end.lat - start.lat) * 111_000;
+    const longitudeMeters = (end.lng - start.lng) * 111_000 * Math.cos(((start.lat + end.lat) / 2) * Math.PI / 180);
+    const samples = Math.max(1, Math.min(MAX_SURFACE_SAMPLES_PER_SEGMENT, Math.ceil(Math.hypot(latitudeMeters, longitudeMeters) / SURFACE_SAMPLE_METERS)));
+    for (let sample = 1; sample <= samples; sample += 1) {
+      const ratio = sample / samples;
+      path.push({ lat: start.lat + (end.lat - start.lat) * ratio, lng: start.lng + (end.lng - start.lng) * ratio });
+    }
+  }
+  return path;
 }
 
 function positionsAtTime(result: SimulationResult, units: SimulationUnit[], time: number) {
@@ -121,9 +146,9 @@ export function Google3DTacticalMap({ runtime, playbackRef, units, result, deplo
           for (const segment of track.segments) {
             if (segment.keyframes.length < 2) continue;
             map.append(new library.Polyline3DElement({
-              path: segment.keyframes.map(frame => ({ lat: frame.position.latitude, lng: frame.position.longitude })),
+              path: toSurfacePath(segment.keyframes.map(frame => ({ lat: frame.position.latitude, lng: frame.position.longitude }))),
               strokeColor: '#ffb95f', outerColor: '#121212', strokeWidth: 5, outerWidth: 0.3,
-              altitudeMode: 'RELATIVE_TO_GROUND', drawsOccludedSegments: true,
+              altitudeMode: SURFACE_ALTITUDE_MODE, drawsOccludedSegments: SURFACE_DRAWS_OCCLUDED_SEGMENTS,
             }));
           }
         }
@@ -131,13 +156,13 @@ export function Google3DTacticalMap({ runtime, playbackRef, units, result, deplo
         for (const graphic of deployment?.tacticalGraphics ?? []) {
           if (graphic.geometry.type === 'Polygon') {
             map.append(new library.Polygon3DElement({
-              path: graphic.geometry.coordinates[0].map(([lng, lat]) => ({ lat, lng })), fillColor: '#80d8ff33',
-              strokeColor: '#80d8ff', strokeWidth: 3, altitudeMode: 'RELATIVE_TO_GROUND', drawsOccludedSegments: true,
+              path: toSurfacePath(graphic.geometry.coordinates[0].map(([lng, lat]) => ({ lat, lng }))), fillColor: '#80d8ff33',
+              strokeColor: '#80d8ff', strokeWidth: 3, altitudeMode: SURFACE_ALTITUDE_MODE, drawsOccludedSegments: SURFACE_DRAWS_OCCLUDED_SEGMENTS,
             }));
           } else {
             map.append(new library.Polyline3DElement({
-              path: graphic.geometry.coordinates.map(([lng, lat]) => ({ lat, lng })), strokeColor: '#80d8ff', strokeWidth: 4,
-              altitudeMode: 'RELATIVE_TO_GROUND', drawsOccludedSegments: true,
+              path: toSurfacePath(graphic.geometry.coordinates.map(([lng, lat]) => ({ lat, lng }))), strokeColor: '#80d8ff', strokeWidth: 4,
+              altitudeMode: SURFACE_ALTITUDE_MODE, drawsOccludedSegments: SURFACE_DRAWS_OCCLUDED_SEGMENTS,
             }));
           }
         }

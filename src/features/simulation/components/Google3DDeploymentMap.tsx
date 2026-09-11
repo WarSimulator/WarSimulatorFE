@@ -11,7 +11,16 @@ import { DEFAULT_MAP_CENTER } from '../lib/mapConfig';
 import { createGeoPosition, getLngLat } from '../lib/position';
 import { createMilitarySymbolSvg } from '../lib/symbolSvg';
 import { createTaskGraphic, getTacticalTask } from '../lib/tacticalTasks';
-import { loadGoogleMaps, type Map3DNode, type Maps3DLibrary, type Marker3DNode, type Position3D } from './Google3DTacticalMap';
+import {
+  loadGoogleMaps,
+  SURFACE_ALTITUDE_MODE,
+  SURFACE_DRAWS_OCCLUDED_SEGMENTS,
+  toSurfacePath,
+  type Map3DNode,
+  type Maps3DLibrary,
+  type Marker3DNode,
+  type Position3D,
+} from './Google3DTacticalMap';
 
 type Props = {
   deployment: DeploymentSetup;
@@ -178,10 +187,15 @@ export function Google3DDeploymentMap({ deployment, selectedEntityId, mode, onCh
     const append = (node: HTMLElement) => { overlaysRef.current.push(node); map.append(node); };
     deployment.tacticalGraphics.forEach(graphic => {
       const selected = graphic.id === selectedEntityId;
-      const common = { strokeColor: selected ? '#ffb95f' : '#80d8ff', strokeWidth: selected ? 7 : 4, altitudeMode: 'RELATIVE_TO_GROUND', drawsOccludedSegments: true };
+      const common = {
+        strokeColor: selected ? '#ffb95f' : '#80d8ff',
+        strokeWidth: selected ? 7 : 4,
+        altitudeMode: SURFACE_ALTITUDE_MODE,
+        drawsOccludedSegments: SURFACE_DRAWS_OCCLUDED_SEGMENTS,
+      };
       const node = graphic.geometry.type === 'Polygon'
-        ? new library.Polygon3DElement({ ...common, path: graphic.geometry.coordinates[0].map(([lng, lat]) => ({ lng, lat })), fillColor: selected ? '#ffb95f44' : '#80d8ff33' })
-        : new library.Polyline3DElement({ ...common, path: graphic.geometry.coordinates.map(([lng, lat]) => ({ lng, lat })) });
+        ? new library.Polygon3DElement({ ...common, path: toSurfacePath(graphic.geometry.coordinates[0].map(([lng, lat]) => ({ lng, lat }))), fillColor: selected ? '#ffb95f44' : '#80d8ff33' })
+        : new library.Polyline3DElement({ ...common, path: toSurfacePath(graphic.geometry.coordinates.map(([lng, lat]) => ({ lng, lat }))) });
       append(node);
     });
     deployment.objectives.forEach(objective => {

@@ -1,0 +1,38 @@
+{
+  "generatedAt": "2026-09-11T00:58:56.609Z",
+  "renderer": {
+    "package": "milsymbol",
+    "version": "3.0.4",
+    "imageFormat": "SVG",
+    "size": 128
+  },
+  "scope": "MIL-STD-2525E catalog symbols rendered once per base symbol; no affiliation or echelon augmentation.",
+  "classes": {
+    "baseSymbols": 1357,
+    "standards": 1,
+    "categories": {
+      "Land unit": 214,
+      "Land equipment": 206,
+      "Air": 53,
+      "Sea surface": 93,
+      "Sea subsurface": 22,
+      "Space": 36,
+      "Activity/Event": 152,
+      "Air missile": 1,
+      "Control measure": 264,
+      "Cyberspace": 43,
+      "Dismounted individuals": 45,
+      "Land civilian unit/Organization": 11,
+      "Land installations": 131,
+      "Mine warfare": 65,
+      "Signals Intelligence – Air": 4,
+      "Signals Intelligence – Land": 4,
+      "Signals Intelligence – Space": 4,
+      "Signals Intelligence – Subsurface": 4,
+      "Signals Intelligence – Surface": 4,
+      "Space Missile": 1
+    }
+  },
+  "examples": 1357,
+  "manifest": "manifest.jsonl"
+}
