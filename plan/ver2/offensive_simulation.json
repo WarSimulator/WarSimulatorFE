@@ -1,0 +1,69 @@
+{
+  "status": "tfd-complete",
+  "complete": true,
+  "scenario_id": "obj-slam-mock-v2",
+  "form_option": "PenetrationOption",
+  "time_unit": "simulation-step",
+  "source": "TFD PenetrationOption result enriched for ATLAS visualization-only replay",
+  "temporal_plan": {
+    "steps": [
+      {
+        "sequence": 1,
+        "start": 0,
+        "duration": 6,
+        "end": 6,
+        "pddl_action": "aa-move",
+        "action_key": "move",
+        "action": "Move",
+        "actor_unit_id": "blue-main-tank",
+        "parameters": { "source": "current_position", "destination": "obj-slam" }
+      },
+      {
+        "sequence": 2,
+        "start": 6,
+        "duration": 4,
+        "end": 10,
+        "pddl_action": "aa-seize",
+        "action_key": "seize",
+        "action": "Seize",
+        "actor_unit_id": "blue-main-tank",
+        "parameters": { "target": "obj-slam" }
+      },
+      {
+        "sequence": 3,
+        "start": 10,
+        "duration": 4,
+        "end": 14,
+        "pddl_action": "aa-establish_security",
+        "action_key": "establish_security",
+        "action": "Establish Security",
+        "actor_unit_id": "blue-reserve",
+        "parameters": { "target": "obj-slam" }
+      },
+      {
+        "sequence": 4,
+        "start": 14,
+        "duration": 5,
+        "end": 19,
+        "pddl_action": "aa-breach",
+        "action_key": "breach",
+        "action": "Breach",
+        "actor_unit_id": "blue-engineer",
+        "parameters": { "target": "breach-lane" }
+      },
+      {
+        "sequence": 5,
+        "start": 19,
+        "duration": 5,
+        "end": 24,
+        "pddl_action": "aa-clear",
+        "action_key": "clear",
+        "action": "Clear",
+        "actor_unit_id": "blue-main-tank",
+        "parameters": { "target": "obj-slam" }
+      }
+    ],
+    "step_count": 5,
+    "makespan": 24
+  }
+}

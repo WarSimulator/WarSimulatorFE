@@ -4,7 +4,7 @@ import { DEFAULT_MAP_CENTER } from '../lib/mapConfig';
 import { getTrackPositionsAtTime, getUnitPositionAtTime } from '../lib/playback';
 import { buildObservationSector, getActiveObservationEffects } from '../lib/observation';
 import { resolvePlanReference } from '../lib/planReferenceMapping';
-import { createMilitarySymbolSvg } from '../lib/symbolSvg';
+import { createMilitarySymbolSvg, get3DUnitSymbolSize } from '../lib/symbolSvg';
 import { createOverlayStore, createOverlaySchedule } from '../lib/google3DOverlayStore';
 type ActionOverlayStore = ReturnType<typeof createOverlayStore>;
 
@@ -41,6 +41,9 @@ export const SURFACE_ALTITUDE_MODE = 'RELATIVE_TO_MESH';
 export const SURFACE_DRAWS_OCCLUDED_SEGMENTS = false;
 const SURFACE_SAMPLE_METERS = 25;
 const MAX_SURFACE_SAMPLES_PER_SEGMENT = 128;
+const PHASE_LINE_DASH_METERS = 100;
+const PHASE_LINE_GAP_METERS = 50;
+const PHASE_LINE_DRAWS_OCCLUDED_SEGMENTS = true;
 const ACTION_OVERLAY_INTERVAL_MS = 75;
 const FIRE_ACTIONS = new Set(['Engage', 'Continue to Engage', 'Fight', 'Ambush', 'Disrupt']);
 const ACTION_COLORS: Record<string, string> = {
@@ -113,6 +116,93 @@ export function toSurfacePath(points: readonly Position3D[]): Position3D[] {
     }
   }
   return path;
+}
+
+function createPhaseLineLabel(library: Maps3DLibrary, position: Position3D, name: string) {
+  const marker = new library.Marker3DInteractiveElement({
+    position,
+    altitudeMode: 'CLAMP_TO_GROUND',
+    title: name,
+    sizePreserved: true,
+    zIndex: 10,
+  });
+  const label = document.createElement('span');
+  label.textContent = name;
+  Object.assign(label.style, {
+    color: '#ffffff',
+    fontFamily: 'Roboto, Arial, sans-serif',
+    fontSize: '13px',
+    fontWeight: '700',
+    textShadow: '0 0 3px #121212, 0 0 3px #121212, 0 0 3px #121212',
+    whiteSpace: 'nowrap',
+  });
+  marker.style.pointerEvents = 'none';
+  marker.append(label);
+  return marker;
+}
+
+export function createPhaseLineNodes(library: Maps3DLibrary, points: readonly Position3D[], name: string, strokeWidth = 4) {
+  const nodes: HTMLElement[] = [];
+  const dashPaths: Position3D[][] = [];
+  let drawing = true;
+  let remaining = PHASE_LINE_DASH_METERS;
+  let dash: Position3D[] = [];
+  // Split by distance, preserving the pattern through control points. The
+  // general surface sampler is capped at 128 points and cannot define dashes.
+  for (let index = 1; index < points.length; index += 1) {
+    const start = points[index - 1];
+    const end = points[index];
+    const length = Math.hypot(
+      (end.lat - start.lat) * 111_000,
+      (end.lng - start.lng) * 111_000 * Math.cos((start.lat + end.lat) / 2 * Math.PI / 180),
+    );
+    if (!Number.isFinite(length) || length < 0.001) continue;
+    const at = (distance: number): Position3D => ({
+      lat: start.lat + (end.lat - start.lat) * distance / length,
+      lng: start.lng + (end.lng - start.lng) * distance / length,
+    });
+    let offset = 0;
+    while (length - offset > 0.001) {
+      const step = Math.min(remaining, length - offset);
+      if (drawing) {
+        if (!dash.length) dash.push(at(offset));
+        dash.push(at(offset + step));
+      }
+      offset += step;
+      remaining -= step;
+      if (remaining < 0.001) {
+        if (drawing && dash.length > 1) dashPaths.push(dash);
+        dash = [];
+        drawing = !drawing;
+        remaining = drawing ? PHASE_LINE_DASH_METERS : PHASE_LINE_GAP_METERS;
+      }
+    }
+  }
+  if (dash.length > 1) dashPaths.push(dash);
+
+  for (const path of dashPaths) {
+    nodes.push(new library.Polyline3DElement({
+      path,
+      strokeColor: '#ffffff',
+      outerColor: '#121212',
+      outerWidth: 0.3,
+      strokeWidth,
+      // Drape the entire line on terrain instead of connecting elevated
+      // mesh-relative vertices, which can intersect intervening ridges.
+      altitudeMode: 'CLAMP_TO_GROUND',
+      drawsOccludedSegments: PHASE_LINE_DRAWS_OCCLUDED_SEGMENTS,
+    }));
+  }
+
+  if (points.length) {
+    const first = points[0];
+    const last = points[points.length - 1];
+    const [upperEnd, lowerEnd] = first.lat >= last.lat ? [first, last] : [last, first];
+    nodes.push(createPhaseLineLabel(library, upperEnd, name));
+    nodes.push(createPhaseLineLabel(library, lowerEnd, name));
+  }
+
+  return nodes;
 }
 
 function position3D(position: SimulationResultPosition): Position3D {
@@ -313,6 +403,14 @@ export function Google3DTacticalMap({ runtime, playbackRef, units, result, deplo
             });
             staticLayersRef.current.controlLines.push(controlLine);
             map.append(controlLine);
+          } else if (graphic.type === 'phase-line') {
+            const phaseLineNodes = createPhaseLineNodes(
+              library,
+              graphic.geometry.coordinates.map(([lng, lat]) => ({ lat, lng })),
+              graphic.name ?? 'Phase Line',
+            );
+            staticLayersRef.current.controlLines.push(...phaseLineNodes);
+            phaseLineNodes.forEach(node => map.append(node));
           } else {
             const controlLine = new library.Polyline3DElement({
               path: toSurfacePath(graphic.geometry.coordinates.map(([lng, lat]) => ({ lat, lng }))), strokeColor: '#80d8ff', strokeWidth: 4,
@@ -341,7 +439,7 @@ export function Google3DTacticalMap({ runtime, playbackRef, units, result, deplo
             ...markerText(unit.name), sizePreserved: true, collisionBehavior: 'REQUIRED',
           });
           const template = document.createElement('template');
-          template.innerHTML = createMilitarySymbolSvg(unit.sidc, 56);
+          template.innerHTML = createMilitarySymbolSvg(unit.sidc, get3DUnitSymbolSize(unit.symbolScale));
           marker.append(template);
           marker.addEventListener('gmp-click', () => onSelectUnit(unit.id));
           markersRef.current.set(unit.id, marker);

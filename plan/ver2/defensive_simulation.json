@@ -1,0 +1,113 @@
+{
+  "status": "tfd-complete",
+  "complete": true,
+  "scenario_id": "obj-slam-mock-v2",
+  "form_option": "AreaDefenseOption",
+  "time_unit": "simulation-step",
+  "source": "TFD AreaDefenseOption result enriched for ATLAS visualization-only replay",
+  "temporal_plan": {
+    "steps": [
+      {
+        "sequence": 1,
+        "start": 0,
+        "duration": 3,
+        "end": 3,
+        "pddl_action": "aa-clear",
+        "action_key": "clear",
+        "action": "Clear",
+        "actor_unit_id": "red-screen",
+        "parameters": { "target": "defense-line" }
+      },
+      {
+        "sequence": 2,
+        "start": 0,
+        "duration": 5,
+        "end": 5,
+        "pddl_action": "aa-observe",
+        "action_key": "observe",
+        "action": "Observe",
+        "actor_unit_id": "red-recon",
+        "parameters": { "target": "blue-main-tank", "sensor_range_m": 2400, "field_of_view_deg": 55 }
+      },
+      {
+        "sequence": 3,
+        "start": 5,
+        "duration": 2,
+        "end": 7,
+        "pddl_action": "aa-identify",
+        "action_key": "identify",
+        "action": "Identify",
+        "actor_unit_id": "red-recon",
+        "parameters": { "target": "blue-main-tank" }
+      },
+      {
+        "sequence": 4,
+        "start": 7,
+        "duration": 5,
+        "end": 12,
+        "pddl_action": "aa-move",
+        "action_key": "move",
+        "action": "Move",
+        "actor_unit_id": "red-armor",
+        "parameters": { "source": "current_position", "destination": "defense-line" }
+      },
+      {
+        "sequence": 5,
+        "start": 12,
+        "duration": 3,
+        "end": 15,
+        "pddl_action": "aa-seize",
+        "action_key": "seize",
+        "action": "Seize",
+        "actor_unit_id": "red-armor",
+        "parameters": { "target": "obj-slam" }
+      },
+      {
+        "sequence": 6,
+        "start": 15,
+        "duration": 4,
+        "end": 19,
+        "pddl_action": "aa-establish_security",
+        "action_key": "establish_security",
+        "action": "Establish Security",
+        "actor_unit_id": "red-screen",
+        "parameters": { "target": "defense-line" }
+      },
+      {
+        "sequence": 7,
+        "start": 19,
+        "duration": 5,
+        "end": 24,
+        "pddl_action": "aa-contain",
+        "action_key": "contain",
+        "action": "Contain",
+        "actor_unit_id": "red-armor",
+        "parameters": { "target": "blue-main-tank" }
+      },
+      {
+        "sequence": 8,
+        "start": 24,
+        "duration": 4,
+        "end": 28,
+        "pddl_action": "aa-breach",
+        "action_key": "breach",
+        "action": "Breach",
+        "actor_unit_id": "red-armor",
+        "parameters": { "target": "breach-lane" }
+      },
+      {
+        "sequence": 9,
+        "start": 28,
+        "duration": 5,
+        "end": 33,
+        "pddl_action": "aa-disrupt",
+        "action_key": "disrupt",
+        "action": "Disrupt",
+        "actor_unit_id": "red-artillery",
+        "parameters": { "target": "blue-main-tank" }
+      }
+    ],
+    "step_count": 9,
+    "makespan": 33
+  }
+}

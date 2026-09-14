@@ -1,0 +1,19 @@
+{
+  "generatedAt": "2026-09-14T02:26:12.628Z",
+  "renderer": {
+    "package": "@armyc2.c5isr.renderer/mil-sym-ts-web",
+    "imageFormat": "SVG"
+  },
+  "scope": "Every visible entry in the Simulator DRAW + tactical-task palette. Tactical tasks use the generated UI preview geometry; point tasks use the bundled MIL-STD icon renderer.",
+  "classes": {
+    "basicDrawTools": 6,
+    "tacticalTasks": 44,
+    "tacticalPointTasks": 5,
+    "standards": [
+      "ATLAS DRAW",
+      "2525E"
+    ]
+  },
+  "examples": 50,
+  "manifest": "manifest.jsonl"
+}

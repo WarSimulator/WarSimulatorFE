@@ -1,6 +1,6 @@
 import type { StyleSpecification } from 'maplibre-gl';
 
-export const DEFAULT_MAP_CENTER: [number, number] = [-118.2437, 34.0522];
+export const DEFAULT_MAP_CENTER: [number, number] = [126.9780, 37.5665];
 export const DEFAULT_MAP_ZOOM = 12;
 
 export function getMapStyleUrl() {

@@ -1,5 +1,8 @@
 import ms from 'milsymbol';
 
+const THREE_D_UNIT_SYMBOL_SIZE = 28;
+const THREE_D_SELECTED_UNIT_SYMBOL_SIZE = 33;
+
 export function createMilitarySymbolSvg(sidc: string, size = 42, label?: string) {
   return new ms.Symbol(sidc, {
     size,
@@ -11,6 +14,12 @@ export function createMilitarySymbolSvg(sidc: string, size = 42, label?: string)
     uniqueDesignation: label ?? '',
     infoFields: Boolean(label),
   }).asSVG();
+}
+
+/** Keep 3D markers compact while honoring the deployment's Symbol Size control. */
+export function get3DUnitSymbolSize(symbolScale?: number, selected = false) {
+  const scale = Number.isFinite(symbolScale) ? Math.max(0.1, symbolScale!) : 1;
+  return (selected ? THREE_D_SELECTED_UNIT_SYMBOL_SIZE : THREE_D_UNIT_SYMBOL_SIZE) * scale;
 }
 
 export function createObjectiveSvg(size = 42) {

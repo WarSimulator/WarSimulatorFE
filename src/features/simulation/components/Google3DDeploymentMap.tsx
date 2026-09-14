@@ -9,10 +9,11 @@ import type {
 } from '../../../types';
 import { DEFAULT_MAP_CENTER } from '../lib/mapConfig';
 import { createGeoPosition, getLngLat } from '../lib/position';
-import { createMilitarySymbolSvg } from '../lib/symbolSvg';
+import { createMilitarySymbolSvg, get3DUnitSymbolSize } from '../lib/symbolSvg';
 import { createTaskGraphic, getTacticalTask } from '../lib/tacticalTasks';
 import {
   loadGoogleMaps,
+  createPhaseLineNodes,
   SURFACE_ALTITUDE_MODE,
   SURFACE_DRAWS_OCCLUDED_SEGMENTS,
   toSurfacePath,
@@ -43,11 +44,8 @@ function nextUnitDesignation(units: DeploymentUnit[], item: Extract<DeploymentPa
   return `${item.affiliation === 'friendly' ? 'Friendly' : 'Enemy'} ${item.label.split(' / ').at(-1)} ${count}`;
 }
 
-function centerOf(deployment: DeploymentSetup): Position3D {
-  if (deployment.mapView?.center) return { lng: deployment.mapView.center[0], lat: deployment.mapView.center[1], altitude: 0 };
-  const points = [...deployment.units.map(unit => getLngLat(unit.position)), ...deployment.objectives.map(item => getLngLat(item.position))];
-  if (!points.length) return { lng: DEFAULT_MAP_CENTER[0], lat: DEFAULT_MAP_CENTER[1], altitude: 0 };
-  return { lng: points.reduce((sum, point) => sum + point[0], 0) / points.length, lat: points.reduce((sum, point) => sum + point[1], 0) / points.length, altitude: 0 };
+function getInitialEditorCenter(): Position3D {
+  return { lng: DEFAULT_MAP_CENTER[0], lat: DEFAULT_MAP_CENTER[1], altitude: 0 };
 }
 
 function modeText(mode: DeploymentEditorMode) {
@@ -77,7 +75,7 @@ export function Google3DDeploymentMap({ deployment, selectedEntityId, mode, onCh
   const [relocate, setRelocate] = useState(false);
   const [ready, setReady] = useState(false);
   const [error, setError] = useState('');
-  const center = useMemo(() => centerOf(deployment), []);
+  const center = useMemo(() => getInitialEditorCenter(), []);
 
   useEffect(() => { deploymentRef.current = deployment; }, [deployment]);
   useEffect(() => { modeRef.current = mode; drawPointsRef.current = []; setDrawPointCount(0); setRelocate(false); relocateRef.current = false; }, [mode.type]);
@@ -187,6 +185,15 @@ export function Google3DDeploymentMap({ deployment, selectedEntityId, mode, onCh
     const append = (node: HTMLElement) => { overlaysRef.current.push(node); map.append(node); };
     deployment.tacticalGraphics.forEach(graphic => {
       const selected = graphic.id === selectedEntityId;
+      if (graphic.type === 'phase-line' && graphic.geometry.type === 'LineString') {
+        createPhaseLineNodes(
+          library,
+          graphic.geometry.coordinates.map(([lng, lat]) => ({ lng, lat })),
+          graphic.name ?? 'Phase Line',
+          selected ? 7 : 4,
+        ).forEach(append);
+        return;
+      }
       const common = {
         strokeColor: selected ? '#ffb95f' : '#80d8ff',
         strokeWidth: selected ? 7 : 4,
@@ -215,7 +222,7 @@ export function Google3DDeploymentMap({ deployment, selectedEntityId, mode, onCh
       const [lng, lat] = getLngLat(unit.position);
       const marker: Marker3DNode = new library.Marker3DInteractiveElement({ position: { lng, lat }, ...markerText(unit.designation), sizePreserved: true, zIndex: unit.id === selectedEntityId ? 100 : 3 });
       const template = document.createElement('template');
-      template.innerHTML = createMilitarySymbolSvg(unit.sidc, unit.id === selectedEntityId ? 66 : 56);
+      template.innerHTML = createMilitarySymbolSvg(unit.sidc, get3DUnitSymbolSize(unit.symbolScale, unit.id === selectedEntityId));
       marker.append(template);
       marker.style.cursor = 'grab';
       marker.addEventListener('gmp-click', event => {
