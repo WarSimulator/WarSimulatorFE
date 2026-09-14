@@ -8,11 +8,20 @@ import type { DeploymentSetup, SimulationResult, SimulationUnit, UnitAgentState 
 import { getUnitSidc } from './sidc';
 import { getFinalSimulation, getFinalSimulationDeployment } from './finalSimulation';
 import { getUnitAgentState } from './unitAgent';
+import { translateDeployment, translateSimulationResult } from './translateScenario';
 
 const result = pipelineSimulationResult as SimulationResult;
 const exampleDeployment = pipelineDeployment as DeploymentSetup;
-const alphaDeploymentExample = alphaLocalStorageDeployment as unknown as DeploymentSetup;
-const alphaResultExample = alphaLocalStorageSimulationResult as SimulationResult;
+const alphaSourceDeployment = alphaLocalStorageDeployment as unknown as DeploymentSetup;
+// 대청봉을 중심으로 기존 배치의 상대 거리와 방향을 그대로 유지한다.
+const SEORAKSAN_CENTER: [number, number] = [128.4656, 38.1195];
+const alphaSourceCenter = alphaSourceDeployment.mapView?.center ?? SEORAKSAN_CENTER;
+const alphaDeploymentExample = translateDeployment(alphaSourceDeployment, SEORAKSAN_CENTER);
+const alphaResultExample = translateSimulationResult(
+  alphaLocalStorageSimulationResult as SimulationResult,
+  SEORAKSAN_CENTER[0] - alphaSourceCenter[0],
+  SEORAKSAN_CENTER[1] - alphaSourceCenter[1],
+);
 
 const actorPresentation: Record<string, Pick<SimulationUnit, 'name' | 'type' | 'icon'>> = {
   alpha_coy: {
