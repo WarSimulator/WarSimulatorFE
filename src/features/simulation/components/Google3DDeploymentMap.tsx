@@ -8,6 +8,7 @@ import type {
   TacticalGraphicType,
 } from '../../../types';
 import { DEFAULT_MAP_CENTER } from '../lib/mapConfig';
+import { graphicColor } from '../lib/graphicColor';
 import { createGeoPosition, getLngLat } from '../lib/position';
 import { createMilitarySymbolSvg } from '../lib/symbolSvg';
 import { createTaskGraphic, getTacticalTask } from '../lib/tacticalTasks';
@@ -165,7 +166,7 @@ export function Google3DDeploymentMap({ deployment, selectedEntityId, mode, onCh
         const google = await loadGoogleMaps(apiKey);
         const library = await google.maps.importLibrary('maps3d') as Maps3DLibrary;
         if (cancelled || !containerRef.current) return;
-        const map = new library.Map3DElement({ center, range: 8500, tilt: 58, heading: 0, mode: 'SATELLITE' });
+        const map = new library.Map3DElement({ center, range: 8500, tilt: 58, heading: 0, mode: 'HYBRID' });
         map.style.width = '100%'; map.style.height = '100%';
         map.addEventListener('gmp-click', event => {
           const position = (event as MapClickEvent).position;
@@ -187,14 +188,15 @@ export function Google3DDeploymentMap({ deployment, selectedEntityId, mode, onCh
     const append = (node: HTMLElement) => { overlaysRef.current.push(node); map.append(node); };
     deployment.tacticalGraphics.forEach(graphic => {
       const selected = graphic.id === selectedEntityId;
+      const color = graphicColor(graphic);
       const common = {
-        strokeColor: selected ? '#ffb95f' : '#80d8ff',
+        strokeColor: color,
         strokeWidth: selected ? 7 : 4,
         altitudeMode: SURFACE_ALTITUDE_MODE,
         drawsOccludedSegments: SURFACE_DRAWS_OCCLUDED_SEGMENTS,
       };
       const node = graphic.geometry.type === 'Polygon'
-        ? new library.Polygon3DElement({ ...common, path: toSurfacePath(graphic.geometry.coordinates[0].map(([lng, lat]) => ({ lng, lat }))), fillColor: selected ? '#ffb95f44' : '#80d8ff33' })
+        ? new library.Polygon3DElement({ ...common, path: toSurfacePath(graphic.geometry.coordinates[0].map(([lng, lat]) => ({ lng, lat }))), fillColor: `${color}${selected ? '44' : '22'}` })
         : new library.Polyline3DElement({ ...common, path: toSurfacePath(graphic.geometry.coordinates.map(([lng, lat]) => ({ lng, lat }))) });
       append(node);
     });

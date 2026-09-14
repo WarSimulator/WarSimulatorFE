@@ -1,0 +1,38 @@
+{
+  "status":"tfd-complete",
+  "complete":true,
+  "scenario_id":"seoraksan-obj-slam",
+  "form_option":"PenetrationOption",
+  "time_unit":"simulation-step",
+  "temporal_plan":{
+    "steps":[
+      {"sequence":1,"start":0,"duration":4,"end":4,"pddl_action":"aa-move","action_key":"move","action":"Move","actor_unit_id":"blue-cavalry","parameters":{"source":"current_position","destination":"north-screen-line"}},
+      {"sequence":2,"start":0,"duration":5,"end":5,"pddl_action":"aa-disrupt","action_key":"disrupt","action":"Disrupt","actor_unit_id":"blue-deep-ops","parameters":{"target":"red-artillery"}},
+      {"sequence":3,"start":1,"duration":5,"end":6,"pddl_action":"aa-disrupt","action_key":"disrupt","action":"Disrupt","actor_unit_id":"blue-artillery","parameters":{"target":"red-artillery"}},
+      {"sequence":4,"start":1,"duration":4,"end":5,"pddl_action":"aa-establish-security","action_key":"establish_security","action":"Establish Security","actor_unit_id":"blue-tcf","parameters":{"target":"metro-city-supply"}},
+      {"sequence":5,"start":3,"duration":5,"end":8,"pddl_action":"aa-move","action_key":"move","action":"Move","actor_unit_id":"blue-north-mech","parameters":{"source":"current_position","destination":"north-fix-zone"}},
+      {"sequence":6,"start":4,"duration":5,"end":9,"pddl_action":"aa-observe","action_key":"observe","action":"Observe","actor_unit_id":"blue-cavalry","parameters":{"target":"red-north-force","sensor_range_m":1800,"field_of_view_deg":70}},
+      {"sequence":7,"start":5,"duration":5,"end":10,"pddl_action":"aa-move","action_key":"move","action":"Move","actor_unit_id":"blue-south-mech","parameters":{"source":"current_position","destination":"south-attack-position"}},
+      {"sequence":8,"start":6,"duration":5,"end":11,"pddl_action":"aa-disrupt","action_key":"disrupt","action":"Disrupt","actor_unit_id":"blue-deep-ops","parameters":{"target":"red-armor"}},
+      {"sequence":9,"start":8,"duration":7,"end":15,"pddl_action":"aa-contain","action_key":"contain","action":"Contain","actor_unit_id":"blue-north-mech","parameters":{"target":"red-north-force"}},
+      {"sequence":10,"start":9,"duration":5,"end":14,"pddl_action":"aa-disrupt","action_key":"disrupt","action":"Disrupt","actor_unit_id":"blue-artillery","parameters":{"target":"red-screen"}},
+      {"sequence":11,"start":10,"duration":5,"end":15,"pddl_action":"aa-breach","action_key":"breach","action":"Breach","actor_unit_id":"blue-south-mech","parameters":{"target":"breach-lane"}},
+      {"sequence":12,"start":11,"duration":5,"end":16,"pddl_action":"aa-move","action_key":"move","action":"Move","actor_unit_id":"blue-main-tank","parameters":{"source":"current_position","destination":"south-attack-position"}},
+      {"sequence":13,"start":12,"duration":5,"end":17,"pddl_action":"aa-move","action_key":"move","action":"Move","actor_unit_id":"blue-reserve","parameters":{"source":"current_position","destination":"reserve-support-position"}},
+      {"sequence":14,"start":14,"duration":5,"end":19,"pddl_action":"aa-fight","action_key":"fight","action":"Fight","actor_unit_id":"blue-south-mech","parameters":{"target":"red-screen"}},
+      {"sequence":15,"start":15,"duration":3,"end":18,"pddl_action":"aa-report","action_key":"report","action":"Report","actor_unit_id":"blue-cavalry","parameters":{"recipient":"blue-main-tank","result":"northern-flank-screened"}},
+      {"sequence":16,"start":16,"duration":6,"end":22,"pddl_action":"aa-move","action_key":"move","action":"Move","actor_unit_id":"blue-main-tank","parameters":{"source":"south-attack-position","destination":"main-passage-lane"}},
+      {"sequence":17,"start":17,"duration":5,"end":22,"pddl_action":"aa-disrupt","action_key":"disrupt","action":"Disrupt","actor_unit_id":"blue-deep-ops","parameters":{"target":"red-reserve"}},
+      {"sequence":18,"start":18,"duration":5,"end":23,"pddl_action":"aa-disrupt","action_key":"disrupt","action":"Disrupt","actor_unit_id":"blue-artillery","parameters":{"target":"red-reserve"}},
+      {"sequence":19,"start":20,"duration":5,"end":25,"pddl_action":"aa-engage","action_key":"engage","action":"Engage","actor_unit_id":"blue-main-tank","parameters":{"target":"red-armor"}},
+      {"sequence":20,"start":22,"duration":5,"end":27,"pddl_action":"aa-establish-security","action_key":"establish_security","action":"Establish Security","actor_unit_id":"blue-south-mech","parameters":{"target":"breach-lane"}},
+      {"sequence":21,"start":25,"duration":5,"end":30,"pddl_action":"aa-fight","action_key":"fight","action":"Fight","actor_unit_id":"blue-main-tank","parameters":{"target":"red-armor"}},
+      {"sequence":22,"start":26,"duration":5,"end":31,"pddl_action":"aa-contain","action_key":"contain","action":"Contain","actor_unit_id":"blue-reserve","parameters":{"target":"west-flank-block"}},
+      {"sequence":23,"start":30,"duration":4,"end":34,"pddl_action":"aa-seize","action_key":"seize","action":"Seize","actor_unit_id":"blue-main-tank","parameters":{"target":"obj-slam"}},
+      {"sequence":24,"start":34,"duration":3,"end":37,"pddl_action":"aa-confirm-control","action_key":"confirm_control","action":"Confirm Control","actor_unit_id":"blue-main-tank","parameters":{"target":"obj-slam"}},
+      {"sequence":25,"start":37,"duration":2,"end":39,"pddl_action":"aa-report","action_key":"report","action":"Report","actor_unit_id":"blue-main-tank","parameters":{"recipient":"blue-artillery","result":"obj-slam-controlled"}}
+    ],
+    "step_count":25,
+    "makespan":39
+  }
+}

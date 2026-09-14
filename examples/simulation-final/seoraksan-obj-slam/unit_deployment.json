@@ -1,0 +1,49 @@
+{
+  "version": "1.0.0",
+  "scenario_id": "seoraksan-obj-slam",
+  "id": "seoraksan-obj-slam-deployment",
+  "name": "설악산 OBJ SLAM 기계화사단 공격",
+  "coordinate_system": "WGS84",
+  "units": [
+    {"unit_id":"blue-cavalry","designation":"청군 사단 기병수색대대","affiliation":"friendly","unit_type":"recon","echelon":"battalion","sidc":"SFGPUCR----F---","symbolLabel":"Division Cavalry Squadron","symbolScale":0.60,"heading":75,"position":{"longitude":128.4500,"latitude":38.1270}},
+    {"unit_id":"blue-north-mech","designation":"청군 북부 기계화여단","affiliation":"friendly","unit_type":"mechanized_infantry","echelon":"brigade","sidc":"SFGPUCIZ---H---","symbolLabel":"Northern Mechanized Brigade","symbolScale":0.62,"heading":80,"position":{"longitude":128.4530,"latitude":38.1240}},
+    {"unit_id":"blue-south-mech","designation":"청군 남부 기계화여단","affiliation":"friendly","unit_type":"mechanized_infantry","echelon":"brigade","sidc":"SFGPUCIZ---H---","symbolLabel":"Southern Mechanized Brigade","symbolScale":0.62,"heading":80,"position":{"longitude":128.4535,"latitude":38.1160}},
+    {"unit_id":"blue-main-tank","designation":"청군 전차중심 주공여단","affiliation":"friendly","unit_type":"armor","echelon":"brigade","sidc":"SFGPUCA----H---","symbolLabel":"Main Effort Tank Brigade","symbolScale":0.64,"heading":80,"position":{"longitude":128.4485,"latitude":38.1170}},
+    {"unit_id":"blue-reserve","designation":"청군 사단 예비 전차특수임무부대","affiliation":"friendly","unit_type":"armor","echelon":"battalion","sidc":"SFGPUCA----F---","symbolLabel":"Division Reserve Tank Task Force","symbolScale":0.60,"heading":80,"position":{"longitude":128.4470,"latitude":38.1135}},
+    {"unit_id":"blue-artillery","designation":"청군 사단 포병","affiliation":"friendly","unit_type":"artillery","echelon":"brigade","sidc":"SFGPUCF----H---","symbolLabel":"Division Fires","symbolScale":0.60,"position":{"longitude":128.4445,"latitude":38.1205}},
+    {"unit_id":"blue-deep-ops","designation":"청군 사단 종심작전부대","affiliation":"friendly","unit_type":"headquarters","echelon":"battalion","sidc":"SFGPUH-----F---","symbolLabel":"Division Deep Operations","symbolScale":0.58,"position":{"longitude":128.4460,"latitude":38.1245}},
+    {"unit_id":"blue-tcf","designation":"청군 TCF 기계화보병팀","affiliation":"friendly","unit_type":"mechanized_infantry","echelon":"company","sidc":"SFGPUCIZ---E---","symbolLabel":"Tactical Combat Force","symbolScale":0.56,"heading":65,"position":{"longitude":128.4425,"latitude":38.1145}},
+    {"unit_id":"red-north-force","designation":"적군 북부 산악방어부대","affiliation":"enemy","unit_type":"infantry","echelon":"regiment","sidc":"SHGPUCI----G---","symbolLabel":"Northern Mountain Defense Force","symbolScale":0.62,"heading":255,"position":{"longitude":128.4755,"latitude":38.1260}},
+    {"unit_id":"red-screen","designation":"적군 전방 보병연대(-)","affiliation":"enemy","unit_type":"infantry","echelon":"regiment","sidc":"SHGPUCI----G---","symbolLabel":"Forward Infantry Regiment Minus","symbolScale":0.62,"heading":255,"position":{"longitude":128.4700,"latitude":38.1200}},
+    {"unit_id":"red-armor","designation":"적군 WEST TOWN 전차대대","affiliation":"enemy","unit_type":"armor","echelon":"battalion","sidc":"SHGPUCA----F---","symbolLabel":"West Town Tank Battalion","symbolScale":0.60,"heading":250,"position":{"longitude":128.4760,"latitude":38.1190}},
+    {"unit_id":"red-artillery","designation":"적군 자주포대대","affiliation":"enemy","unit_type":"artillery","echelon":"battalion","sidc":"SHGPUCF----F---","symbolLabel":"Enemy Artillery Battalion","symbolScale":0.58,"heading":250,"position":{"longitude":128.4830,"latitude":38.1240}},
+    {"unit_id":"red-reserve","designation":"적군 예비 기갑대대","affiliation":"enemy","unit_type":"armor","echelon":"battalion","sidc":"SHGPUCA----F---","symbolLabel":"Enemy Reserve Armor Battalion","symbolScale":0.60,"heading":250,"position":{"longitude":128.4820,"latitude":38.1145}}
+  ],
+  "objectives": [
+    {"id":"obj-slam","name":"OBJ SLAM","position":{"longitude":128.4730,"latitude":38.1175}},
+    {"id":"metro-city-supply","name":"METRO CITY 군수보급소","position":{"longitude":128.4435,"latitude":38.1135}},
+    {"id":"river-town","name":"RIVER TOWN","position":{"longitude":128.4800,"latitude":38.1165}}
+  ],
+  "tacticalGraphics": [
+    {"id":"pl-orange","type":"phase-line","name":"PL ORANGE","geometry":{"type":"LineString","coordinates":[[128.4490,38.1105],[128.4490,38.1300]]}},
+    {"id":"pl-amber","type":"phase-line","name":"PL AMBER (LD)","geometry":{"type":"LineString","coordinates":[[128.4560,38.1105],[128.4560,38.1300]]}},
+    {"id":"pl-green","type":"phase-line","name":"PL GREEN","geometry":{"type":"LineString","coordinates":[[128.4680,38.1105],[128.4680,38.1300]]}},
+    {"id":"pl-blue","type":"phase-line","name":"PL BLUE","geometry":{"type":"LineString","coordinates":[[128.4770,38.1105],[128.4770,38.1300]]}},
+    {"id":"pl-red","type":"phase-line","name":"PL RED (FSCL)","geometry":{"type":"LineString","coordinates":[[128.4870,38.1105],[128.4870,38.1300]]}},
+    {"id":"north-screen-line","type":"phase-line","name":"NORTH SCREEN LINE","geometry":{"type":"LineString","coordinates":[[128.4620,38.1235],[128.4660,38.1280]]}},
+    {"id":"north-fix-zone","type":"area","name":"NORTHERN FIX ZONE","geometry":{"type":"Polygon","coordinates":[[[128.4650,38.1225],[128.4735,38.1225],[128.4735,38.1290],[128.4650,38.1290],[128.4650,38.1225]]]}},
+    {"id":"south-attack-position","type":"area","name":"SOUTH ATTACK POSITION","geometry":{"type":"Polygon","coordinates":[[[128.4550,38.1135],[128.4580,38.1135],[128.4580,38.1175],[128.4550,38.1175],[128.4550,38.1135]]]}},
+    {"id":"breach-lane","type":"axis","name":"SOUTHERN BREACH LANE","geometry":{"type":"LineString","coordinates":[[128.4580,38.1155],[128.4630,38.1160],[128.4685,38.1170]]}},
+    {"id":"main-passage-lane","type":"axis","name":"MAIN EFFORT PASSAGE","geometry":{"type":"LineString","coordinates":[[128.4550,38.1165],[128.4640,38.1170],[128.4715,38.1175]]}},
+    {"id":"obj-slam-area","type":"area","name":"OBJ SLAM AREA","geometry":{"type":"Polygon","coordinates":[[[128.4705,38.1155],[128.4755,38.1155],[128.4755,38.1195],[128.4705,38.1195],[128.4705,38.1155]]]}},
+    {"id":"reserve-support-position","type":"area","name":"RESERVE SUPPORT POSITION","geometry":{"type":"Polygon","coordinates":[[[128.4570,38.1115],[128.4610,38.1115],[128.4610,38.1145],[128.4570,38.1145],[128.4570,38.1115]]]}},
+    {"id":"west-flank-block","type":"phase-line","name":"WEST FLANK BLOCK","geometry":{"type":"LineString","coordinates":[[128.4685,38.1120],[128.4700,38.1160]]}},
+    {"id":"red-forward-defense","type":"phase-line","name":"RED FORWARD DEFENSE","geometry":{"type":"LineString","coordinates":[[128.4690,38.1120],[128.4710,38.1280]]}},
+    {"id":"red-observation-post","type":"area","name":"RED OP","geometry":{"type":"Polygon","coordinates":[[[128.4720,38.1240],[128.4740,38.1240],[128.4740,38.1260],[128.4720,38.1260],[128.4720,38.1240]]]}},
+    {"id":"red-armor-position","type":"area","name":"WEST TOWN ARMOR POSITION","geometry":{"type":"Polygon","coordinates":[[[128.4735,38.1170],[128.4770,38.1170],[128.4770,38.1200],[128.4735,38.1200],[128.4735,38.1170]]]}},
+    {"id":"red-counterattack-position","type":"area","name":"RED COUNTERATTACK POSITION","geometry":{"type":"Polygon","coordinates":[[[128.4760,38.1125],[128.4800,38.1125],[128.4800,38.1155],[128.4760,38.1155],[128.4760,38.1125]]]}},
+    {"id":"red-fallback-line","type":"phase-line","name":"RED FALLBACK LINE","geometry":{"type":"LineString","coordinates":[[128.4800,38.1110],[128.4830,38.1285]]}},
+    {"id":"red-artillery-fallback","type":"area","name":"RED ARTILLERY FALLBACK","geometry":{"type":"Polygon","coordinates":[[[128.4840,38.1200],[128.4870,38.1200],[128.4870,38.1240],[128.4840,38.1240],[128.4840,38.1200]]]}}
+  ],
+  "mapView":{"center":[128.4656,38.1195],"zoom":13.2}
+}

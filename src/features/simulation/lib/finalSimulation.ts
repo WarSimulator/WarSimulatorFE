@@ -223,6 +223,8 @@ type RoadRoute = {
   provider: string;
 };
 
+const MAX_ROAD_SNAP_METERS = 500;
+
 function routingServiceUrl() {
   const env = (import.meta as unknown as { env?: { VITE_ROUTING_URL?: string } }).env;
   return (env?.VITE_ROUTING_URL ?? 'https://router.project-osrm.org').replace(/\/$/, '');
@@ -289,6 +291,12 @@ async function requestRoadRoute(
       return Number.isFinite(longitude) && Number.isFinite(latitude) ? [{ longitude, latitude }] : [];
     });
     if (roadCoordinates.length < 2) throw new Error('Invalid route geometry');
+
+    const originSnapDistance = distanceMeters(origin, roadCoordinates[0]);
+    const destinationSnapDistance = distanceMeters(destination, roadCoordinates.at(-1)!);
+    if (originSnapDistance > MAX_ROAD_SNAP_METERS || destinationSnapDistance > MAX_ROAD_SNAP_METERS) {
+      throw new Error(`Road snap too far (${Math.round(originSnapDistance)}m/${Math.round(destinationSnapDistance)}m)`);
+    }
 
     // Preserve exact scenario start/end points even when the router snaps them
     // a short distance onto the nearest road segment.

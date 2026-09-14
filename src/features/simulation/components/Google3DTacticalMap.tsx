@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { AtomicActionEffect, DeploymentSetup, ObservationEffect, SimulationResult, SimulationResultPosition, SimulationRuntimeState, SimulationUnit } from '../../../types';
 import { DEFAULT_MAP_CENTER } from '../lib/mapConfig';
+import { graphicColor } from '../lib/graphicColor';
 import { getTrackPositionsAtTime, getUnitPositionAtTime } from '../lib/playback';
 import { buildObservationSector, getActiveObservationEffects } from '../lib/observation';
 import { resolvePlanReference } from '../lib/planReferenceMapping';
@@ -21,7 +22,7 @@ export type Position3D = { lat: number; lng: number; altitude?: number };
 export type Map3DNode = HTMLElement;
 export type Marker3DNode = HTMLElement & { position: Position3D; label?: string; zIndex?: number };
 type StaticLayerNodes = {
-  routes: HTMLElement[];
+  routes: Array<{ node: HTMLElement; startTime: number; endTime: number }>;
   controlLines: HTMLElement[];
   objectives: Marker3DNode[];
   unitLabels: Map<Marker3DNode, string>;
@@ -42,6 +43,8 @@ export const SURFACE_DRAWS_OCCLUDED_SEGMENTS = false;
 const SURFACE_SAMPLE_METERS = 25;
 const MAX_SURFACE_SAMPLES_PER_SEGMENT = 128;
 const ACTION_OVERLAY_INTERVAL_MS = 75;
+const MAX_ROAD_SNAP_METERS = 500;
+const UNIT_SYMBOL_SIZE = 40;
 const FIRE_ACTIONS = new Set(['Engage', 'Continue to Engage', 'Fight', 'Ambush', 'Disrupt']);
 const ACTION_COLORS: Record<string, string> = {
   Move: '#ffb95f', Observe: '#66d9ff', Engage: '#ff5d5d', 'Continue to Engage': '#ff7b7b',
@@ -117,6 +120,21 @@ export function toSurfacePath(points: readonly Position3D[]): Position3D[] {
 
 function position3D(position: SimulationResultPosition): Position3D {
   return { lat: position.latitude, lng: position.longitude };
+}
+
+function distanceMeters(first: SimulationResultPosition, second: SimulationResultPosition) {
+  const latitudeMeters = (second.latitude - first.latitude) * 111_000;
+  const longitudeMeters = (second.longitude - first.longitude) * 111_000
+    * Math.cos(((first.latitude + second.latitude) / 2) * Math.PI / 180);
+  return Math.hypot(latitudeMeters, longitudeMeters);
+}
+
+function visibleRoutePositions(segment: SimulationResult['unitTracks'][number]['segments'][number]) {
+  const positions = segment.keyframes.map(frame => frame.position);
+  if (positions.length < 3 || segment.routing?.generatedBy !== 'Road routing') return positions;
+  const startsTooFarFromRoad = distanceMeters(positions[0], positions[1]) > MAX_ROAD_SNAP_METERS;
+  const endsTooFarFromRoad = distanceMeters(positions.at(-2)!, positions.at(-1)!) > MAX_ROAD_SNAP_METERS;
+  return startsTooFarFromRoad || endsTooFarFromRoad ? [positions[0], positions.at(-1)!] : positions;
 }
 
 function circlePath(center: Position3D, radiusMeters: number, points = 28): Position3D[] {
@@ -279,7 +297,7 @@ export function Google3DTacticalMap({ runtime, playbackRef, units, result, deplo
         const google = await loadGoogleMaps(apiKey);
         const library = await google.maps.importLibrary('maps3d') as Maps3DLibrary;
         if (cancelled || !containerRef.current) return;
-        const map = new library.Map3DElement({ center, range: cameraRange, tilt: 62, heading: 0, mode: 'SATELLITE' });
+        const map = new library.Map3DElement({ center, range: cameraRange, tilt: 62, heading: 0, mode: 'HYBRID' });
         map.style.width = '100%';
         map.style.height = '100%';
         containerRef.current.replaceChildren(map);
@@ -296,26 +314,28 @@ export function Google3DTacticalMap({ runtime, playbackRef, units, result, deplo
           for (const segment of track.segments) {
             if (segment.keyframes.length < 2) continue;
             const route = new library.Polyline3DElement({
-              path: toSurfacePath(segment.keyframes.map(frame => ({ lat: frame.position.latitude, lng: frame.position.longitude }))),
+              path: toSurfacePath(visibleRoutePositions(segment).map(position => ({ lat: position.latitude, lng: position.longitude }))),
               strokeColor: '#ffb95f', outerColor: '#121212', strokeWidth: 5, outerWidth: 0.3,
               altitudeMode: SURFACE_ALTITUDE_MODE, drawsOccludedSegments: SURFACE_DRAWS_OCCLUDED_SEGMENTS,
             });
-            staticLayersRef.current.routes.push(route);
+            staticLayersRef.current.routes.push({ node: route, startTime: segment.startTime, endTime: segment.endTime });
             map.append(route);
           }
         }
 
         for (const graphic of deployment?.tacticalGraphics ?? []) {
+          const color = graphicColor(graphic);
           if (graphic.geometry.type === 'Polygon') {
             const controlLine = new library.Polygon3DElement({
-              path: toSurfacePath(graphic.geometry.coordinates[0].map(([lng, lat]) => ({ lat, lng }))), fillColor: '#80d8ff33',
-              strokeColor: '#80d8ff', strokeWidth: 3, altitudeMode: SURFACE_ALTITUDE_MODE, drawsOccludedSegments: SURFACE_DRAWS_OCCLUDED_SEGMENTS,
+              path: toSurfacePath(graphic.geometry.coordinates[0].map(([lng, lat]) => ({ lat, lng }))), fillColor: `${color}22`,
+              strokeColor: color, strokeWidth: 3, altitudeMode: SURFACE_ALTITUDE_MODE, drawsOccludedSegments: SURFACE_DRAWS_OCCLUDED_SEGMENTS,
             });
             staticLayersRef.current.controlLines.push(controlLine);
             map.append(controlLine);
           } else {
             const controlLine = new library.Polyline3DElement({
-              path: toSurfacePath(graphic.geometry.coordinates.map(([lng, lat]) => ({ lat, lng }))), strokeColor: '#80d8ff', strokeWidth: 4,
+              path: toSurfacePath(graphic.geometry.coordinates.map(([lng, lat]) => ({ lat, lng }))), strokeColor: color, strokeWidth: graphic.type === 'phase-line' ? 5 : 4,
+              outerColor: '#111827', outerWidth: 0.4,
               altitudeMode: SURFACE_ALTITUDE_MODE, drawsOccludedSegments: SURFACE_DRAWS_OCCLUDED_SEGMENTS,
             });
             staticLayersRef.current.controlLines.push(controlLine);
@@ -341,7 +361,7 @@ export function Google3DTacticalMap({ runtime, playbackRef, units, result, deplo
             ...markerText(unit.name), sizePreserved: true, collisionBehavior: 'REQUIRED',
           });
           const template = document.createElement('template');
-          template.innerHTML = createMilitarySymbolSvg(unit.sidc, 56);
+          template.innerHTML = createMilitarySymbolSvg(unit.sidc, UNIT_SYMBOL_SIZE);
           marker.append(template);
           marker.addEventListener('gmp-click', () => onSelectUnit(unit.id));
           markersRef.current.set(unit.id, marker);
@@ -368,11 +388,14 @@ export function Google3DTacticalMap({ runtime, playbackRef, units, result, deplo
 
   useEffect(() => {
     const { routes, controlLines, objectives, unitLabels } = staticLayersRef.current;
-    for (const node of routes) node.style.display = runtime.tacticalLayers.routes ? '' : 'none';
+    for (const route of routes) {
+      const active = route.startTime <= runtime.simulationTime && runtime.simulationTime < route.endTime;
+      route.node.style.display = runtime.tacticalLayers.routes && active ? '' : 'none';
+    }
     for (const node of controlLines) node.style.display = runtime.tacticalLayers.controlLines ? '' : 'none';
     for (const marker of objectives) marker.style.display = runtime.tacticalLayers.controlLines ? '' : 'none';
     for (const [marker, label] of unitLabels) marker.label = runtime.tacticalLayers.labels ? label : '';
-  }, [ready, runtime.tacticalLayers]);
+  }, [ready, runtime.simulationTime, runtime.tacticalLayers]);
 
   useEffect(() => {
     if (!ready) return;
