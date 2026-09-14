@@ -31,7 +31,9 @@ export type Maps3DLibrary = {
   Map3DElement: new (options: Record<string, unknown>) => Map3DNode;
   Marker3DInteractiveElement: new (options: Record<string, unknown>) => Marker3DNode;
   Polyline3DElement: new (options: Record<string, unknown>) => HTMLElement;
+  Polyline3DInteractiveElement: new (options: Record<string, unknown>) => HTMLElement;
   Polygon3DElement: new (options: Record<string, unknown>) => HTMLElement;
+  Polygon3DInteractiveElement: new (options: Record<string, unknown>) => HTMLElement;
 };
 type GoogleMapsRuntime = { maps: { importLibrary: (name: string) => Promise<unknown> } };
 
@@ -120,7 +122,7 @@ export function toSurfacePath(points: readonly Position3D[]): Position3D[] {
   return path;
 }
 
-function createPhaseLineLabel(library: Maps3DLibrary, position: Position3D, name: string) {
+function createPhaseLineLabel(library: Maps3DLibrary, position: Position3D, name: string, interactive = false) {
   const marker = new library.Marker3DInteractiveElement({
     position,
     altitudeMode: 'CLAMP_TO_GROUND',
@@ -138,12 +140,18 @@ function createPhaseLineLabel(library: Maps3DLibrary, position: Position3D, name
     textShadow: '0 0 3px #121212, 0 0 3px #121212, 0 0 3px #121212',
     whiteSpace: 'nowrap',
   });
-  marker.style.pointerEvents = 'none';
+  marker.style.pointerEvents = interactive ? 'auto' : 'none';
   marker.append(label);
   return marker;
 }
 
-export function createPhaseLineNodes(library: Maps3DLibrary, points: readonly Position3D[], name: string, strokeWidth = 4) {
+export function createPhaseLineNodes(
+  library: Maps3DLibrary,
+  points: readonly Position3D[],
+  name: string,
+  strokeWidth = 4,
+  options: { interactive?: boolean; strokeColor?: string } = {},
+) {
   const nodes: HTMLElement[] = [];
   const dashPaths: Position3D[][] = [];
   let drawing = true;
@@ -183,9 +191,10 @@ export function createPhaseLineNodes(library: Maps3DLibrary, points: readonly Po
   if (dash.length > 1) dashPaths.push(dash);
 
   for (const path of dashPaths) {
-    nodes.push(new library.Polyline3DElement({
+    const LineElement = options.interactive ? library.Polyline3DInteractiveElement : library.Polyline3DElement;
+    nodes.push(new LineElement({
       path,
-      strokeColor: '#ffffff',
+      strokeColor: options.strokeColor ?? '#ffffff',
       outerColor: '#121212',
       outerWidth: 0.3,
       strokeWidth,
@@ -200,8 +209,8 @@ export function createPhaseLineNodes(library: Maps3DLibrary, points: readonly Po
     const first = points[0];
     const last = points[points.length - 1];
     const [upperEnd, lowerEnd] = first.lat >= last.lat ? [first, last] : [last, first];
-    nodes.push(createPhaseLineLabel(library, upperEnd, name));
-    nodes.push(createPhaseLineLabel(library, lowerEnd, name));
+    nodes.push(createPhaseLineLabel(library, upperEnd, name, options.interactive));
+    nodes.push(createPhaseLineLabel(library, lowerEnd, name, options.interactive));
   }
 
   return nodes;
@@ -426,6 +435,8 @@ export function Google3DTacticalMap({ runtime, playbackRef, units, result, deplo
               library,
               graphic.geometry.coordinates.map(([lng, lat]) => ({ lat, lng })),
               graphic.name ?? 'Phase Line',
+              4,
+              { strokeColor: color },
             );
             staticLayersRef.current.controlLines.push(...phaseLineNodes);
             phaseLineNodes.forEach(node => map.append(node));

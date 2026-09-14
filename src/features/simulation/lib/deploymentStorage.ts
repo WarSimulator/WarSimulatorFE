@@ -1,11 +1,12 @@
 import type { DeploymentSetup } from '../../../types';
 import alphaDeployment from '../../../fixtures/alphaDeployment.json';
+import deployment2 from '../../../fixtures/deployment2.json';
 import { DEFAULT_MAP_CENTER, DEFAULT_MAP_ZOOM } from './mapConfig';
 import { createGeoPosition, getLngLat } from './position';
 import { getUnitSidc } from './sidc';
 
 const STORAGE_KEY = 'atlas-defense.deployment-setups';
-const ALPHA_DEPLOYMENT = alphaDeployment as unknown as DeploymentSetup;
+const SEEDED_DEPLOYMENTS = [alphaDeployment, deployment2] as unknown as DeploymentSetup[];
 
 function migrateDeployment(deployment: DeploymentSetup): DeploymentSetup {
   return {
@@ -40,17 +41,18 @@ export function getAllDeployments(): DeploymentSetup[] {
   try {
     const savedDeployments: DeploymentSetup[] = stored ? JSON.parse(stored) as DeploymentSetup[] : [];
     const deployments = savedDeployments.map(migrateDeployment);
-    if (deployments.some((deployment) => deployment.id === ALPHA_DEPLOYMENT.id)) {
+    const missingSeeds = SEEDED_DEPLOYMENTS.filter(seed => !deployments.some(deployment => deployment.id === seed.id));
+    if (!missingSeeds.length) {
       return deployments;
     }
 
-    const seededDeployments = [...deployments, migrateDeployment(ALPHA_DEPLOYMENT)];
+    const seededDeployments = [...deployments, ...missingSeeds.map(migrateDeployment)];
     window.localStorage.setItem(STORAGE_KEY, JSON.stringify(seededDeployments));
     return seededDeployments;
   } catch {
-    const seededDeployment = migrateDeployment(ALPHA_DEPLOYMENT);
-    window.localStorage.setItem(STORAGE_KEY, JSON.stringify([seededDeployment]));
-    return [seededDeployment];
+    const seededDeployments = SEEDED_DEPLOYMENTS.map(migrateDeployment);
+    window.localStorage.setItem(STORAGE_KEY, JSON.stringify(seededDeployments));
+    return seededDeployments;
   }
 }
 
