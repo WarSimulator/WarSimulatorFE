@@ -458,7 +458,7 @@ export function Google3DTacticalMap({ runtime, playbackRef, units, result, deplo
             ...markerText(unit.name), sizePreserved: true, collisionBehavior: 'REQUIRED',
           });
           const template = document.createElement('template');
-          template.innerHTML = createMilitarySymbolSvg(unit.sidc, get3DUnitSymbolSize(unit.symbolScale));
+          template.innerHTML = createMilitarySymbolSvg(unit.sidc, get3DUnitSymbolSize(unit.symbolScale), undefined, unit.symbolStandard);
           marker.append(template);
           marker.addEventListener('gmp-click', () => onSelectUnit(unit.id));
           markersRef.current.set(unit.id, marker);

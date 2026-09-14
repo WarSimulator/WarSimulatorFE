@@ -103,7 +103,7 @@ export function Google3DDeploymentMap({ deployment, selectedEntityId, mode, onCh
         onChange({ ...current, units: [...current.units, {
           id, designation: nextUnitDesignation(current.units, currentMode.item), affiliation: currentMode.item.affiliation,
           unitType: currentMode.item.unitType, echelon: currentMode.item.echelon, sidc: currentMode.item.sidc,
-          symbolStandard: '2525', position: createGeoPosition(lng, lat),
+          symbolStandard: currentMode.item.symbolStandard ?? '2525', position: createGeoPosition(lng, lat),
         }] });
       } else {
         onChange({ ...current, objectives: [...current.objectives, { id, name: `Objective ${current.objectives.length + 1}`, position: createGeoPosition(lng, lat) }] });
@@ -224,7 +224,7 @@ export function Google3DDeploymentMap({ deployment, selectedEntityId, mode, onCh
       const [lng, lat] = getLngLat(unit.position);
       const marker: Marker3DNode = new library.Marker3DInteractiveElement({ position: { lng, lat }, ...markerText(unit.designation), sizePreserved: true, zIndex: unit.id === selectedEntityId ? 100 : 3 });
       const template = document.createElement('template');
-      template.innerHTML = createMilitarySymbolSvg(unit.sidc, get3DUnitSymbolSize(unit.symbolScale, unit.id === selectedEntityId));
+      template.innerHTML = createMilitarySymbolSvg(unit.sidc, get3DUnitSymbolSize(unit.symbolScale, unit.id === selectedEntityId), undefined, unit.symbolStandard);
       marker.append(template);
       marker.style.cursor = 'grab';
       marker.addEventListener('gmp-click', event => {

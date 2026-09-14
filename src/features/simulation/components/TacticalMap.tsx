@@ -82,7 +82,7 @@ function toUnitFeatures(
             id: unitId,
             designation: unit.name,
             sidc,
-            imageId: getMilitarySymbolImageId(sidc),
+            imageId: getMilitarySymbolImageId(sidc, unit.symbolStandard),
             affiliation: unit.allegiance === 'Enemy' ? 'enemy' : 'friendly',
             unitType: unit.type,
             echelon: 'company',
@@ -205,7 +205,7 @@ export function TacticalMap({ runtime, playbackRef, units, result, deployment, o
       try {
         await ensureObjectiveImage(map);
         await ensureAxisArrowImage(map);
-        await Promise.all(units.flatMap((unit) => (unit.sidc ? [ensureMilitarySymbolImage(map, unit.sidc)] : [])));
+        await Promise.all(units.flatMap((unit) => (unit.sidc ? [ensureMilitarySymbolImage(map, unit.sidc, unit.symbolStandard)] : [])));
         addDeploymentSourcesAndLayers(map);
         const geographicPositions = units.flatMap((unit) => unit.geographicPosition ? [[unit.geographicPosition.longitude, unit.geographicPosition.latitude] as [number, number]] : []);
         if (geographicPositions.length > 1) {

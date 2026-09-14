@@ -3,10 +3,10 @@ import ms from 'milsymbol';
 const THREE_D_UNIT_SYMBOL_SIZE = 28;
 const THREE_D_SELECTED_UNIT_SYMBOL_SIZE = 33;
 
-export function createMilitarySymbolSvg(sidc: string, size = 42, label?: string) {
+export function createMilitarySymbolSvg(sidc: string, size = 42, label?: string, standard: '2525' | 'APP6' = '2525') {
   return new ms.Symbol(sidc, {
     size,
-    standard: '2525',
+    standard,
     // A light halo preserves black linework against dark terrain and UI surfaces.
     outlineColor: '#f8fafc',
     outlineWidth: 3,

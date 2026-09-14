@@ -40,7 +40,7 @@ METT-TC 기반 AI Planning 및 전술 시뮬레이션 시스템을 위한 웹 �
 ### Deployment Editor
 
 - MapLibre 기반 2D 지도 편집
-- milsymbol 기반 MIL-STD-2525E 군대부호 배치
+- milsymbol 기반 MIL-STD-2525E + NATO APP-6D 군대부호 배치
 - Friendly / Enemy / Objective 배치
 - Unit Properties 편집
 - Route, Axis, Phase Line, Boundary, Area 전술도형 작성
@@ -199,11 +199,13 @@ ATLAS DEFENSE는 다음 디자인 방향을 따릅니다.
 ## 전체 군대부호 팔레트
 
 Symbol Palette는 milsymbol 3.0.4와 같은 제작자의 표준 카탈로그를 기반으로
-MIL-STD-2525E의 렌더링 가능한 기본 심볼 항목을 제공합니다.
+MIL-STD-2525E와 NATO APP-6D의 렌더링 가능한 기본 심볼 항목을 제공합니다.
+MIL-STD-2525E를 우선 대표로 삼고 아군·적군 렌더링 결과가 모두 같은 APP-6D 항목은 제외하며,
+시각적으로 구별되는 APP-6D 항목은 함께 제공합니다.
 진영·제대 조합은 항목 수에 포함하지 않습니다.
 구버전과 기존 14개 빠른 선택 메뉴는 제거했습니다. 이전에 저장한 배치의 심볼 코드는 복원 시 유지됩니다.
 
-- 이름/SIDC 검색, 표준·분류 선택, 24개 단위 페이지 이동
+- 이름/SIDC 검색, 분류 선택, 24개 단위 페이지 이동
 - 팔레트에서 드래그하거나 심볼을 선택하고 지도 클릭으로 배치
 - 아군/적군 전환. 제대 표시는 군부대와 탱크 등 지상 장비에 적용
 - Echelon은 공격대, 분대/조, 반, 소대, 중대, 대대, 연대, 여단, 사단, 군단, 야전군, 군집단/집단군, 전역/전구의 13단계 지원. 팔레트와 배치된 부호의 속성 패널에서 기호·영문·한글 이름으로 선택하며, 지도와 저장된 SIDC에 반영
@@ -211,6 +213,7 @@ MIL-STD-2525E의 렌더링 가능한 기본 심볼 항목을 제공합니다.
 
 코드만 있고 milsymbol이 실제로 그리지 못하는 항목(다중점 도형 등)은 제외합니다.
 제외된 항목은 `scripts/symbol-catalog-omissions.json`에 기록됩니다.
+렌더링 중복으로 제외된 항목과 보존된 대표 항목은 `scripts/symbol-catalog-duplicates.json`에 기록됩니다.
 이는 모든 표준 도형 또는 보조 수정자의 모든 조합을 지원한다는 뜻은 아닙니다.
 기존 Route/Axis/Phase Line/Boundary/Area/Freehand 도형 도구는 그대로 사용합니다.
 Atomic Action 실행·시각화는 이 팔레트 카탈로그와 별개입니다.

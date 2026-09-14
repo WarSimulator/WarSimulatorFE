@@ -136,7 +136,7 @@ function normalizeDeployment(payload: unknown): DeploymentSetup {
       unitType,
       echelon,
       sidc: String(unit.sidc ?? '') || createSidc(affiliation, unitType, echelon),
-      symbolStandard: '2525',
+      symbolStandard: unit.symbolStandard === 'APP6' ? 'APP6' : '2525',
       symbolLabel: String(unit.symbolLabel ?? unit.label ?? unitType),
       symbolScale: finite(unit.symbolScale, .72),
       symbolRotation: finite(unit.symbolRotation ?? unit.heading, 0),

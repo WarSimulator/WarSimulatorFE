@@ -72,8 +72,9 @@ const legacySymbols: MilitarySymbolDefinition[] = [
   { id: 'transportation', label: 'Transportation', category: 'sustainment', baseEchelon: 'company' },
 ];
 
+export const catalogStandards = catalogData.standards;
 export const symbolCatalog: MilitarySymbolDefinition[] = catalogData.symbols.map((entry) => ({
-  ...entry, id: entry.id as ExpandedDeploymentUnitType, standard: '2525', baseEchelon: 'company',
+  ...entry, id: entry.id as ExpandedDeploymentUnitType, standard: entry.standard as '2525' | 'APP6', baseEchelon: 'company',
 }));
 const catalogById = new Map(symbolCatalog.map((entry) => [entry.id, entry]));
 export function getSymbolDefinition(unitType: ExpandedDeploymentUnitType) {
@@ -96,6 +97,6 @@ export function createPaletteItem({
     unitType: definition.id,
     echelon,
     sidc: getUnitSidc({ affiliation, unitType: definition.id, echelon }),
-    symbolStandard: '2525',
+    symbolStandard: definition.standard ?? '2525',
   };
 }

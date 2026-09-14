@@ -124,7 +124,7 @@ export function SymbolPalette({ mode, onModeChange, isOpen, onToggle }: SymbolPa
             const parts = definition.label.split(' / ');
             return (
               <button key={definition.id} draggable aria-pressed={selected} title={`${definition.label}\n${getSymbolCategoryLabel(definition.category)}\n${item.sidc}`} className={`flex w-full min-w-0 cursor-grab items-center gap-3 rounded border bg-surface p-3 text-left hover:border-secondary active:cursor-grabbing ${selected ? 'border-secondary bg-secondary/10' : 'border-outline-variant'}`} onClick={() => onModeChange({ type: 'place', item })} onDragStart={event => dragSymbol(event, definition)}>
-                <span className="flex h-14 w-14 shrink-0 items-center justify-center rounded bg-slate-100 p-1 [&>span]:max-w-full [&_svg]:h-auto [&_svg]:max-h-12 [&_svg]:max-w-full"><MilitarySymbol sidc={item.sidc} size={34} /></span>
+                <span className="flex h-14 w-14 shrink-0 items-center justify-center rounded bg-slate-100 p-1 [&>span]:max-w-full [&_svg]:h-auto [&_svg]:max-h-12 [&_svg]:max-w-full"><MilitarySymbol sidc={item.sidc} size={34} standard={item.symbolStandard} /></span>
                 <span className="min-w-0">
                   <span className="block break-words font-data-mono text-[13px] text-on-surface">{parts.at(-1)}</span>
                   {parts.length > 1 && <span className="block truncate text-[11px] text-on-surface-variant">{parts.slice(0, -1).join(' / ')}</span>}
