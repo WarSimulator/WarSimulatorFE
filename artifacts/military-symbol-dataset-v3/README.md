@@ -2,6 +2,8 @@
 
 대표 카드 1,843개 + 별칭 804개 = 렌더링 가능 원본 2,647개.
 dataset.json은 에디터에 적용된 카탈로그입니다.
+images/에는 대표 카드 1,843개의 실제 SVG 이미지가 표준별로 들어 있습니다.
+manifest.jsonl은 각 이미지 경로와 이름, SIDC, 별칭을 연결합니다.
 aliases는 합쳐진 원본의 이름, SIDC, 표준 및 분류를 보존합니다.
 duplicates.json은 대표 항목 대응표, omissions.json은 렌더러가 거부한 721개 목록입니다.
 

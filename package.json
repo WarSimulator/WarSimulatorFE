@@ -8,6 +8,7 @@
     "build": "tsc -b && vite build",
     "preview": "vite preview",
     "generate:symbols": "node scripts/generate-symbol-catalog.mjs",
+    "generate:symbol-dataset": "node scripts/generate-combined-symbol-dataset.mjs",
     "generate:us-symbol-dataset": "node scripts/generate-us-symbol-dataset.mjs",
     "generate:tactical-task-dataset": "node scripts/generate-tactical-task-dataset.mjs && cd artifacts && zip -qr tactical-task-symbol-recognition.zip tactical-task-symbol-recognition",
     "test:symbols": "node scripts/test-symbol-catalog.mjs",
