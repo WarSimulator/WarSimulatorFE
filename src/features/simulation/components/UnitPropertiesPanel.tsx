@@ -3,6 +3,7 @@ import { getTacticalTask, taskLabel } from '../lib/tacticalTasks';
 import type { DeploymentEditorMode, DeploymentEchelon, DeploymentObjective, DeploymentSetup, DeploymentUnit, TacticalGraphic } from '../../../types';
 import { getLngLat } from '../lib/position';
 import { getSymbolDefinition, getUnitSidc } from '../lib/sidc';
+import { removeDeploymentEntity } from '../lib/deploymentEditing';
 
 type UnitPropertiesPanelProps = {
   deployment: DeploymentSetup;
@@ -32,13 +33,11 @@ export function UnitPropertiesPanel({ deployment, selectedEntityId, onChange, on
   };
 
   const removeSelected = () => {
-    onChange({
-      ...deployment,
-      units: deployment.units.filter((item) => item.id !== selectedEntityId),
-      objectives: deployment.objectives.filter((item) => item.id !== selectedEntityId),
-      tacticalGraphics: deployment.tacticalGraphics.filter((item) => item.id !== selectedEntityId),
-    });
+    if (!selectedEntityId) return;
+    const nextDeployment = removeDeploymentEntity(deployment, selectedEntityId);
     onClearSelection();
+    onModeChange({ type: 'select' });
+    onChange(nextDeployment);
   };
 
   const updateGraphic = (nextGraphic: TacticalGraphic) => {
@@ -159,8 +158,13 @@ export function UnitPropertiesPanel({ deployment, selectedEntityId, onChange, on
         )}
 
         <button
+          type="button"
           className="w-full rounded border border-error/60 px-4 py-2 font-label-caps text-label-caps text-error transition-colors hover:bg-error-container/30"
-          onClick={removeSelected}
+          onPointerDown={(event) => event.stopPropagation()}
+          onClick={(event) => {
+            event.stopPropagation();
+            removeSelected();
+          }}
         >
           DELETE SELECTED
         </button>

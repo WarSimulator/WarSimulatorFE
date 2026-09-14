@@ -20,6 +20,7 @@ import type {
 } from '../../../types';
 import { createDefaultMapStyle, DEFAULT_MAP_CENTER, DEFAULT_MAP_ZOOM, getMapStyleUrl } from '../lib/mapConfig';
 import { createGeoPosition, getLngLat } from '../lib/position';
+import { removeDeploymentEntity } from '../lib/deploymentEditing';
 import { ensureAxisArrowImage, ensureMilitarySymbolImage, ensureObjectiveImage, getMilitarySymbolImageId } from '../lib/militarySymbolRegistry';
 import {
   addDeploymentSourcesAndLayers,
@@ -571,12 +572,7 @@ export function DeploymentMap({ deployment, selectedEntityId, mode, onChange, on
   const deleteSelected = () => {
     if (!selectedEntityId) return;
     drawRef.current?.delete(selectedEntityId);
-    onChange({
-      ...deployment,
-      units: deployment.units.filter((unit) => unit.id !== selectedEntityId),
-      objectives: deployment.objectives.filter((objective) => objective.id !== selectedEntityId),
-      tacticalGraphics: deployment.tacticalGraphics.filter((graphic) => graphic.id !== selectedEntityId),
-    });
+    onChange(removeDeploymentEntity(deployment, selectedEntityId));
     onSelectEntity(undefined);
   };
 
