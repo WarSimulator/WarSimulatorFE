@@ -5,6 +5,10 @@ import crypto from 'node:crypto';
 import ms from 'milsymbol';
 import modern from 'milstandard-e';
 import nato from 'stanag-app6';
+import { build } from 'esbuild';
+
+const bundle = await build({ entryPoints: ['src/features/simulation/lib/symbolSvg.ts'], bundle: true, write: false, platform: 'node', format: 'esm' });
+const { createMilitarySymbolSvg } = await import('data:text/javascript;base64,' + Buffer.from(bundle.outputFiles[0].text).toString('base64'));
 
 const standards = [
   ['2525E', 'MIL-STD-2525E', modern.ms2525e, '2525', '13'],
@@ -33,22 +37,31 @@ function add(id, standard, group, label, sidc, echelon, remark = '') {
   const rendered = [sidc, enemy].map(code => {
     try {
       const symbol = new ms.Symbol(code, { standard, size: 30 });
-      const svg = symbol.asSVG();
+      const svg = createMilitarySymbolSvg(code, 30, undefined, standard);
       return symbol.isValid() === true && !/NaN|Infinity/.test(svg) ? svg : null;
     } catch { return null; }
   });
   if (rendered.some(svg => svg === null)) { omitted.push({ standard: id, label, sidc }); return; }
 
   const fingerprint = crypto.createHash('sha256').update(rendered.map(normalizeSvg).join('\n')).digest('hex');
-  const retained = visualFingerprints.get(fingerprint);
+  // Merge presentation only; retain source identities as searchable aliases.
+  // Generic frames and unverified control measures stay separate for review.
+  const generic = [sidc, enemy].map(code => createMilitarySymbolSvg(code.slice(0, 10) + '0000000000', 30, undefined, standard));
+  const genericFrame = rendered.every((svg, i) => normalizeSvg(svg) === normalizeSvg(generic[i]));
+  const minefield = sidc.slice(4, 6) === '25' && sidc.slice(10, 16) === '270701';
+  const dedupKey = `${echelon}:${fingerprint}`;
+  const eligible = minefield || (!genericFrame && sidc.slice(4, 6) !== '25' && !/disused/i.test(label));
+  const alias = { id: `catalog:${key}`, label, sidc, standard, standardId: id, category: group, supportsEchelon: echelon, remarks: remark };
+  const retained = eligible ? visualFingerprints.get(dedupKey) : undefined;
   if (retained) {
-    duplicates.push({ excluded: { standard: id, label, sidc }, retained, fingerprint });
+    retained.aliases.push(alias);
+    duplicates.push({ excluded: { standard: id, label, sidc }, retained: { standard: retained.standardId, label: retained.label, sidc: retained.sidc }, fingerprint });
     return;
   }
 
-  const entry = { id: `catalog:${id}:${sidc}`, label, category: group, standardId: id, standard, sidc, supportsEchelon: echelon, remarks: remark };
+  const entry = { ...alias, aliases: [], dedupReviewRequired: !eligible };
   symbols.push(entry);
-  visualFingerprints.set(fingerprint, { standard: id, label, sidc });
+  if (eligible) visualFingerprints.set(dedupKey, entry);
 }
 for (const [id, , data, standard, version] of standards) {
   for (const [set, group] of Object.entries(data)) {
@@ -68,7 +81,7 @@ const payload = {
   milsymbolVersion: ms.version,
   standards: standards.map(([id,label]) => ({id,label})),
   deduplication: {
-    policy: 'MIL-STD-2525E first; remove exact friendly-and-hostile rendered SVG duplicates; retain visually distinct APP-6D symbols.',
+    policy: 'v3: Group equal editor SVGs for both affiliations and matching echelon support, preserving every source as an alias. Preserve generic frames, disused entries and unverified control measures for review; corrected Minefield is eligible.',
     retainedCount: symbols.length,
     duplicateCount: duplicates.length,
   },
@@ -82,5 +95,5 @@ fs.writeFileSync(new URL('./symbol-catalog-duplicates.json', import.meta.url), J
   duplicateCount: duplicates.length,
   duplicates,
 }, null, 2) + '\n');
-console.log(`Catalog: ${symbols.length} unique supported icons; ${duplicates.length} visual duplicates and ${omitted.length} unsupported entries omitted.`);
+console.log(`Catalog: ${symbols.length} retained entries; ${duplicates.length} equivalent duplicates and ${omitted.length} unsupported entries omitted.`);
 for(const [id] of standards) console.log(id, retainedCounts[id]);

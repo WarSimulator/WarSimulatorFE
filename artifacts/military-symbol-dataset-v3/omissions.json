@@ -1,0 +1,3607 @@
+[
+  {
+    "standard": "2525E",
+    "label": "Command and Control Lines",
+    "sidc": "13032500001100000000"
+  },
+  {
+    "standard": "2525E",
+    "label": "Command and Control Lines / Boundary",
+    "sidc": "13032500001101000000"
+  },
+  {
+    "standard": "2525E",
+    "label": "Command and Control Lines / Light Line",
+    "sidc": "13032500001102000000"
+  },
+  {
+    "standard": "2525E",
+    "label": "Command and Control Lines / Engineer Work Line",
+    "sidc": "13032500001103000000"
+  },
+  {
+    "standard": "2525E",
+    "label": "Command and Control Lines / Generic",
+    "sidc": "13032500001104000000"
+  },
+  {
+    "standard": "2525E",
+    "label": "Command and Control Lines / Decision Line",
+    "sidc": "13032500001105000000"
+  },
+  {
+    "standard": "2525E",
+    "label": "Command and Control Areas",
+    "sidc": "13032500001200000000"
+  },
+  {
+    "standard": "2525E",
+    "label": "Command and Control Areas / Area of Operations",
+    "sidc": "13032500001201000000"
+  },
+  {
+    "standard": "2525E",
+    "label": "Command and Control Areas / Named Area of Interest",
+    "sidc": "13032500001202000000"
+  },
+  {
+    "standard": "2525E",
+    "label": "Command and Control Areas / Targeted Area of Interest",
+    "sidc": "13032500001203000000"
+  },
+  {
+    "standard": "2525E",
+    "label": "Command and Control Areas / Airfield Zone",
+    "sidc": "13032500001204000000"
+  },
+  {
+    "standard": "2525E",
+    "label": "Command and Control Areas / Base Camp",
+    "sidc": "13032500001205000000"
+  },
+  {
+    "standard": "2525E",
+    "label": "Command and Control Areas / Guerrilla Base",
+    "sidc": "13032500001206000000"
+  },
+  {
+    "standard": "2525E",
+    "label": "Command and Control Areas / Generic",
+    "sidc": "13032500001207000000"
+  },
+  {
+    "standard": "2525E",
+    "label": "Command and Control Areas / Bridgehead Area",
+    "sidc": "13032500001208000000"
+  },
+  {
+    "standard": "2525E",
+    "label": "Command and Control Points",
+    "sidc": "13032500001300000000"
+  },
+  {
+    "standard": "2525E",
+    "label": "Maneuver Lines",
+    "sidc": "13032500001400000000"
+  },
+  {
+    "standard": "2525E",
+    "label": "Maneuver Lines / Forward Line of Troops",
+    "sidc": "13032500001401000000"
+  },
+  {
+    "standard": "2525E",
+    "label": "Maneuver Lines / {Disused}",
+    "sidc": "13032500001402000000"
+  },
+  {
+    "standard": "2525E",
+    "label": "Maneuver Lines / Phase Line",
+    "sidc": "13032500001403000000"
+  },
+  {
+    "standard": "2525E",
+    "label": "Maneuver Lines / Forward Edge of the Battle Area",
+    "sidc": "13032500001404000000"
+  },
+  {
+    "standard": "2525E",
+    "label": "Maneuver Lines / Principle Direction of Fire",
+    "sidc": "13032500001405000000"
+  },
+  {
+    "standard": "2525E",
+    "label": "Maneuver Lines / Direction of Attack",
+    "sidc": "13032500001406000000"
+  },
+  {
+    "standard": "2525E",
+    "label": "Maneuver Lines / Direction of Attack / Friendly Aviation",
+    "sidc": "13032500001406010000"
+  },
+  {
+    "standard": "2525E",
+    "label": "Maneuver Lines / Direction of Attack / Friendly Main Attack /Decisive",
+    "sidc": "13032500001406020000"
+  },
+  {
+    "standard": "2525E",
+    "label": "Maneuver Lines / Direction of Attack / Friendly Supporting Attack",
+    "sidc": "13032500001406030000"
+  },
+  {
+    "standard": "2525E",
+    "label": "Maneuver Lines / Direction of Attack / Feint",
+    "sidc": "13032500001406050000"
+  },
+  {
+    "standard": "2525E",
+    "label": "Maneuver Lines / Final Coordination Line",
+    "sidc": "13032500001407000000"
+  },
+  {
+    "standard": "2525E",
+    "label": "Maneuver Lines / Infiltration Lane",
+    "sidc": "13032500001408000000"
+  },
+  {
+    "standard": "2525E",
+    "label": "Maneuver Lines / Limit of Advance",
+    "sidc": "13032500001409000000"
+  },
+  {
+    "standard": "2525E",
+    "label": "Maneuver Lines / Line of Departure",
+    "sidc": "13032500001410000000"
+  },
+  {
+    "standard": "2525E",
+    "label": "Maneuver Lines / Line of Departure/Line of Contact",
+    "sidc": "13032500001411000000"
+  },
+  {
+    "standard": "2525E",
+    "label": "Maneuver Lines / Probable Line of Deployment",
+    "sidc": "13032500001412000000"
+  },
+  {
+    "standard": "2525E",
+    "label": "Maneuver Lines / Airhead Line",
+    "sidc": "13032500001413000000"
+  },
+  {
+    "standard": "2525E",
+    "label": "Maneuver Lines / Bridgehead Line",
+    "sidc": "13032500001414000000"
+  },
+  {
+    "standard": "2525E",
+    "label": "Maneuver Lines / Holding Line",
+    "sidc": "13032500001415000000"
+  },
+  {
+    "standard": "2525E",
+    "label": "Maneuver Lines / Release Line",
+    "sidc": "13032500001416000000"
+  },
+  {
+    "standard": "2525E",
+    "label": "Maneuver Lines / Ambush",
+    "sidc": "13032500001417000000"
+  },
+  {
+    "standard": "2525E",
+    "label": "Maneuver Lines / Holdover Line",
+    "sidc": "13032500001418000000"
+  },
+  {
+    "standard": "2525E",
+    "label": "Maneuver Lines / Battle Handover Line",
+    "sidc": "13032500001419000000"
+  },
+  {
+    "standard": "2525E",
+    "label": "Maneuver Lines / Named Area of Interest Line",
+    "sidc": "13032500001420000000"
+  },
+  {
+    "standard": "2525E",
+    "label": "Maneuver Lines / Mobility Corridor",
+    "sidc": "13032500001421000000"
+  },
+  {
+    "standard": "2525E",
+    "label": "Maneuver Areas",
+    "sidc": "13032500001500000000"
+  },
+  {
+    "standard": "2525E",
+    "label": "Maneuver Areas / Area",
+    "sidc": "13032500001501000000"
+  },
+  {
+    "standard": "2525E",
+    "label": "Maneuver Areas / Assembly Area",
+    "sidc": "13032500001502000000"
+  },
+  {
+    "standard": "2525E",
+    "label": "Maneuver Areas / {Disused}",
+    "sidc": "13032500001503000000"
+  },
+  {
+    "standard": "2525E",
+    "label": "Maneuver Areas / {Disused}",
+    "sidc": "13032500001504000000"
+  },
+  {
+    "standard": "2525E",
+    "label": "Maneuver Areas / Action Area",
+    "sidc": "13032500001505000000"
+  },
+  {
+    "standard": "2525E",
+    "label": "Maneuver Areas / Action Area / Joint Tactical Action Area (JTAA)",
+    "sidc": "13032500001505010000"
+  },
+  {
+    "standard": "2525E",
+    "label": "Maneuver Areas / Action Area / Submarine Action Area (SAA)",
+    "sidc": "13032500001505020000"
+  },
+  {
+    "standard": "2525E",
+    "label": "Maneuver Areas / Action Area / Submarine-Generated Action Area (SGAA)",
+    "sidc": "13032500001505030000"
+  },
+  {
+    "standard": "2525E",
+    "label": "Maneuver Areas / Drop Zone",
+    "sidc": "13032500001506000000"
+  },
+  {
+    "standard": "2525E",
+    "label": "Maneuver Areas / Extraction Zone",
+    "sidc": "13032500001507000000"
+  },
+  {
+    "standard": "2525E",
+    "label": "Maneuver Areas / Landing Zone",
+    "sidc": "13032500001508000000"
+  },
+  {
+    "standard": "2525E",
+    "label": "Maneuver Areas / Pick–Up Zone",
+    "sidc": "13032500001509000000"
+  },
+  {
+    "standard": "2525E",
+    "label": "Maneuver Areas / Fortified Area",
+    "sidc": "13032500001510000000"
+  },
+  {
+    "standard": "2525E",
+    "label": "Maneuver Areas / Limited Access Area",
+    "sidc": "13032500001511000000"
+  },
+  {
+    "standard": "2525E",
+    "label": "Maneuver Areas / Battle Position",
+    "sidc": "13032500001512000000"
+  },
+  {
+    "standard": "2525E",
+    "label": "Maneuver Areas / Battle Position / Prepared (P) but not Occupied",
+    "sidc": "13032500001512020000"
+  },
+  {
+    "standard": "2525E",
+    "label": "Maneuver Areas / Battle Position / Strong Point",
+    "sidc": "13032500001512030000"
+  },
+  {
+    "standard": "2525E",
+    "label": "Maneuver Areas / Battle Position / Contain",
+    "sidc": "13032500001512040000"
+  },
+  {
+    "standard": "2525E",
+    "label": "Maneuver Areas / Battle Position / Retain",
+    "sidc": "13032500001512050000"
+  },
+  {
+    "standard": "2525E",
+    "label": "Maneuver Areas / Engagement Area (EA)",
+    "sidc": "13032500001513000000"
+  },
+  {
+    "standard": "2525E",
+    "label": "Maneuver Areas / Axis of Advance",
+    "sidc": "13032500001514000000"
+  },
+  {
+    "standard": "2525E",
+    "label": "Maneuver Areas / Axis of Advance / Friendly Airborne/Aviation",
+    "sidc": "13032500001514010000"
+  },
+  {
+    "standard": "2525E",
+    "label": "Maneuver Areas / Axis of Advance / Attack Helicopter",
+    "sidc": "13032500001514020000"
+  },
+  {
+    "standard": "2525E",
+    "label": "Maneuver Areas / Axis of Advance / Main Attack",
+    "sidc": "13032500001514030000"
+  },
+  {
+    "standard": "2525E",
+    "label": "Maneuver Areas / Axis of Advance / Supporting Attack",
+    "sidc": "13032500001514040000"
+  },
+  {
+    "standard": "2525E",
+    "label": "Maneuver Areas / Axis of Advance / Feint",
+    "sidc": "13032500001514060000"
+  },
+  {
+    "standard": "2525E",
+    "label": "Maneuver Areas / Assault Position",
+    "sidc": "13032500001515000000"
+  },
+  {
+    "standard": "2525E",
+    "label": "Maneuver Areas / Attack Position",
+    "sidc": "13032500001516000000"
+  },
+  {
+    "standard": "2525E",
+    "label": "Maneuver Areas / Objective Area",
+    "sidc": "13032500001517000000"
+  },
+  {
+    "standard": "2525E",
+    "label": "Maneuver Areas / Encirclement",
+    "sidc": "13032500001518000000"
+  },
+  {
+    "standard": "2525E",
+    "label": "Maneuver Areas / Penetration Box",
+    "sidc": "13032500001519000000"
+  },
+  {
+    "standard": "2525E",
+    "label": "Maneuver Areas / Attack by Fire",
+    "sidc": "13032500001520000000"
+  },
+  {
+    "standard": "2525E",
+    "label": "Maneuver Areas / Support by Fire",
+    "sidc": "13032500001521000000"
+  },
+  {
+    "standard": "2525E",
+    "label": "Maneuver Areas / Search Area/Reconnaissance Area",
+    "sidc": "13032500001522000000"
+  },
+  {
+    "standard": "2525E",
+    "label": "Maneuver Areas / Avenue of Approach",
+    "sidc": "13032500001523000000"
+  },
+  {
+    "standard": "2525E",
+    "label": "Maneuver Areas / Restricted Terrain",
+    "sidc": "13032500001524000000"
+  },
+  {
+    "standard": "2525E",
+    "label": "Maneuver Areas / Severely Restricted Terrain",
+    "sidc": "13032500001525000000"
+  },
+  {
+    "standard": "2525E",
+    "label": "Maneuver Points",
+    "sidc": "13032500001600000000"
+  },
+  {
+    "standard": "2525E",
+    "label": "Airspace Control (Corridors) Areas",
+    "sidc": "13032500001700000000"
+  },
+  {
+    "standard": "2525E",
+    "label": "Airspace Control (Corridors) Areas / Air Corridor",
+    "sidc": "13032500001701000000"
+  },
+  {
+    "standard": "2525E",
+    "label": "Airspace Control (Corridors) Areas / Low Level Transit Route",
+    "sidc": "13032500001702000000"
+  },
+  {
+    "standard": "2525E",
+    "label": "Airspace Control (Corridors) Areas / Minimum–Risk Route",
+    "sidc": "13032500001703000000"
+  },
+  {
+    "standard": "2525E",
+    "label": "Airspace Control (Corridors) Areas / Safe Lane",
+    "sidc": "13032500001704000000"
+  },
+  {
+    "standard": "2525E",
+    "label": "Airspace Control (Corridors) Areas / Standard Use Army Aircraft Flight Route",
+    "sidc": "13032500001705000000"
+  },
+  {
+    "standard": "2525E",
+    "label": "Airspace Control (Corridors) Areas / Transit Corridor",
+    "sidc": "13032500001706000000"
+  },
+  {
+    "standard": "2525E",
+    "label": "Airspace Control (Corridors) Areas / Special Corridor",
+    "sidc": "13032500001707000000"
+  },
+  {
+    "standard": "2525E",
+    "label": "Airspace Control (Corridors) Areas / Base Defense Zone",
+    "sidc": "13032500001708000000"
+  },
+  {
+    "standard": "2525E",
+    "label": "Airspace Control (Corridors) Areas / High–Density Airspace Control Zone",
+    "sidc": "13032500001709000000"
+  },
+  {
+    "standard": "2525E",
+    "label": "Airspace Control (Corridors) Areas / Restricted Operations Zone (ROZ)",
+    "sidc": "13032500001710000000"
+  },
+  {
+    "standard": "2525E",
+    "label": "Airspace Control (Corridors) Areas / Air-to-Air Restricted Operating Zone (AARROZ)",
+    "sidc": "13032500001711000000"
+  },
+  {
+    "standard": "2525E",
+    "label": "Airspace Control (Corridors) Areas / Unmanned Aircraft Restricted Operating Zone (UA-ROZ)",
+    "sidc": "13032500001712000000"
+  },
+  {
+    "standard": "2525E",
+    "label": "Airspace Control (Corridors) Areas / Weapon Engagement Zone",
+    "sidc": "13032500001713000000"
+  },
+  {
+    "standard": "2525E",
+    "label": "Airspace Control (Corridors) Areas / Fighter Engagement Zone (FEZ)",
+    "sidc": "13032500001714000000"
+  },
+  {
+    "standard": "2525E",
+    "label": "Airspace Control (Corridors) Areas / Joint Engagement Zone (JEZ)",
+    "sidc": "13032500001715000000"
+  },
+  {
+    "standard": "2525E",
+    "label": "Airspace Control (Corridors) Areas / Missile Engagement Zone (MEZ)",
+    "sidc": "13032500001716000000"
+  },
+  {
+    "standard": "2525E",
+    "label": "Airspace Control (Corridors) Areas / Low Altitude Missile Engagement Zone (LOMEZ)",
+    "sidc": "13032500001717000000"
+  },
+  {
+    "standard": "2525E",
+    "label": "Airspace Control (Corridors) Areas / High Altitude Missile Engagement Zone (HIMEZ)",
+    "sidc": "13032500001718000000"
+  },
+  {
+    "standard": "2525E",
+    "label": "Airspace Control (Corridors) Areas / Short Range Air Defense Engagement Zone (SHORADEZ)",
+    "sidc": "13032500001719000000"
+  },
+  {
+    "standard": "2525E",
+    "label": "Airspace Control (Corridors) Areas / Weapons Free Zone",
+    "sidc": "13032500001720000000"
+  },
+  {
+    "standard": "2525E",
+    "label": "Airspace Control Lines",
+    "sidc": "13032500001900000000"
+  },
+  {
+    "standard": "2525E",
+    "label": "Airspace Control Lines / Identification Friend or Foe (IFF) Off Line",
+    "sidc": "13032500001901000000"
+  },
+  {
+    "standard": "2525E",
+    "label": "Airspace Control Lines / Identification Friend or Foe (IFF) On Line",
+    "sidc": "13032500001902000000"
+  },
+  {
+    "standard": "2525E",
+    "label": "Maritime Control Areas",
+    "sidc": "13032500002000000000"
+  },
+  {
+    "standard": "2525E",
+    "label": "Maritime Control Areas / Launch Area",
+    "sidc": "13032500002001000000"
+  },
+  {
+    "standard": "2525E",
+    "label": "Maritime Control Areas / Launch Area / Ellipse/Circle",
+    "sidc": "13032500002001010000"
+  },
+  {
+    "standard": "2525E",
+    "label": "Maritime Control Areas / Defended Area",
+    "sidc": "13032500002002000000"
+  },
+  {
+    "standard": "2525E",
+    "label": "Maritime Control Areas / Defended Area / Ellipse/Circle",
+    "sidc": "13032500002002010000"
+  },
+  {
+    "standard": "2525E",
+    "label": "Maritime Control Areas / Defended Area / Rectangle",
+    "sidc": "13032500002002020000"
+  },
+  {
+    "standard": "2525E",
+    "label": "Maritime Control Areas / No Attack (NOTACK) Zone",
+    "sidc": "13032500002003000000"
+  },
+  {
+    "standard": "2525E",
+    "label": "Maritime Control Areas / Ship Area of Interest / Ellipse/Circle",
+    "sidc": "13032500002004010000"
+  },
+  {
+    "standard": "2525E",
+    "label": "Maritime Control Areas / Ship Area of Interest / Rectangle",
+    "sidc": "13032500002004020000"
+  },
+  {
+    "standard": "2525E",
+    "label": "Maritime Control Areas / Cued Acquisition Doctrine",
+    "sidc": "13032500002006000000"
+  },
+  {
+    "standard": "2525E",
+    "label": "Maritime Control Areas / Radar Search Doctrine",
+    "sidc": "13032500002007000000"
+  },
+  {
+    "standard": "2525E",
+    "label": "Maritime Control Points",
+    "sidc": "13032500002100000000"
+  },
+  {
+    "standard": "2525E",
+    "label": "Maritime Control Points / Navigational",
+    "sidc": "13032500002184000000"
+  },
+  {
+    "standard": "2525E",
+    "label": "Maritime Control Lines",
+    "sidc": "13032500002200000000"
+  },
+  {
+    "standard": "2525E",
+    "label": "Maritime Control Lines / Bearing Line",
+    "sidc": "13032500002201000000"
+  },
+  {
+    "standard": "2525E",
+    "label": "Maritime Control Lines / Bearing Line / Electronic",
+    "sidc": "13032500002201010000"
+  },
+  {
+    "standard": "2525E",
+    "label": "Maritime Control Lines / Bearing Line / Electronic Warfare (EW)",
+    "sidc": "13032500002201020000"
+  },
+  {
+    "standard": "2525E",
+    "label": "Maritime Control Lines / Bearing Line / Acoustic",
+    "sidc": "13032500002201030000"
+  },
+  {
+    "standard": "2525E",
+    "label": "Maritime Control Lines / Bearing Line / Acoustic (Ambiguous)",
+    "sidc": "13032500002201040000"
+  },
+  {
+    "standard": "2525E",
+    "label": "Maritime Control Lines / Bearing Line / Torpedo",
+    "sidc": "13032500002201050000"
+  },
+  {
+    "standard": "2525E",
+    "label": "Maritime Control Lines / Bearing Line / Electro-Optical Intercept",
+    "sidc": "13032500002201060000"
+  },
+  {
+    "standard": "2525E",
+    "label": "Maritime Control Lines / Bearing Line / Jammer",
+    "sidc": "13032500002201070000"
+  },
+  {
+    "standard": "2525E",
+    "label": "Maritime Control Lines / Bearing Line / Radio Direction Finder (RDF)",
+    "sidc": "13032500002201080000"
+  },
+  {
+    "standard": "2525E",
+    "label": "Deception",
+    "sidc": "13032500002300000000"
+  },
+  {
+    "standard": "2525E",
+    "label": "Deception / Deceive/Decoy/Dummy/Feint",
+    "sidc": "13032500002302000000"
+  },
+  {
+    "standard": "2525E",
+    "label": "Fires Areas",
+    "sidc": "13032500002400000000"
+  },
+  {
+    "standard": "2525E",
+    "label": "Fires Areas / Airspace Coordination Area",
+    "sidc": "13032500002401000000"
+  },
+  {
+    "standard": "2525E",
+    "label": "Fires Areas / Airspace Coordination Area / Irregular",
+    "sidc": "13032500002401010000"
+  },
+  {
+    "standard": "2525E",
+    "label": "Fires Areas / Airspace Coordination Area / Rectangular",
+    "sidc": "13032500002401020000"
+  },
+  {
+    "standard": "2525E",
+    "label": "Fires Areas / Airspace Coordination Area / Circular",
+    "sidc": "13032500002401030000"
+  },
+  {
+    "standard": "2525E",
+    "label": "Fires Areas / Free Fire Area",
+    "sidc": "13032500002402000000"
+  },
+  {
+    "standard": "2525E",
+    "label": "Fires Areas / Free Fire Area / Irregular",
+    "sidc": "13032500002402010000"
+  },
+  {
+    "standard": "2525E",
+    "label": "Fires Areas / Free Fire Area / Rectangular",
+    "sidc": "13032500002402020000"
+  },
+  {
+    "standard": "2525E",
+    "label": "Fires Areas / Free Fire Area / Circular",
+    "sidc": "13032500002402030000"
+  },
+  {
+    "standard": "2525E",
+    "label": "Fires Areas / No Fire Area",
+    "sidc": "13032500002403000000"
+  },
+  {
+    "standard": "2525E",
+    "label": "Fires Areas / No Fire Area / Irregular",
+    "sidc": "13032500002403010000"
+  },
+  {
+    "standard": "2525E",
+    "label": "Fires Areas / No Fire Area / Rectangular",
+    "sidc": "13032500002403020000"
+  },
+  {
+    "standard": "2525E",
+    "label": "Fires Areas / No Fire Area / Circular",
+    "sidc": "13032500002403030000"
+  },
+  {
+    "standard": "2525E",
+    "label": "Fires Areas / Restricted Fire Area",
+    "sidc": "13032500002404000000"
+  },
+  {
+    "standard": "2525E",
+    "label": "Fires Areas / Restricted Fire Area / Irregular",
+    "sidc": "13032500002404010000"
+  },
+  {
+    "standard": "2525E",
+    "label": "Fires Areas / Restricted Fire Area / Rectangular",
+    "sidc": "13032500002404020000"
+  },
+  {
+    "standard": "2525E",
+    "label": "Fires Areas / Restricted Fire Area / Circular",
+    "sidc": "13032500002404030000"
+  },
+  {
+    "standard": "2525E",
+    "label": "Fires Areas / Position Area For Artillery (PAA)",
+    "sidc": "13032500002405000000"
+  },
+  {
+    "standard": "2525E",
+    "label": "Fires Areas / Position Area For Artillery (PAA) / Rectangular",
+    "sidc": "13032500002405010000"
+  },
+  {
+    "standard": "2525E",
+    "label": "Fires Areas / Position Area For Artillery (PAA) / Circular",
+    "sidc": "13032500002405020000"
+  },
+  {
+    "standard": "2525E",
+    "label": "Fires Areas / Position Area For Artillery (PAA) / Irregular",
+    "sidc": "13032500002405030000"
+  },
+  {
+    "standard": "2525E",
+    "label": "Fires Areas / Point Targets",
+    "sidc": "13032500002406000000"
+  },
+  {
+    "standard": "2525E",
+    "label": "Fires Areas / Linear Targets",
+    "sidc": "13032500002407000000"
+  },
+  {
+    "standard": "2525E",
+    "label": "Fires Areas / Linear Targets / Linear Target",
+    "sidc": "13032500002407010000"
+  },
+  {
+    "standard": "2525E",
+    "label": "Fires Areas / Linear Targets / Linear Smoke Target",
+    "sidc": "13032500002407020000"
+  },
+  {
+    "standard": "2525E",
+    "label": "Fires Areas / Linear Targets / Final Protective Fire (FPF)",
+    "sidc": "13032500002407030000"
+  },
+  {
+    "standard": "2525E",
+    "label": "Fires Areas / Area Targets",
+    "sidc": "13032500002408000000"
+  },
+  {
+    "standard": "2525E",
+    "label": "Fires Areas / Area Targets / Area Target",
+    "sidc": "13032500002408010000"
+  },
+  {
+    "standard": "2525E",
+    "label": "Fires Areas / Area Targets / Rectangular Target",
+    "sidc": "13032500002408020000"
+  },
+  {
+    "standard": "2525E",
+    "label": "Fires Areas / Area Targets / Circular Target",
+    "sidc": "13032500002408030000"
+  },
+  {
+    "standard": "2525E",
+    "label": "Fires Areas / Area Targets / Rectangular Target – Single Target",
+    "sidc": "13032500002408040000"
+  },
+  {
+    "standard": "2525E",
+    "label": "Fires Areas / Area Targets / Series or Groups of Targets",
+    "sidc": "13032500002408050000"
+  },
+  {
+    "standard": "2525E",
+    "label": "Fires Areas / Area Targets / Smoke",
+    "sidc": "13032500002408060000"
+  },
+  {
+    "standard": "2525E",
+    "label": "Fires Areas / Area Targets / {Disused}",
+    "sidc": "13032500002408070000"
+  },
+  {
+    "standard": "2525E",
+    "label": "Fires Areas / Area Targets / Bomb Area",
+    "sidc": "13032500002408080000"
+  },
+  {
+    "standard": "2525E",
+    "label": "Fires Areas / Fire Support Area",
+    "sidc": "13032500002410000000"
+  },
+  {
+    "standard": "2525E",
+    "label": "Fires Areas / Fire Support Area / Irregular",
+    "sidc": "13032500002410010000"
+  },
+  {
+    "standard": "2525E",
+    "label": "Fires Areas / Fire Support Area / Rectangular",
+    "sidc": "13032500002410020000"
+  },
+  {
+    "standard": "2525E",
+    "label": "Fires Areas / Fire Support Area / Circular",
+    "sidc": "13032500002410030000"
+  },
+  {
+    "standard": "2525E",
+    "label": "Fires Areas / Artillery Target Intelligence Zone",
+    "sidc": "13032500002411000000"
+  },
+  {
+    "standard": "2525E",
+    "label": "Fires Areas / Artillery Target Intelligence Zone / Irregular",
+    "sidc": "13032500002411010000"
+  },
+  {
+    "standard": "2525E",
+    "label": "Fires Areas / Artillery Target Intelligence Zone / Rectangular",
+    "sidc": "13032500002411020000"
+  },
+  {
+    "standard": "2525E",
+    "label": "Fires Areas / Artillery Target Intelligence Zone / Circular",
+    "sidc": "13032500002411030000"
+  },
+  {
+    "standard": "2525E",
+    "label": "Fires Areas / Call for Fire Area",
+    "sidc": "13032500002412000000"
+  },
+  {
+    "standard": "2525E",
+    "label": "Fires Areas / Call for Fire Area / Irregular",
+    "sidc": "13032500002412010000"
+  },
+  {
+    "standard": "2525E",
+    "label": "Fires Areas / Call for Fire Area / Rectangular",
+    "sidc": "13032500002412020000"
+  },
+  {
+    "standard": "2525E",
+    "label": "Fires Areas / Call for Fire Area / Circular",
+    "sidc": "13032500002412030000"
+  },
+  {
+    "standard": "2525E",
+    "label": "Fires Areas / Censor Zone",
+    "sidc": "13032500002413000000"
+  },
+  {
+    "standard": "2525E",
+    "label": "Fires Areas / Censor Zone / Irregular",
+    "sidc": "13032500002413010000"
+  },
+  {
+    "standard": "2525E",
+    "label": "Fires Areas / Censor Zone / Rectangular",
+    "sidc": "13032500002413020000"
+  },
+  {
+    "standard": "2525E",
+    "label": "Fires Areas / Censor Zone / Circular",
+    "sidc": "13032500002413030000"
+  },
+  {
+    "standard": "2525E",
+    "label": "Fires Areas / Critical Friendly Zone",
+    "sidc": "13032500002414000000"
+  },
+  {
+    "standard": "2525E",
+    "label": "Fires Areas / Critical Friendly Zone / Irregular",
+    "sidc": "13032500002414010000"
+  },
+  {
+    "standard": "2525E",
+    "label": "Fires Areas / Critical Friendly Zone / Rectangular",
+    "sidc": "13032500002414020000"
+  },
+  {
+    "standard": "2525E",
+    "label": "Fires Areas / Critical Friendly Zone / Circular",
+    "sidc": "13032500002414030000"
+  },
+  {
+    "standard": "2525E",
+    "label": "Fires Areas / Dead Space Area",
+    "sidc": "13032500002415000000"
+  },
+  {
+    "standard": "2525E",
+    "label": "Fires Areas / Dead Space Area / Irregular",
+    "sidc": "13032500002415010000"
+  },
+  {
+    "standard": "2525E",
+    "label": "Fires Areas / Dead Space Area / Rectangular",
+    "sidc": "13032500002415020000"
+  },
+  {
+    "standard": "2525E",
+    "label": "Fires Areas / Dead Space Area / Circular",
+    "sidc": "13032500002415030000"
+  },
+  {
+    "standard": "2525E",
+    "label": "Fires Areas / {Disused}",
+    "sidc": "13032500002416000000"
+  },
+  {
+    "standard": "2525E",
+    "label": "Fires Areas / Target Build–up Area",
+    "sidc": "13032500002417000000"
+  },
+  {
+    "standard": "2525E",
+    "label": "Fires Areas / Target Build–up Area / Irregular",
+    "sidc": "13032500002417010000"
+  },
+  {
+    "standard": "2525E",
+    "label": "Fires Areas / Target Build–up Area / Rectangular",
+    "sidc": "13032500002417020000"
+  },
+  {
+    "standard": "2525E",
+    "label": "Fires Areas / Target Build–up Area / Circular",
+    "sidc": "13032500002417030000"
+  },
+  {
+    "standard": "2525E",
+    "label": "Fires Areas / Target Value Area",
+    "sidc": "13032500002418000000"
+  },
+  {
+    "standard": "2525E",
+    "label": "Fires Areas / Target Value Area / Irregular",
+    "sidc": "13032500002418010000"
+  },
+  {
+    "standard": "2525E",
+    "label": "Fires Areas / Target Value Area / Rectangular",
+    "sidc": "13032500002418020000"
+  },
+  {
+    "standard": "2525E",
+    "label": "Fires Areas / Target Value Area / Circular",
+    "sidc": "13032500002418030000"
+  },
+  {
+    "standard": "2525E",
+    "label": "Fires Areas / Zone of Responsibility",
+    "sidc": "13032500002419000000"
+  },
+  {
+    "standard": "2525E",
+    "label": "Fires Areas / Zone of Responsibility / Irregular",
+    "sidc": "13032500002419010000"
+  },
+  {
+    "standard": "2525E",
+    "label": "Fires Areas / Zone of Responsibility / Rectangular",
+    "sidc": "13032500002419020000"
+  },
+  {
+    "standard": "2525E",
+    "label": "Fires Areas / Zone of Responsibility / Circular",
+    "sidc": "13032500002419030000"
+  },
+  {
+    "standard": "2525E",
+    "label": "Fires Areas / Terminally Guided Munition Footprint (TGMF)",
+    "sidc": "13032500002420000000"
+  },
+  {
+    "standard": "2525E",
+    "label": "Fires Areas / Weapon/Sensor Range fan, Circular",
+    "sidc": "13032500002421000000"
+  },
+  {
+    "standard": "2525E",
+    "label": "Fires Areas / Weapon/Sensor Range fan, Sector",
+    "sidc": "13032500002422000000"
+  },
+  {
+    "standard": "2525E",
+    "label": "Fires Areas / Kill Box",
+    "sidc": "13032500002423000000"
+  },
+  {
+    "standard": "2525E",
+    "label": "Fires Areas / Kill Box / Irregular, Blue",
+    "sidc": "13032500002423010000"
+  },
+  {
+    "standard": "2525E",
+    "label": "Fires Areas / Kill Box / Rectangular, Blue",
+    "sidc": "13032500002423020000"
+  },
+  {
+    "standard": "2525E",
+    "label": "Fires Areas / Kill Box / Circular, Blue",
+    "sidc": "13032500002423030000"
+  },
+  {
+    "standard": "2525E",
+    "label": "Fires Areas / Kill Box / Irregular, Purple",
+    "sidc": "13032500002423040000"
+  },
+  {
+    "standard": "2525E",
+    "label": "Fires Areas / Kill Box / Rectangular, Purple",
+    "sidc": "13032500002423050000"
+  },
+  {
+    "standard": "2525E",
+    "label": "Fires Areas / Kill Box / Circular, Purple",
+    "sidc": "13032500002423060000"
+  },
+  {
+    "standard": "2525E",
+    "label": "Fires Areas / Artillery Maneuver Area",
+    "sidc": "13032500002424000000"
+  },
+  {
+    "standard": "2525E",
+    "label": "Fires Areas / Artillery Reserved Area",
+    "sidc": "13032500002425000000"
+  },
+  {
+    "standard": "2525E",
+    "label": "Fires Points",
+    "sidc": "13032500002500000000"
+  },
+  {
+    "standard": "2525E",
+    "label": "Fire Lines",
+    "sidc": "13032500002600000000"
+  },
+  {
+    "standard": "2525E",
+    "label": "Fire Lines / Fire Support Coordination Line (FSCL)",
+    "sidc": "13032500002601000000"
+  },
+  {
+    "standard": "2525E",
+    "label": "Fire Lines / Coordinated Fire Line (CFL)",
+    "sidc": "13032500002602000000"
+  },
+  {
+    "standard": "2525E",
+    "label": "Fire Lines / No Fire Line",
+    "sidc": "13032500002603000000"
+  },
+  {
+    "standard": "2525E",
+    "label": "Fire Lines / Battlefield Coordination Line",
+    "sidc": "13032500002604000000"
+  },
+  {
+    "standard": "2525E",
+    "label": "Fire Lines / Restrictive Fire Line",
+    "sidc": "13032500002605000000"
+  },
+  {
+    "standard": "2525E",
+    "label": "Fire Lines / Munition Flight Path",
+    "sidc": "13032500002606000000"
+  },
+  {
+    "standard": "2525E",
+    "label": "Protection Areas",
+    "sidc": "13032500002700000000"
+  },
+  {
+    "standard": "2525E",
+    "label": "Protection Areas / Obstacle Belt",
+    "sidc": "13032500002701000000"
+  },
+  {
+    "standard": "2525E",
+    "label": "Protection Areas / Obstacle Zone",
+    "sidc": "13032500002702000000"
+  },
+  {
+    "standard": "2525E",
+    "label": "Protection Areas / Obstacle Free Zone",
+    "sidc": "13032500002703000000"
+  },
+  {
+    "standard": "2525E",
+    "label": "Protection Areas / Obstacle Restricted Zone",
+    "sidc": "13032500002704000000"
+  },
+  {
+    "standard": "2525E",
+    "label": "Protection Areas / Obstacle Effects",
+    "sidc": "13032500002705000000"
+  },
+  {
+    "standard": "2525E",
+    "label": "Protection Areas / Obstacle Effects / Block",
+    "sidc": "13032500002705010000"
+  },
+  {
+    "standard": "2525E",
+    "label": "Protection Areas / Obstacle Effects / Disrupt",
+    "sidc": "13032500002705020000"
+  },
+  {
+    "standard": "2525E",
+    "label": "Protection Areas / Obstacle Effects / Fix",
+    "sidc": "13032500002705030000"
+  },
+  {
+    "standard": "2525E",
+    "label": "Protection Areas / Obstacle Effects / Turn",
+    "sidc": "13032500002705040000"
+  },
+  {
+    "standard": "2525E",
+    "label": "Protection Areas / Obstacle Bypass",
+    "sidc": "13032500002706000000"
+  },
+  {
+    "standard": "2525E",
+    "label": "Protection Areas / Obstacle Bypass / Easy",
+    "sidc": "13032500002706010000"
+  },
+  {
+    "standard": "2525E",
+    "label": "Protection Areas / Obstacle Bypass / Difficult",
+    "sidc": "13032500002706020000"
+  },
+  {
+    "standard": "2525E",
+    "label": "Protection Areas / Obstacle Bypass / Impossible",
+    "sidc": "13032500002706030000"
+  },
+  {
+    "standard": "2525E",
+    "label": "Protection Areas / Minefield",
+    "sidc": "13032500002707000000"
+  },
+  {
+    "standard": "2525E",
+    "label": "Protection Areas / Minefield / Dynamic Depiction",
+    "sidc": "13032500002707070000"
+  },
+  {
+    "standard": "2525E",
+    "label": "Protection Areas / Mined Area",
+    "sidc": "13032500002708000000"
+  },
+  {
+    "standard": "2525E",
+    "label": "Protection Areas / Mined Area / Fenced",
+    "sidc": "13032500002708010000"
+  },
+  {
+    "standard": "2525E",
+    "label": "Protection Areas / Unexploded Explosive Ordnance (UXO) Area",
+    "sidc": "13032500002710000000"
+  },
+  {
+    "standard": "2525E",
+    "label": "Protection Areas / Bridge or Gap",
+    "sidc": "13032500002711000000"
+  },
+  {
+    "standard": "2525E",
+    "label": "Protection Areas / Roadblocks, Craters and Blown Bridges",
+    "sidc": "13032500002712000000"
+  },
+  {
+    "standard": "2525E",
+    "label": "Protection Areas / Roadblocks, Craters and Blown Bridges / Planned",
+    "sidc": "13032500002712010000"
+  },
+  {
+    "standard": "2525E",
+    "label": "Protection Areas / Roadblocks, Craters and Blown Bridges / Explosives, State of Readiness 1 (Safe)",
+    "sidc": "13032500002712020000"
+  },
+  {
+    "standard": "2525E",
+    "label": "Protection Areas / Roadblocks, Craters and Blown Bridges / Explosives, State of Readiness 2 (armed but passable)",
+    "sidc": "13032500002712030000"
+  },
+  {
+    "standard": "2525E",
+    "label": "Protection Areas / Roadblocks, Craters and Blown Bridges / Roadblock Complete (Executed)",
+    "sidc": "13032500002712040000"
+  },
+  {
+    "standard": "2525E",
+    "label": "Protection Areas / Assault Crossing",
+    "sidc": "13032500002713000000"
+  },
+  {
+    "standard": "2525E",
+    "label": "Protection Areas / {Disused}",
+    "sidc": "13032500002714000000"
+  },
+  {
+    "standard": "2525E",
+    "label": "Protection Areas / Ford Easy",
+    "sidc": "13032500002715000000"
+  },
+  {
+    "standard": "2525E",
+    "label": "Protection Areas / Ford Difficult",
+    "sidc": "13032500002716000000"
+  },
+  {
+    "standard": "2525E",
+    "label": "Protection Areas / Biological Contaminated Area",
+    "sidc": "13032500002717000000"
+  },
+  {
+    "standard": "2525E",
+    "label": "Protection Areas / Biological Contaminated Area / Toxic Industrial Material",
+    "sidc": "13032500002717010000"
+  },
+  {
+    "standard": "2525E",
+    "label": "Protection Areas / Chemical Contaminated Area",
+    "sidc": "13032500002718000000"
+  },
+  {
+    "standard": "2525E",
+    "label": "Protection Areas / Chemical Contaminated Area / Toxic Industrial Material",
+    "sidc": "13032500002718010000"
+  },
+  {
+    "standard": "2525E",
+    "label": "Protection Areas / Nuclear Contaminated Area",
+    "sidc": "13032500002719000000"
+  },
+  {
+    "standard": "2525E",
+    "label": "Protection Areas / Radiological Contaminated Area",
+    "sidc": "13032500002720000000"
+  },
+  {
+    "standard": "2525E",
+    "label": "Protection Areas / Radiological Contaminated Area / Toxic Industrial Material",
+    "sidc": "13032500002720010000"
+  },
+  {
+    "standard": "2525E",
+    "label": "Protection Areas / Minimum Safe Distance Zone",
+    "sidc": "13032500002721000000"
+  },
+  {
+    "standard": "2525E",
+    "label": "Protection Areas / Minimum Safe Distance Zone / Multiple Strikes – STRIKWARN",
+    "sidc": "13032500002721010000"
+  },
+  {
+    "standard": "2525E",
+    "label": "Protection Areas / Radiation Dose Rate Contour Lines",
+    "sidc": "13032500002722000000"
+  },
+  {
+    "standard": "2525E",
+    "label": "Protection Points",
+    "sidc": "13032500002800000000"
+  },
+  {
+    "standard": "2525E",
+    "label": "Protection Points / Abatis",
+    "sidc": "13032500002801000000"
+  },
+  {
+    "standard": "2525E",
+    "label": "Protection Points / Tetrahedrons, Dragons Teeth, and Other Similar Obstacles",
+    "sidc": "13032500002819000000"
+  },
+  {
+    "standard": "2525E",
+    "label": "Protection Points / Vertical Obstructions",
+    "sidc": "13032500002820000000"
+  },
+  {
+    "standard": "2525E",
+    "label": "Protection Points / Vertical Obstructions / Overhead Wire",
+    "sidc": "13032500002820030000"
+  },
+  {
+    "standard": "2525E",
+    "label": "Protection Lines",
+    "sidc": "13032500002900000000"
+  },
+  {
+    "standard": "2525E",
+    "label": "Protection Lines / Obstacle Line",
+    "sidc": "13032500002901000000"
+  },
+  {
+    "standard": "2525E",
+    "label": "Protection Lines / Obstacle Line / Mineline",
+    "sidc": "13032500002901010000"
+  },
+  {
+    "standard": "2525E",
+    "label": "Protection Lines / Antitank Obstacles",
+    "sidc": "13032500002902000000"
+  },
+  {
+    "standard": "2525E",
+    "label": "Protection Lines / Antitank Obstacles / Ditch Under Construction",
+    "sidc": "13032500002902010000"
+  },
+  {
+    "standard": "2525E",
+    "label": "Protection Lines / Antitank Obstacles / Ditch Completed",
+    "sidc": "13032500002902020000"
+  },
+  {
+    "standard": "2525E",
+    "label": "Protection Lines / Antitank Obstacles / Ditch Reinforced, with Antitank Mines",
+    "sidc": "13032500002902030000"
+  },
+  {
+    "standard": "2525E",
+    "label": "Protection Lines / Antitank Obstacles / Antitank Wall",
+    "sidc": "13032500002902040000"
+  },
+  {
+    "standard": "2525E",
+    "label": "Protection Lines / Wire Obstacles",
+    "sidc": "13032500002903000000"
+  },
+  {
+    "standard": "2525E",
+    "label": "Protection Lines / Wire Obstacles / Unspecified",
+    "sidc": "13032500002903010000"
+  },
+  {
+    "standard": "2525E",
+    "label": "Protection Lines / Wire Obstacles / Single Fence",
+    "sidc": "13032500002903020000"
+  },
+  {
+    "standard": "2525E",
+    "label": "Protection Lines / Wire Obstacles / Double Fence",
+    "sidc": "13032500002903030000"
+  },
+  {
+    "standard": "2525E",
+    "label": "Protection Lines / Wire Obstacles / Double Apron Fence",
+    "sidc": "13032500002903040000"
+  },
+  {
+    "standard": "2525E",
+    "label": "Protection Lines / Wire Obstacles / Low Wire Fence",
+    "sidc": "13032500002903050000"
+  },
+  {
+    "standard": "2525E",
+    "label": "Protection Lines / Wire Obstacles / High Wire Fence",
+    "sidc": "13032500002903060000"
+  },
+  {
+    "standard": "2525E",
+    "label": "Protection Lines / Wire Obstacles / Single Concertina",
+    "sidc": "13032500002903070000"
+  },
+  {
+    "standard": "2525E",
+    "label": "Protection Lines / Wire Obstacles / Double Strand Concertina",
+    "sidc": "13032500002903080000"
+  },
+  {
+    "standard": "2525E",
+    "label": "Protection Lines / Wire Obstacles / Triple Strand Concertina",
+    "sidc": "13032500002903090000"
+  },
+  {
+    "standard": "2525E",
+    "label": "Protection Lines / Mine Cluster",
+    "sidc": "13032500002904000000"
+  },
+  {
+    "standard": "2525E",
+    "label": "Protection Lines / Trip Wire",
+    "sidc": "13032500002905000000"
+  },
+  {
+    "standard": "2525E",
+    "label": "Protection Lines / Lane",
+    "sidc": "13032500002906000000"
+  },
+  {
+    "standard": "2525E",
+    "label": "Protection Lines / Ferry",
+    "sidc": "13032500002907000000"
+  },
+  {
+    "standard": "2525E",
+    "label": "Protection Lines / Raft Site",
+    "sidc": "13032500002908000000"
+  },
+  {
+    "standard": "2525E",
+    "label": "Protection Lines / Fortified Line",
+    "sidc": "13032500002909000000"
+  },
+  {
+    "standard": "2525E",
+    "label": "Protection Lines / Fighting Position",
+    "sidc": "13032500002910000000"
+  },
+  {
+    "standard": "2525E",
+    "label": "Intelligence Lines",
+    "sidc": "13032500003000000000"
+  },
+  {
+    "standard": "2525E",
+    "label": "Intelligence Lines / Intelligence Coordination Line",
+    "sidc": "13032500003001000000"
+  },
+  {
+    "standard": "2525E",
+    "label": "Sustainment Areas",
+    "sidc": "13032500003100000000"
+  },
+  {
+    "standard": "2525E",
+    "label": "Sustainment Areas / Detainee Holding Area",
+    "sidc": "13032500003101000000"
+  },
+  {
+    "standard": "2525E",
+    "label": "Sustainment Areas / Enemy Prisoner of War (EPW) Holding Area",
+    "sidc": "13032500003102000000"
+  },
+  {
+    "standard": "2525E",
+    "label": "Sustainment Areas / Forward Arming and Refueling Point (FARP)",
+    "sidc": "13032500003103000000"
+  },
+  {
+    "standard": "2525E",
+    "label": "Sustainment Areas / Refugee Holding Area",
+    "sidc": "13032500003104000000"
+  },
+  {
+    "standard": "2525E",
+    "label": "Sustainment Areas / Regimental Support Area",
+    "sidc": "13032500003105000000"
+  },
+  {
+    "standard": "2525E",
+    "label": "Sustainment Areas / Brigade Support Area",
+    "sidc": "13032500003106000000"
+  },
+  {
+    "standard": "2525E",
+    "label": "Sustainment Areas / Division Support Area",
+    "sidc": "13032500003107000000"
+  },
+  {
+    "standard": "2525E",
+    "label": "Sustainment Areas / Corps Support Area",
+    "sidc": "13032500003108000000"
+  },
+  {
+    "standard": "2525E",
+    "label": "Sustainment Points",
+    "sidc": "13032500003200000000"
+  },
+  {
+    "standard": "2525E",
+    "label": "Sustainment Lines",
+    "sidc": "13032500003300000000"
+  },
+  {
+    "standard": "2525E",
+    "label": "Sustainment Lines / Moving Convoy",
+    "sidc": "13032500003301000000"
+  },
+  {
+    "standard": "2525E",
+    "label": "Sustainment Lines / Halted Convoy",
+    "sidc": "13032500003302000000"
+  },
+  {
+    "standard": "2525E",
+    "label": "Sustainment Lines / Main Supply Route (MSR)",
+    "sidc": "13032500003303000000"
+  },
+  {
+    "standard": "2525E",
+    "label": "Sustainment Lines / Main Supply Route (MSR) / One Way Traffic",
+    "sidc": "13032500003303010000"
+  },
+  {
+    "standard": "2525E",
+    "label": "Sustainment Lines / Main Supply Route (MSR) / Two Way Traffic",
+    "sidc": "13032500003303020000"
+  },
+  {
+    "standard": "2525E",
+    "label": "Sustainment Lines / Main Supply Route (MSR) / Alternating Traffic",
+    "sidc": "13032500003303030000"
+  },
+  {
+    "standard": "2525E",
+    "label": "Sustainment Lines / Alternate Supply Route (ASR)",
+    "sidc": "13032500003304000000"
+  },
+  {
+    "standard": "2525E",
+    "label": "Sustainment Lines / Alternate Supply Route (ASR) / One Way Traffic",
+    "sidc": "13032500003304010000"
+  },
+  {
+    "standard": "2525E",
+    "label": "Sustainment Lines / Alternate Supply Route (ASR) / Two Way Traffic",
+    "sidc": "13032500003304020000"
+  },
+  {
+    "standard": "2525E",
+    "label": "Sustainment Lines / Alternate Supply Route (ASR) / Alternating Traffic",
+    "sidc": "13032500003304030000"
+  },
+  {
+    "standard": "2525E",
+    "label": "Sustainment Lines / Traffic Route",
+    "sidc": "13032500003305000000"
+  },
+  {
+    "standard": "2525E",
+    "label": "Sustainment Lines / Traffic Route / One Way Traffic",
+    "sidc": "13032500003305010000"
+  },
+  {
+    "standard": "2525E",
+    "label": "Sustainment Lines / Traffic Route / Alternating Traffic",
+    "sidc": "13032500003305020000"
+  },
+  {
+    "standard": "2525E",
+    "label": "Mission Tasks",
+    "sidc": "13032500003400000000"
+  },
+  {
+    "standard": "2525E",
+    "label": "Mission Tasks / Block",
+    "sidc": "13032500003401000000"
+  },
+  {
+    "standard": "2525E",
+    "label": "Mission Tasks / Breach",
+    "sidc": "13032500003402000000"
+  },
+  {
+    "standard": "2525E",
+    "label": "Mission Tasks / Bypass",
+    "sidc": "13032500003403000000"
+  },
+  {
+    "standard": "2525E",
+    "label": "Mission Tasks / Canalize",
+    "sidc": "13032500003404000000"
+  },
+  {
+    "standard": "2525E",
+    "label": "Mission Tasks / Clear",
+    "sidc": "13032500003405000000"
+  },
+  {
+    "standard": "2525E",
+    "label": "Mission Tasks / Counterattack",
+    "sidc": "13032500003406000000"
+  },
+  {
+    "standard": "2525E",
+    "label": "Mission Tasks / Counterattack by Fire",
+    "sidc": "13032500003407000000"
+  },
+  {
+    "standard": "2525E",
+    "label": "Mission Tasks / Delay",
+    "sidc": "13032500003408000000"
+  },
+  {
+    "standard": "2525E",
+    "label": "Mission Tasks / Disrupt",
+    "sidc": "13032500003410000000"
+  },
+  {
+    "standard": "2525E",
+    "label": "Mission Tasks / Fix",
+    "sidc": "13032500003411000000"
+  },
+  {
+    "standard": "2525E",
+    "label": "Mission Tasks / Follow and Assume",
+    "sidc": "13032500003412000000"
+  },
+  {
+    "standard": "2525E",
+    "label": "Mission Tasks / Follow and Support",
+    "sidc": "13032500003413000000"
+  },
+  {
+    "standard": "2525E",
+    "label": "Mission Tasks / Isolate",
+    "sidc": "13032500003415000000"
+  },
+  {
+    "standard": "2525E",
+    "label": "Mission Tasks / Occupy",
+    "sidc": "13032500003417000000"
+  },
+  {
+    "standard": "2525E",
+    "label": "Mission Tasks / Penetrate",
+    "sidc": "13032500003418000000"
+  },
+  {
+    "standard": "2525E",
+    "label": "Mission Tasks / Relief in Place (RIP)",
+    "sidc": "13032500003419000000"
+  },
+  {
+    "standard": "2525E",
+    "label": "Mission Tasks / Retire/Retirement",
+    "sidc": "13032500003420000000"
+  },
+  {
+    "standard": "2525E",
+    "label": "Mission Tasks / Secure",
+    "sidc": "13032500003421000000"
+  },
+  {
+    "standard": "2525E",
+    "label": "Mission Tasks / Security",
+    "sidc": "13032500003422000000"
+  },
+  {
+    "standard": "2525E",
+    "label": "Mission Tasks / Security / Cover",
+    "sidc": "13032500003422010000"
+  },
+  {
+    "standard": "2525E",
+    "label": "Mission Tasks / Security / Guard",
+    "sidc": "13032500003422020000"
+  },
+  {
+    "standard": "2525E",
+    "label": "Mission Tasks / Security / Screen",
+    "sidc": "13032500003422030000"
+  },
+  {
+    "standard": "2525E",
+    "label": "Mission Tasks / Seize",
+    "sidc": "13032500003423000000"
+  },
+  {
+    "standard": "2525E",
+    "label": "Mission Tasks / Withdraw",
+    "sidc": "13032500003424000000"
+  },
+  {
+    "standard": "2525E",
+    "label": "Mission Tasks / Withdraw Under Pressure",
+    "sidc": "13032500003425000000"
+  },
+  {
+    "standard": "2525E",
+    "label": "Mission Tasks / Cordon and Knock",
+    "sidc": "13032500003426000000"
+  },
+  {
+    "standard": "2525E",
+    "label": "Mission Tasks / Cordon and Search",
+    "sidc": "13032500003427000000"
+  },
+  {
+    "standard": "2525E",
+    "label": "Mission Tasks / Advance to Contact",
+    "sidc": "13032500003429000000"
+  },
+  {
+    "standard": "2525E",
+    "label": "Mission Tasks / Capture",
+    "sidc": "13032500003430000000"
+  },
+  {
+    "standard": "2525E",
+    "label": "Mission Tasks / Exploit/Exploitation",
+    "sidc": "13032500003431000000"
+  },
+  {
+    "standard": "2525E",
+    "label": "Mission Tasks / Control",
+    "sidc": "13032500003432000000"
+  },
+  {
+    "standard": "2525E",
+    "label": "Mission Tasks / Demonstration/Demonstrate",
+    "sidc": "13032500003433000000"
+  },
+  {
+    "standard": "2525E",
+    "label": "Mission Tasks / Deny",
+    "sidc": "13032500003434000000"
+  },
+  {
+    "standard": "2525E",
+    "label": "Mission Tasks / Envelop",
+    "sidc": "13032500003435000000"
+  },
+  {
+    "standard": "2525E",
+    "label": "Mission Tasks / Escort",
+    "sidc": "13032500003436000000"
+  },
+  {
+    "standard": "2525E",
+    "label": "Mission Tasks / Exfiltrate",
+    "sidc": "13032500003437000000"
+  },
+  {
+    "standard": "2525E",
+    "label": "Mission Tasks / Infiltrate",
+    "sidc": "13032500003438000000"
+  },
+  {
+    "standard": "2525E",
+    "label": "Mission Tasks / Locate",
+    "sidc": "13032500003439000000"
+  },
+  {
+    "standard": "2525E",
+    "label": "Mission Tasks / Pursue",
+    "sidc": "13032500003440000000"
+  },
+  {
+    "standard": "2525E",
+    "label": "Mission Tasks / Forward Passage of Lines",
+    "sidc": "13032500003441000000"
+  },
+  {
+    "standard": "2525E",
+    "label": "Mission Tasks / Rearward Passage of Lines",
+    "sidc": "13032500003442000000"
+  },
+  {
+    "standard": "2525E",
+    "label": "Mission Tasks / Defeat",
+    "sidc": "13032500003443000000"
+  },
+  {
+    "standard": "2525E",
+    "label": "Mission Tasks / Disengage",
+    "sidc": "13032500003444000000"
+  },
+  {
+    "standard": "2525E",
+    "label": "Mission Tasks / Evacuate",
+    "sidc": "13032500003445000000"
+  },
+  {
+    "standard": "2525E",
+    "label": "Mission Tasks / Recover",
+    "sidc": "13032500003446000000"
+  },
+  {
+    "standard": "2525E",
+    "label": "Mission Tasks / Turn",
+    "sidc": "13032500003447000000"
+  },
+  {
+    "standard": "APP6D",
+    "label": "Command and Control Lines",
+    "sidc": "10032500001100000000"
+  },
+  {
+    "standard": "APP6D",
+    "label": "Command and Control Lines / Boundary",
+    "sidc": "10032500001101000000"
+  },
+  {
+    "standard": "APP6D",
+    "label": "Command and Control Lines / Boundary / Lateral",
+    "sidc": "10032500001101010000"
+  },
+  {
+    "standard": "APP6D",
+    "label": "Command and Control Lines / Boundary / Forward",
+    "sidc": "10032500001101020000"
+  },
+  {
+    "standard": "APP6D",
+    "label": "Command and Control Lines / Boundary / Rear",
+    "sidc": "10032500001101030000"
+  },
+  {
+    "standard": "APP6D",
+    "label": "Command and Control Lines / Light Line",
+    "sidc": "10032500001102000000"
+  },
+  {
+    "standard": "APP6D",
+    "label": "Command and Control Lines / Engineer Work Line",
+    "sidc": "10032500001103000000"
+  },
+  {
+    "standard": "APP6D",
+    "label": "Command and Control Areas",
+    "sidc": "10032500001200000000"
+  },
+  {
+    "standard": "APP6D",
+    "label": "Command and Control Areas / Area of Operations",
+    "sidc": "10032500001201000000"
+  },
+  {
+    "standard": "APP6D",
+    "label": "Command and Control Areas / Named Area of Interest",
+    "sidc": "10032500001202000000"
+  },
+  {
+    "standard": "APP6D",
+    "label": "Command and Control Areas / Targeted Area of Interest",
+    "sidc": "10032500001203000000"
+  },
+  {
+    "standard": "APP6D",
+    "label": "Command and Control Areas / Airfield Zone",
+    "sidc": "10032500001204000000"
+  },
+  {
+    "standard": "APP6D",
+    "label": "Command and Control Areas / Base Camp",
+    "sidc": "10032500001205000000"
+  },
+  {
+    "standard": "APP6D",
+    "label": "Command and Control Areas / Guerrilla Base",
+    "sidc": "10032500001206000000"
+  },
+  {
+    "standard": "APP6D",
+    "label": "Command and Control Points",
+    "sidc": "10032500001300000000"
+  },
+  {
+    "standard": "APP6D",
+    "label": "Manoeuvre Lines",
+    "sidc": "10032500001400000000"
+  },
+  {
+    "standard": "APP6D",
+    "label": "Manoeuvre Lines / Forward Line of Troops",
+    "sidc": "10032500001401000000"
+  },
+  {
+    "standard": "APP6D",
+    "label": "Manoeuvre Lines / Forward Line of Troops / Friendly Present",
+    "sidc": "10032500001401010000"
+  },
+  {
+    "standard": "APP6D",
+    "label": "Manoeuvre Lines / Forward Line of Troops / Friendly Planned or on Order",
+    "sidc": "10032500001401020000"
+  },
+  {
+    "standard": "APP6D",
+    "label": "Manoeuvre Lines / Forward Line of Troops / Enemy Known",
+    "sidc": "10032500001401030000"
+  },
+  {
+    "standard": "APP6D",
+    "label": "Manoeuvre Lines / Forward Line of Troops / Enemy Suspected or Templated",
+    "sidc": "10032500001401040000"
+  },
+  {
+    "standard": "APP6D",
+    "label": "Manoeuvre Lines / Line of Contact",
+    "sidc": "10032500001402000000"
+  },
+  {
+    "standard": "APP6D",
+    "label": "Manoeuvre Lines / Phase Line",
+    "sidc": "10032500001403000000"
+  },
+  {
+    "standard": "APP6D",
+    "label": "Manoeuvre Lines / Forward Edge of the Battle Area",
+    "sidc": "10032500001404000000"
+  },
+  {
+    "standard": "APP6D",
+    "label": "Manoeuvre Lines / Forward Edge of the Battle Area / Proposed or On Order",
+    "sidc": "10032500001404010000"
+  },
+  {
+    "standard": "APP6D",
+    "label": "Manoeuvre Lines / Principle Direction of Fire",
+    "sidc": "10032500001405000000"
+  },
+  {
+    "standard": "APP6D",
+    "label": "Manoeuvre Lines / Direction of Attack",
+    "sidc": "10032500001406000000"
+  },
+  {
+    "standard": "APP6D",
+    "label": "Manoeuvre Lines / Direction of Attack / Friendly Aviation",
+    "sidc": "10032500001406010000"
+  },
+  {
+    "standard": "APP6D",
+    "label": "Manoeuvre Lines / Direction of Attack / Friendly Direction of Main Attack",
+    "sidc": "10032500001406020000"
+  },
+  {
+    "standard": "APP6D",
+    "label": "Manoeuvre Lines / Direction of Attack / Friendly Direction of Supporting Attack",
+    "sidc": "10032500001406030000"
+  },
+  {
+    "standard": "APP6D",
+    "label": "Manoeuvre Lines / Direction of Attack / Friendly Planned or On Order",
+    "sidc": "10032500001406040000"
+  },
+  {
+    "standard": "APP6D",
+    "label": "Manoeuvre Lines / Direction of Attack / Feint",
+    "sidc": "10032500001406050000"
+  },
+  {
+    "standard": "APP6D",
+    "label": "Manoeuvre Lines / Direction of Attack / Enemy Confirmed",
+    "sidc": "10032500001406060000"
+  },
+  {
+    "standard": "APP6D",
+    "label": "Manoeuvre Lines / Direction of Attack / Enemy Templated or Suspected",
+    "sidc": "10032500001406070000"
+  },
+  {
+    "standard": "APP6D",
+    "label": "Manoeuvre Lines / Final Coordination Line",
+    "sidc": "10032500001407000000"
+  },
+  {
+    "standard": "APP6D",
+    "label": "Manoeuvre Lines / Infiltration Lane",
+    "sidc": "10032500001408000000"
+  },
+  {
+    "standard": "APP6D",
+    "label": "Manoeuvre Lines / Limit of Advance",
+    "sidc": "10032500001409000000"
+  },
+  {
+    "standard": "APP6D",
+    "label": "Manoeuvre Lines / Line of Departure",
+    "sidc": "10032500001410000000"
+  },
+  {
+    "standard": "APP6D",
+    "label": "Manoeuvre Lines / Line of Departure/Line of Contact",
+    "sidc": "10032500001411000000"
+  },
+  {
+    "standard": "APP6D",
+    "label": "Manoeuvre Lines / Probable Line of Deployment",
+    "sidc": "10032500001412000000"
+  },
+  {
+    "standard": "APP6D",
+    "label": "Manoeuvre Lines / Airhead Line",
+    "sidc": "10032500001413000000"
+  },
+  {
+    "standard": "APP6D",
+    "label": "Manoeuvre Lines / Bridgehead Line (BL)",
+    "sidc": "10032500001414000000"
+  },
+  {
+    "standard": "APP6D",
+    "label": "Manoeuvre Lines / Holding Line (HL)",
+    "sidc": "10032500001415000000"
+  },
+  {
+    "standard": "APP6D",
+    "label": "Manoeuvre Lines / Release Line",
+    "sidc": "10032500001416000000"
+  },
+  {
+    "standard": "APP6D",
+    "label": "Manoeuvre Lines / Ambush",
+    "sidc": "10032500001417000000"
+  },
+  {
+    "standard": "APP6D",
+    "label": "Manoeuvre Areas",
+    "sidc": "10032500001500000000"
+  },
+  {
+    "standard": "APP6D",
+    "label": "Manoeuvre Areas / Area",
+    "sidc": "10032500001501000000"
+  },
+  {
+    "standard": "APP6D",
+    "label": "Manoeuvre Areas / Area / Friendly",
+    "sidc": "10032500001501010000"
+  },
+  {
+    "standard": "APP6D",
+    "label": "Manoeuvre Areas / Area / Friendly Planned or On Order",
+    "sidc": "10032500001501020000"
+  },
+  {
+    "standard": "APP6D",
+    "label": "Manoeuvre Areas / Area / Enemy Known or Confirmed",
+    "sidc": "10032500001501030000"
+  },
+  {
+    "standard": "APP6D",
+    "label": "Manoeuvre Areas / Area / Enemy Suspected",
+    "sidc": "10032500001501040000"
+  },
+  {
+    "standard": "APP6D",
+    "label": "Manoeuvre Areas / Assembly Area (AA)",
+    "sidc": "10032500001502000000"
+  },
+  {
+    "standard": "APP6D",
+    "label": "Manoeuvre Areas / Occupied Assembly Area",
+    "sidc": "10032500001503000000"
+  },
+  {
+    "standard": "APP6D",
+    "label": "Manoeuvre Areas / Occupied Assembly Area / Offset Unit",
+    "sidc": "10032500001503010000"
+  },
+  {
+    "standard": "APP6D",
+    "label": "Manoeuvre Areas / Occupied Assembly Area / Offset Units",
+    "sidc": "10032500001503020000"
+  },
+  {
+    "standard": "APP6D",
+    "label": "",
+    "sidc": "10032500001504000000"
+  },
+  {
+    "standard": "APP6D",
+    "label": "Manoeuvre Areas / Action Area",
+    "sidc": "10032500001505000000"
+  },
+  {
+    "standard": "APP6D",
+    "label": "Manoeuvre Areas / Action Area / Joint Tactical Action Area (JTAA)",
+    "sidc": "10032500001505010000"
+  },
+  {
+    "standard": "APP6D",
+    "label": "Manoeuvre Areas / Action Area / Submarine Action Area (SAA)",
+    "sidc": "10032500001505020000"
+  },
+  {
+    "standard": "APP6D",
+    "label": "Manoeuvre Areas / Action Area / Submarine-Generated Action Area (SGAA)",
+    "sidc": "10032500001505030000"
+  },
+  {
+    "standard": "APP6D",
+    "label": "Manoeuvre Areas / Drop Zone (DZ)",
+    "sidc": "10032500001506000000"
+  },
+  {
+    "standard": "APP6D",
+    "label": "Manoeuvre Areas / Extraction Zone (EZ)",
+    "sidc": "10032500001507000000"
+  },
+  {
+    "standard": "APP6D",
+    "label": "Manoeuvre Areas / Landing Zone (LZ)",
+    "sidc": "10032500001508000000"
+  },
+  {
+    "standard": "APP6D",
+    "label": "Manoeuvre Areas / Pick-Up Zone (PZ)",
+    "sidc": "10032500001509000000"
+  },
+  {
+    "standard": "APP6D",
+    "label": "Manoeuvre Areas / Fortified Area",
+    "sidc": "10032500001510000000"
+  },
+  {
+    "standard": "APP6D",
+    "label": "Manoeuvre Areas / Limited Access Area",
+    "sidc": "10032500001511000000"
+  },
+  {
+    "standard": "APP6D",
+    "label": "Manoeuvre Areas / Battle Position",
+    "sidc": "10032500001512000000"
+  },
+  {
+    "standard": "APP6D",
+    "label": "Manoeuvre Areas / Battle Position / Prepared (P) but not Occupied",
+    "sidc": "10032500001512020000"
+  },
+  {
+    "standard": "APP6D",
+    "label": "Manoeuvre Areas / Battle Position / Strong Point",
+    "sidc": "10032500001512030000"
+  },
+  {
+    "standard": "APP6D",
+    "label": "Manoeuvre Areas / Battle Position / Contain",
+    "sidc": "10032500001512040000"
+  },
+  {
+    "standard": "APP6D",
+    "label": "Manoeuvre Areas / Battle Position / Retain",
+    "sidc": "10032500001512050000"
+  },
+  {
+    "standard": "APP6D",
+    "label": "Manoeuvre Areas / Engagement Area (EA)",
+    "sidc": "10032500001513000000"
+  },
+  {
+    "standard": "APP6D",
+    "label": "Manoeuvre Areas / Axis of Advance",
+    "sidc": "10032500001514000000"
+  },
+  {
+    "standard": "APP6D",
+    "label": "Manoeuvre Areas / Axis of Advance / Friendly Airborne/Aviation",
+    "sidc": "10032500001514010000"
+  },
+  {
+    "standard": "APP6D",
+    "label": "Manoeuvre Areas / Axis of Advance / Attack Helicopter",
+    "sidc": "10032500001514020000"
+  },
+  {
+    "standard": "APP6D",
+    "label": "Manoeuvre Areas / Axis of Advance / Main Attack",
+    "sidc": "10032500001514030000"
+  },
+  {
+    "standard": "APP6D",
+    "label": "Manoeuvre Areas / Axis of Advance / Supporting Attack",
+    "sidc": "10032500001514040000"
+  },
+  {
+    "standard": "APP6D",
+    "label": "Manoeuvre Areas / Axis of Advance / Supporting Attack Planned or on Order",
+    "sidc": "10032500001514050000"
+  },
+  {
+    "standard": "APP6D",
+    "label": "Manoeuvre Areas / Axis of Advance / Feint",
+    "sidc": "10032500001514060000"
+  },
+  {
+    "standard": "APP6D",
+    "label": "Manoeuvre Areas / Axis of Advance / Enemy Confirmed",
+    "sidc": "10032500001514070000"
+  },
+  {
+    "standard": "APP6D",
+    "label": "Manoeuvre Areas / Axis of Advance / Enemy Templated or Suspected",
+    "sidc": "10032500001514080000"
+  },
+  {
+    "standard": "APP6D",
+    "label": "Manoeuvre Areas / Assault Position",
+    "sidc": "10032500001515000000"
+  },
+  {
+    "standard": "APP6D",
+    "label": "Manoeuvre Areas / Attack Position",
+    "sidc": "10032500001516000000"
+  },
+  {
+    "standard": "APP6D",
+    "label": "Manoeuvre Areas / Objective",
+    "sidc": "10032500001517000000"
+  },
+  {
+    "standard": "APP6D",
+    "label": "Manoeuvre Areas / Encirclement",
+    "sidc": "10032500001518000000"
+  },
+  {
+    "standard": "APP6D",
+    "label": "Manoeuvre Areas / Encirclement / Friendly",
+    "sidc": "10032500001518010000"
+  },
+  {
+    "standard": "APP6D",
+    "label": "Manoeuvre Areas / Encirclement / Enemy",
+    "sidc": "10032500001518020000"
+  },
+  {
+    "standard": "APP6D",
+    "label": "Manoeuvre Areas / Penetration Box",
+    "sidc": "10032500001519000000"
+  },
+  {
+    "standard": "APP6D",
+    "label": "Manoeuvre Areas / Attack by Fire Position",
+    "sidc": "10032500001520000000"
+  },
+  {
+    "standard": "APP6D",
+    "label": "Manoeuvre Areas / Support by Fire Position",
+    "sidc": "10032500001521000000"
+  },
+  {
+    "standard": "APP6D",
+    "label": "Manoeuvre Areas / Search Area/Reconnaissance Area",
+    "sidc": "10032500001522000000"
+  },
+  {
+    "standard": "APP6D",
+    "label": "Manoeuvre Points",
+    "sidc": "10032500001600000000"
+  },
+  {
+    "standard": "APP6D",
+    "label": "Airspace Control (Corridors) Areas",
+    "sidc": "10032500001700000000"
+  },
+  {
+    "standard": "APP6D",
+    "label": "Airspace Control (Corridors) Areas / Air Corridor",
+    "sidc": "10032500001701000000"
+  },
+  {
+    "standard": "APP6D",
+    "label": "Airspace Control (Corridors) Areas / Air Corridor / Air Corridor With Multiple Segments",
+    "sidc": "10032500001701010000"
+  },
+  {
+    "standard": "APP6D",
+    "label": "Airspace Control (Corridors) Areas / Low Level Transit Route",
+    "sidc": "10032500001702000000"
+  },
+  {
+    "standard": "APP6D",
+    "label": "Airspace Control (Corridors) Areas / Temporary Minimum-Risk Route",
+    "sidc": "10032500001703000000"
+  },
+  {
+    "standard": "APP6D",
+    "label": "Airspace Control (Corridors) Areas / Safe Lane",
+    "sidc": "10032500001704000000"
+  },
+  {
+    "standard": "APP6D",
+    "label": "Airspace Control (Corridors) Areas / Standard Use Army Aircraft Flight Route",
+    "sidc": "10032500001705000000"
+  },
+  {
+    "standard": "APP6D",
+    "label": "Airspace Control (Corridors) Areas / Transit Corridor",
+    "sidc": "10032500001706000000"
+  },
+  {
+    "standard": "APP6D",
+    "label": "Airspace Control (Corridors) Areas / Unmanned Aircraft (UA) Route Special Corridor",
+    "sidc": "10032500001707000000"
+  },
+  {
+    "standard": "APP6D",
+    "label": "Airspace Control (Corridors) Areas / Base Defence Zone",
+    "sidc": "10032500001708000000"
+  },
+  {
+    "standard": "APP6D",
+    "label": "Airspace Control (Corridors) Areas / High-Density Airspace Control Zone",
+    "sidc": "10032500001709000000"
+  },
+  {
+    "standard": "APP6D",
+    "label": "Airspace Control (Corridors) Areas / Restricted Operations Zone",
+    "sidc": "10032500001710000000"
+  },
+  {
+    "standard": "APP6D",
+    "label": "Airspace Control (Corridors) Areas / Air-to-Air Restricted Operating Zone",
+    "sidc": "10032500001711000000"
+  },
+  {
+    "standard": "APP6D",
+    "label": "Airspace Control (Corridors) Areas / Unmanned Aircraft Restricted Operating Zone",
+    "sidc": "10032500001712000000"
+  },
+  {
+    "standard": "APP6D",
+    "label": "Airspace Control (Corridors) Areas / Weapon Engagement Zone",
+    "sidc": "10032500001713000000"
+  },
+  {
+    "standard": "APP6D",
+    "label": "Airspace Control (Corridors) Areas / Fighter Engagement Zone",
+    "sidc": "10032500001714000000"
+  },
+  {
+    "standard": "APP6D",
+    "label": "Airspace Control (Corridors) Areas / Joint Engagement Zone",
+    "sidc": "10032500001715000000"
+  },
+  {
+    "standard": "APP6D",
+    "label": "Airspace Control (Corridors) Areas / Missile Engagement Zone",
+    "sidc": "10032500001716000000"
+  },
+  {
+    "standard": "APP6D",
+    "label": "Airspace Control (Corridors) Areas / Low Altitude Missile Engagement Zone",
+    "sidc": "10032500001717000000"
+  },
+  {
+    "standard": "APP6D",
+    "label": "Airspace Control (Corridors) Areas / High Altitude Missile Engagement Zone",
+    "sidc": "10032500001718000000"
+  },
+  {
+    "standard": "APP6D",
+    "label": "Airspace Control (Corridors) Areas / Short Range Air Defence Engagement Zone",
+    "sidc": "10032500001719000000"
+  },
+  {
+    "standard": "APP6D",
+    "label": "Airspace Control (Corridors) Areas / Weapons Free Zone",
+    "sidc": "10032500001720000000"
+  },
+  {
+    "standard": "APP6D",
+    "label": "Airspace Control Lines",
+    "sidc": "10032500001900000000"
+  },
+  {
+    "standard": "APP6D",
+    "label": "Airspace Control Lines / Identification Friend or Foe Off Line",
+    "sidc": "10032500001901000000"
+  },
+  {
+    "standard": "APP6D",
+    "label": "Airspace Control Lines / Identification Friend or Foe On Line",
+    "sidc": "10032500001902000000"
+  },
+  {
+    "standard": "APP6D",
+    "label": "Maritime Control Areas",
+    "sidc": "10032500002000000000"
+  },
+  {
+    "standard": "APP6D",
+    "label": "Maritime Control Areas / Launch Area",
+    "sidc": "10032500002001000000"
+  },
+  {
+    "standard": "APP6D",
+    "label": "Maritime Control Areas / Launch Area / Ellipse/Circle",
+    "sidc": "10032500002001010000"
+  },
+  {
+    "standard": "APP6D",
+    "label": "Maritime Control Areas / Defended Area",
+    "sidc": "10032500002002000000"
+  },
+  {
+    "standard": "APP6D",
+    "label": "Maritime Control Areas / Defended Area / Ellipse/Circle",
+    "sidc": "10032500002002010000"
+  },
+  {
+    "standard": "APP6D",
+    "label": "Maritime Control Areas / Defended Area / Rectangle",
+    "sidc": "10032500002002020000"
+  },
+  {
+    "standard": "APP6D",
+    "label": "Maritime Control Areas / No Attack (NOTACK) Zone",
+    "sidc": "10032500002003000000"
+  },
+  {
+    "standard": "APP6D",
+    "label": "Maritime Control Areas / Ship Area of Interest / Ellipse/Circle",
+    "sidc": "10032500002004010000"
+  },
+  {
+    "standard": "APP6D",
+    "label": "Maritime Control Areas / Ship Area of Interest / Rectangle",
+    "sidc": "10032500002004020000"
+  },
+  {
+    "standard": "APP6D",
+    "label": "Maritime Control Areas / Cued Acquisition Doctrine",
+    "sidc": "10032500002006000000"
+  },
+  {
+    "standard": "APP6D",
+    "label": "Maritime Control Areas / Radar Search Doctrine",
+    "sidc": "10032500002007000000"
+  },
+  {
+    "standard": "APP6D",
+    "label": "Maritime Control Points",
+    "sidc": "10032500002100000000"
+  },
+  {
+    "standard": "APP6D",
+    "label": "Maritime Control Points / Navigational",
+    "sidc": "10032500002184000000"
+  },
+  {
+    "standard": "APP6D",
+    "label": "Maritime Control Lines",
+    "sidc": "10032500002200000000"
+  },
+  {
+    "standard": "APP6D",
+    "label": "Maritime Control Lines / Bearing Line",
+    "sidc": "10032500002201000000"
+  },
+  {
+    "standard": "APP6D",
+    "label": "Maritime Control Lines / Bearing Line / Electronic",
+    "sidc": "10032500002201010000"
+  },
+  {
+    "standard": "APP6D",
+    "label": "Maritime Control Lines / Bearing Line / Electronic Warfare (EW)",
+    "sidc": "10032500002201020000"
+  },
+  {
+    "standard": "APP6D",
+    "label": "Maritime Control Lines / Bearing Line / Acoustic",
+    "sidc": "10032500002201030000"
+  },
+  {
+    "standard": "APP6D",
+    "label": "Maritime Control Lines / Bearing Line / Acoustic (Ambiguous)",
+    "sidc": "10032500002201040000"
+  },
+  {
+    "standard": "APP6D",
+    "label": "Maritime Control Lines / Bearing Line / Torpedo",
+    "sidc": "10032500002201050000"
+  },
+  {
+    "standard": "APP6D",
+    "label": "Maritime Control Lines / Bearing Line / Electro-Optical Intercept",
+    "sidc": "10032500002201060000"
+  },
+  {
+    "standard": "APP6D",
+    "label": "Maritime Control Lines / Bearing Line / Jammer",
+    "sidc": "10032500002201070000"
+  },
+  {
+    "standard": "APP6D",
+    "label": "Maritime Control Lines / Bearing Line / Radio Direction Finder (RDF)",
+    "sidc": "10032500002201080000"
+  },
+  {
+    "standard": "APP6D",
+    "label": "Deception",
+    "sidc": "10032500002300000000"
+  },
+  {
+    "standard": "APP6D",
+    "label": "Deception / Decoy/Dummy",
+    "sidc": "10032500002301000000"
+  },
+  {
+    "standard": "APP6D",
+    "label": "Deception / Decoy/Dummy/Feint",
+    "sidc": "10032500002302000000"
+  },
+  {
+    "standard": "APP6D",
+    "label": "Fires Areas",
+    "sidc": "10032500002400000000"
+  },
+  {
+    "standard": "APP6D",
+    "label": "Fires Areas / Airspace Coordination Area",
+    "sidc": "10032500002401000000"
+  },
+  {
+    "standard": "APP6D",
+    "label": "Fires Areas / Airspace Coordination Area / Irregular",
+    "sidc": "10032500002401010000"
+  },
+  {
+    "standard": "APP6D",
+    "label": "Fires Areas / Airspace Coordination Area / Rectangular",
+    "sidc": "10032500002401020000"
+  },
+  {
+    "standard": "APP6D",
+    "label": "Fires Areas / Airspace Coordination Area / Circular",
+    "sidc": "10032500002401030000"
+  },
+  {
+    "standard": "APP6D",
+    "label": "Fires Areas / Free Fire Area",
+    "sidc": "10032500002402000000"
+  },
+  {
+    "standard": "APP6D",
+    "label": "Fires Areas / Free Fire Area / Irregular",
+    "sidc": "10032500002402010000"
+  },
+  {
+    "standard": "APP6D",
+    "label": "Fires Areas / Free Fire Area / Rectangular",
+    "sidc": "10032500002402020000"
+  },
+  {
+    "standard": "APP6D",
+    "label": "Fires Areas / Free Fire Area / Circular",
+    "sidc": "10032500002402030000"
+  },
+  {
+    "standard": "APP6D",
+    "label": "Fires Areas / No Fire Area",
+    "sidc": "10032500002403000000"
+  },
+  {
+    "standard": "APP6D",
+    "label": "Fires Areas / No Fire Area / Irregular",
+    "sidc": "10032500002403010000"
+  },
+  {
+    "standard": "APP6D",
+    "label": "Fires Areas / No Fire Area / Rectangular",
+    "sidc": "10032500002403020000"
+  },
+  {
+    "standard": "APP6D",
+    "label": "Fires Areas / No Fire Area / Circular",
+    "sidc": "10032500002403030000"
+  },
+  {
+    "standard": "APP6D",
+    "label": "Fires Areas / Restricted Fire Area",
+    "sidc": "10032500002404000000"
+  },
+  {
+    "standard": "APP6D",
+    "label": "Fires Areas / Restricted Fire Area / Irregular",
+    "sidc": "10032500002404010000"
+  },
+  {
+    "standard": "APP6D",
+    "label": "Fires Areas / Restricted Fire Area / Rectangular",
+    "sidc": "10032500002404020000"
+  },
+  {
+    "standard": "APP6D",
+    "label": "Fires Areas / Restricted Fire Area / Circular",
+    "sidc": "10032500002404030000"
+  },
+  {
+    "standard": "APP6D",
+    "label": "Fires Areas / Position Area For Artillery (PAA)",
+    "sidc": "10032500002405000000"
+  },
+  {
+    "standard": "APP6D",
+    "label": "Fires Areas / Position Area For Artillery (PAA) / Rectangular",
+    "sidc": "10032500002405010000"
+  },
+  {
+    "standard": "APP6D",
+    "label": "Fires Areas / Position Area For Artillery (PAA) / Circular",
+    "sidc": "10032500002405020000"
+  },
+  {
+    "standard": "APP6D",
+    "label": "Fires Areas / Position Area For Artillery (PAA) / Irregular",
+    "sidc": "10032500002405030000"
+  },
+  {
+    "standard": "APP6D",
+    "label": "Fires Areas / Point Targets",
+    "sidc": "10032500002406000000"
+  },
+  {
+    "standard": "APP6D",
+    "label": "Fires Areas / Linear Targets",
+    "sidc": "10032500002407000000"
+  },
+  {
+    "standard": "APP6D",
+    "label": "Fires Areas / Linear Targets / Linear Target",
+    "sidc": "10032500002407010000"
+  },
+  {
+    "standard": "APP6D",
+    "label": "Fires Areas / Linear Targets / Linear Smoke Target",
+    "sidc": "10032500002407020000"
+  },
+  {
+    "standard": "APP6D",
+    "label": "Fires Areas / Linear Targets / Final Protective Fire (FPF)",
+    "sidc": "10032500002407030000"
+  },
+  {
+    "standard": "APP6D",
+    "label": "Fires Areas / Area Targets",
+    "sidc": "10032500002408000000"
+  },
+  {
+    "standard": "APP6D",
+    "label": "Fires Areas / Area Targets / Area Target",
+    "sidc": "10032500002408010000"
+  },
+  {
+    "standard": "APP6D",
+    "label": "Fires Areas / Area Targets / Rectangular Target",
+    "sidc": "10032500002408020000"
+  },
+  {
+    "standard": "APP6D",
+    "label": "Fires Areas / Area Targets / Circular Target",
+    "sidc": "10032500002408030000"
+  },
+  {
+    "standard": "APP6D",
+    "label": "Fires Areas / Area Targets / Rectangular Target - Single Target",
+    "sidc": "10032500002408040000"
+  },
+  {
+    "standard": "APP6D",
+    "label": "Fires Areas / Area Targets / Series or Groups of Targets",
+    "sidc": "10032500002408050000"
+  },
+  {
+    "standard": "APP6D",
+    "label": "Fires Areas / Area Targets / Smoke",
+    "sidc": "10032500002408060000"
+  },
+  {
+    "standard": "APP6D",
+    "label": "Fires Areas / Area Targets / {reserved for future use}",
+    "sidc": "10032500002408070000"
+  },
+  {
+    "standard": "APP6D",
+    "label": "Fires Areas / Area Targets / Bomb Area",
+    "sidc": "10032500002408080000"
+  },
+  {
+    "standard": "APP6D",
+    "label": "Fires Areas / Fire Support Area",
+    "sidc": "10032500002410000000"
+  },
+  {
+    "standard": "APP6D",
+    "label": "Fires Areas / Fire Support Area / Irregular",
+    "sidc": "10032500002410010000"
+  },
+  {
+    "standard": "APP6D",
+    "label": "Fires Areas / Fire Support Area / Rectangular",
+    "sidc": "10032500002410020000"
+  },
+  {
+    "standard": "APP6D",
+    "label": "Fires Areas / Fire Support Area / Circular",
+    "sidc": "10032500002410030000"
+  },
+  {
+    "standard": "APP6D",
+    "label": "Fires Areas / Artillery Target Intelligence Zone",
+    "sidc": "10032500002411000000"
+  },
+  {
+    "standard": "APP6D",
+    "label": "Fires Areas / Artillery Target Intelligence Zone / Irregular",
+    "sidc": "10032500002411010000"
+  },
+  {
+    "standard": "APP6D",
+    "label": "Fires Areas / Artillery Target Intelligence Zone / Rectangular",
+    "sidc": "10032500002411020000"
+  },
+  {
+    "standard": "APP6D",
+    "label": "Fires Areas / Artillery Target Intelligence Zone / Circular",
+    "sidc": "10032500002411030000"
+  },
+  {
+    "standard": "APP6D",
+    "label": "Fires Areas / Call for Fire Area",
+    "sidc": "10032500002412000000"
+  },
+  {
+    "standard": "APP6D",
+    "label": "Fires Areas / Call for Fire Area / Irregular",
+    "sidc": "10032500002412010000"
+  },
+  {
+    "standard": "APP6D",
+    "label": "Fires Areas / Call for Fire Area / Rectangular",
+    "sidc": "10032500002412020000"
+  },
+  {
+    "standard": "APP6D",
+    "label": "Fires Areas / Call for Fire Area / Circular",
+    "sidc": "10032500002412030000"
+  },
+  {
+    "standard": "APP6D",
+    "label": "Fires Areas / Censor Zone",
+    "sidc": "10032500002413000000"
+  },
+  {
+    "standard": "APP6D",
+    "label": "Fires Areas / Censor Zone / Irregular",
+    "sidc": "10032500002413010000"
+  },
+  {
+    "standard": "APP6D",
+    "label": "Fires Areas / Censor Zone / Rectangular",
+    "sidc": "10032500002413020000"
+  },
+  {
+    "standard": "APP6D",
+    "label": "Fires Areas / Censor Zone / Circular",
+    "sidc": "10032500002413030000"
+  },
+  {
+    "standard": "APP6D",
+    "label": "Fires Areas / Critical Friendly Zone",
+    "sidc": "10032500002414000000"
+  },
+  {
+    "standard": "APP6D",
+    "label": "Fires Areas / Critical Friendly Zone / Irregular",
+    "sidc": "10032500002414010000"
+  },
+  {
+    "standard": "APP6D",
+    "label": "Fires Areas / Critical Friendly Zone / Rectangular",
+    "sidc": "10032500002414020000"
+  },
+  {
+    "standard": "APP6D",
+    "label": "Fires Areas / Critical Friendly Zone / Circular",
+    "sidc": "10032500002414030000"
+  },
+  {
+    "standard": "APP6D",
+    "label": "Fires Areas / Dead Space Area",
+    "sidc": "10032500002415000000"
+  },
+  {
+    "standard": "APP6D",
+    "label": "Fires Areas / Dead Space Area / Irregular",
+    "sidc": "10032500002415010000"
+  },
+  {
+    "standard": "APP6D",
+    "label": "Fires Areas / Dead Space Area / Rectangular",
+    "sidc": "10032500002415020000"
+  },
+  {
+    "standard": "APP6D",
+    "label": "Fires Areas / Dead Space Area / Circular",
+    "sidc": "10032500002415030000"
+  },
+  {
+    "standard": "APP6D",
+    "label": "Fires Areas / Sensor Zone",
+    "sidc": "10032500002416000000"
+  },
+  {
+    "standard": "APP6D",
+    "label": "Fires Areas / Sensor Zone / Irregular",
+    "sidc": "10032500002416010000"
+  },
+  {
+    "standard": "APP6D",
+    "label": "Fires Areas / Sensor Zone / Rectangular",
+    "sidc": "10032500002416020000"
+  },
+  {
+    "standard": "APP6D",
+    "label": "Fires Areas / Sensor Zone / Circular",
+    "sidc": "10032500002416030000"
+  },
+  {
+    "standard": "APP6D",
+    "label": "Fires Areas / Target Build-up Area",
+    "sidc": "10032500002417000000"
+  },
+  {
+    "standard": "APP6D",
+    "label": "Fires Areas / Target Build-up Area / Irregular",
+    "sidc": "10032500002417010000"
+  },
+  {
+    "standard": "APP6D",
+    "label": "Fires Areas / Target Build-up Area / Rectangular",
+    "sidc": "10032500002417020000"
+  },
+  {
+    "standard": "APP6D",
+    "label": "Fires Areas / Target Build-up Area / Circular",
+    "sidc": "10032500002417030000"
+  },
+  {
+    "standard": "APP6D",
+    "label": "Fires Areas / Target Value Area",
+    "sidc": "10032500002418000000"
+  },
+  {
+    "standard": "APP6D",
+    "label": "Fires Areas / Target Value Area / Irregular",
+    "sidc": "10032500002418010000"
+  },
+  {
+    "standard": "APP6D",
+    "label": "Fires Areas / Target Value Area / Rectangular",
+    "sidc": "10032500002418020000"
+  },
+  {
+    "standard": "APP6D",
+    "label": "Fires Areas / Target Value Area / Circular",
+    "sidc": "10032500002418030000"
+  },
+  {
+    "standard": "APP6D",
+    "label": "Fires Areas / Zone of Responsibility",
+    "sidc": "10032500002419000000"
+  },
+  {
+    "standard": "APP6D",
+    "label": "Fires Areas / Zone of Responsibility / Irregular",
+    "sidc": "10032500002419010000"
+  },
+  {
+    "standard": "APP6D",
+    "label": "Fires Areas / Zone of Responsibility / Rectangular",
+    "sidc": "10032500002419020000"
+  },
+  {
+    "standard": "APP6D",
+    "label": "Fires Areas / Zone of Responsibility / Circular",
+    "sidc": "10032500002419030000"
+  },
+  {
+    "standard": "APP6D",
+    "label": "Fires Areas / Terminally Guided Munition Footprint (TGMF)",
+    "sidc": "10032500002420000000"
+  },
+  {
+    "standard": "APP6D",
+    "label": "Fires Areas / Weapon/Sensor Range Fan, Circular",
+    "sidc": "10032500002421000000"
+  },
+  {
+    "standard": "APP6D",
+    "label": "Fires Areas / Weapon/Sensor Range Fan, Sector",
+    "sidc": "10032500002422000000"
+  },
+  {
+    "standard": "APP6D",
+    "label": "Fires Areas / Kill Box",
+    "sidc": "10032500002423000000"
+  },
+  {
+    "standard": "APP6D",
+    "label": "Fires Areas / Kill Box / Irregular, Blue",
+    "sidc": "10032500002423010000"
+  },
+  {
+    "standard": "APP6D",
+    "label": "Fires Areas / Kill Box / Rectangular, Blue",
+    "sidc": "10032500002423020000"
+  },
+  {
+    "standard": "APP6D",
+    "label": "Fires Areas / Kill Box / Circular, Blue",
+    "sidc": "10032500002423030000"
+  },
+  {
+    "standard": "APP6D",
+    "label": "Fires Areas / Kill Box / Irregular, Purple",
+    "sidc": "10032500002423040000"
+  },
+  {
+    "standard": "APP6D",
+    "label": "Fires Areas / Kill Box / Rectangular, Purple",
+    "sidc": "10032500002423050000"
+  },
+  {
+    "standard": "APP6D",
+    "label": "Fires Areas / Kill Box / Circular, Purple",
+    "sidc": "10032500002423060000"
+  },
+  {
+    "standard": "APP6D",
+    "label": "Fire Points",
+    "sidc": "10032500002500000000"
+  },
+  {
+    "standard": "APP6D",
+    "label": "Fire Lines",
+    "sidc": "10032500002600000000"
+  },
+  {
+    "standard": "APP6D",
+    "label": "Fire Lines / Fire Support Coordination Line (FSCL)",
+    "sidc": "10032500002601000000"
+  },
+  {
+    "standard": "APP6D",
+    "label": "Fire Lines / Coordinated Fire Line (CFL)",
+    "sidc": "10032500002602000000"
+  },
+  {
+    "standard": "APP6D",
+    "label": "Fire Lines / No Fire Line",
+    "sidc": "10032500002603000000"
+  },
+  {
+    "standard": "APP6D",
+    "label": "Fire Lines / Battlefield Coordination Line",
+    "sidc": "10032500002604000000"
+  },
+  {
+    "standard": "APP6D",
+    "label": "Fire Lines / Restrictive Fire Line",
+    "sidc": "10032500002605000000"
+  },
+  {
+    "standard": "APP6D",
+    "label": "Fire Lines / Munition Flight Path",
+    "sidc": "10032500002606000000"
+  },
+  {
+    "standard": "APP6D",
+    "label": "Protection Areas",
+    "sidc": "10032500002700000000"
+  },
+  {
+    "standard": "APP6D",
+    "label": "Protection Areas / Obstacle Belt",
+    "sidc": "10032500002701000000"
+  },
+  {
+    "standard": "APP6D",
+    "label": "Protection Areas / Obstacle Zone",
+    "sidc": "10032500002702000000"
+  },
+  {
+    "standard": "APP6D",
+    "label": "Protection Areas / Obstacle Free Zone",
+    "sidc": "10032500002703000000"
+  },
+  {
+    "standard": "APP6D",
+    "label": "Protection Areas / Obstacle Restricted Zone",
+    "sidc": "10032500002704000000"
+  },
+  {
+    "standard": "APP6D",
+    "label": "Protection Areas / Obstacle Effects",
+    "sidc": "10032500002705000000"
+  },
+  {
+    "standard": "APP6D",
+    "label": "Protection Areas / Obstacle Effects / Block",
+    "sidc": "10032500002705010000"
+  },
+  {
+    "standard": "APP6D",
+    "label": "Protection Areas / Obstacle Effects / Disrupt",
+    "sidc": "10032500002705020000"
+  },
+  {
+    "standard": "APP6D",
+    "label": "Protection Areas / Obstacle Effects / Fix",
+    "sidc": "10032500002705030000"
+  },
+  {
+    "standard": "APP6D",
+    "label": "Protection Areas / Obstacle Effects / Turn",
+    "sidc": "10032500002705040000"
+  },
+  {
+    "standard": "APP6D",
+    "label": "Protection Areas / Obstacle Bypass",
+    "sidc": "10032500002706000000"
+  },
+  {
+    "standard": "APP6D",
+    "label": "Protection Areas / Obstacle Bypass / Easy",
+    "sidc": "10032500002706010000"
+  },
+  {
+    "standard": "APP6D",
+    "label": "Protection Areas / Obstacle Bypass / Difficult",
+    "sidc": "10032500002706020000"
+  },
+  {
+    "standard": "APP6D",
+    "label": "Protection Areas / Obstacle Bypass / Impossible",
+    "sidc": "10032500002706030000"
+  },
+  {
+    "standard": "APP6D",
+    "label": "Protection Areas / Minefield",
+    "sidc": "10032500002707000000"
+  },
+  {
+    "standard": "APP6D",
+    "label": "Protection Areas / Minefield / Dummy",
+    "sidc": "10032500002707050000"
+  },
+  {
+    "standard": "APP6D",
+    "label": "Protection Areas / Minefield / Dummy Dynamic",
+    "sidc": "10032500002707060000"
+  },
+  {
+    "standard": "APP6D",
+    "label": "Protection Areas / Minefield / Dynamic Depiction",
+    "sidc": "10032500002707070000"
+  },
+  {
+    "standard": "APP6D",
+    "label": "Protection Areas / Mined Area",
+    "sidc": "10032500002708000000"
+  },
+  {
+    "standard": "APP6D",
+    "label": "Protection Areas / Decoy Mined Area",
+    "sidc": "10032500002709000000"
+  },
+  {
+    "standard": "APP6D",
+    "label": "Protection Areas / Decoy Mined Area / Fenced",
+    "sidc": "10032500002709010000"
+  },
+  {
+    "standard": "APP6D",
+    "label": "Protection Areas / Unexploded Explosive Ordnance (UXO) Area",
+    "sidc": "10032500002710000000"
+  },
+  {
+    "standard": "APP6D",
+    "label": "Protection Areas / Bridge or Gap",
+    "sidc": "10032500002711000000"
+  },
+  {
+    "standard": "APP6D",
+    "label": "Protection Areas / Roadblocks, Craters and Blown Bridges",
+    "sidc": "10032500002712000000"
+  },
+  {
+    "standard": "APP6D",
+    "label": "Protection Areas / Roadblocks, Craters and Blown Bridges / Planned",
+    "sidc": "10032500002712010000"
+  },
+  {
+    "standard": "APP6D",
+    "label": "Protection Areas / Roadblocks, Craters and Blown Bridges / Explosives, State of Readiness 1 (Safe)",
+    "sidc": "10032500002712020000"
+  },
+  {
+    "standard": "APP6D",
+    "label": "Protection Areas / Roadblocks, Craters and Blown Bridges / Explosives, State of Readiness 2 (armed but passable)",
+    "sidc": "10032500002712030000"
+  },
+  {
+    "standard": "APP6D",
+    "label": "Protection Areas / Roadblocks, Craters and Blown Bridges / Roadblock Complete (Executed)",
+    "sidc": "10032500002712040000"
+  },
+  {
+    "standard": "APP6D",
+    "label": "Protection Areas / Assault Crossing",
+    "sidc": "10032500002713000000"
+  },
+  {
+    "standard": "APP6D",
+    "label": "Protection Areas / Bridge",
+    "sidc": "10032500002714000000"
+  },
+  {
+    "standard": "APP6D",
+    "label": "Protection Areas / Ford Easy",
+    "sidc": "10032500002715000000"
+  },
+  {
+    "standard": "APP6D",
+    "label": "Protection Areas / Ford Difficult",
+    "sidc": "10032500002716000000"
+  },
+  {
+    "standard": "APP6D",
+    "label": "Protection Areas / Biological Contaminated Area",
+    "sidc": "10032500002717000000"
+  },
+  {
+    "standard": "APP6D",
+    "label": "Protection Areas / Biological Contaminated Area / Toxic Industrial Material",
+    "sidc": "10032500002717010000"
+  },
+  {
+    "standard": "APP6D",
+    "label": "Protection Areas / Chemical Contaminated Area",
+    "sidc": "10032500002718000000"
+  },
+  {
+    "standard": "APP6D",
+    "label": "Protection Areas / Chemical Contaminated Area / Toxic Industrial Material",
+    "sidc": "10032500002718010000"
+  },
+  {
+    "standard": "APP6D",
+    "label": "Protection Areas / Nuclear Contaminated Area",
+    "sidc": "10032500002719000000"
+  },
+  {
+    "standard": "APP6D",
+    "label": "Protection Areas / Radiological",
+    "sidc": "10032500002720000000"
+  },
+  {
+    "standard": "APP6D",
+    "label": "Protection Areas / Contaminated Area / Toxic Industrial Material",
+    "sidc": "10032500002720010000"
+  },
+  {
+    "standard": "APP6D",
+    "label": "Protection Areas / Minimum Safe Distance Zone",
+    "sidc": "10032500002721000000"
+  },
+  {
+    "standard": "APP6D",
+    "label": "Protection Areas / Radiation Dose Rate Contour Lines",
+    "sidc": "10032500002722000000"
+  },
+  {
+    "standard": "APP6D",
+    "label": "Protection Points",
+    "sidc": "10032500002800000000"
+  },
+  {
+    "standard": "APP6D",
+    "label": "Protection Points / Abatis",
+    "sidc": "10032500002801000000"
+  },
+  {
+    "standard": "APP6D",
+    "label": "Protection Points / Tetrahedrons, Dragons Teeth, and Other Similar Obstacles",
+    "sidc": "10032500002819000000"
+  },
+  {
+    "standard": "APP6D",
+    "label": "Protection Points / Vertical Obstructions",
+    "sidc": "10032500002820000000"
+  },
+  {
+    "standard": "APP6D",
+    "label": "Protection Points / Vertical Obstructions / Overhead Wire",
+    "sidc": "10032500002820030000"
+  },
+  {
+    "standard": "APP6D",
+    "label": "Protection Lines",
+    "sidc": "10032500002900000000"
+  },
+  {
+    "standard": "APP6D",
+    "label": "Protection Lines / Obstacle Line",
+    "sidc": "10032500002901000000"
+  },
+  {
+    "standard": "APP6D",
+    "label": "Protection Lines / Antitank Obstacles",
+    "sidc": "10032500002902000000"
+  },
+  {
+    "standard": "APP6D",
+    "label": "Protection Lines / Antitank Obstacles / Under Construction",
+    "sidc": "10032500002902010000"
+  },
+  {
+    "standard": "APP6D",
+    "label": "Protection Lines / Antitank Obstacles / Completed",
+    "sidc": "10032500002902020000"
+  },
+  {
+    "standard": "APP6D",
+    "label": "Protection Lines / Antitank Obstacles / Reinforced, with Antitank Mines",
+    "sidc": "10032500002902030000"
+  },
+  {
+    "standard": "APP6D",
+    "label": "Protection Lines / Antitank Obstacles / Antitank Wall",
+    "sidc": "10032500002902040000"
+  },
+  {
+    "standard": "APP6D",
+    "label": "Protection Lines / Wire Obstacles",
+    "sidc": "10032500002903000000"
+  },
+  {
+    "standard": "APP6D",
+    "label": "Protection Lines / Wire Obstacles / Unspecified Wire",
+    "sidc": "10032500002903010000"
+  },
+  {
+    "standard": "APP6D",
+    "label": "Protection Lines / Wire Obstacles / Single Fence Wire",
+    "sidc": "10032500002903020000"
+  },
+  {
+    "standard": "APP6D",
+    "label": "Protection Lines / Wire Obstacles / Double Fence Wire",
+    "sidc": "10032500002903030000"
+  },
+  {
+    "standard": "APP6D",
+    "label": "Protection Lines / Wire Obstacles / Double Apron Fence",
+    "sidc": "10032500002903040000"
+  },
+  {
+    "standard": "APP6D",
+    "label": "Protection Lines / Wire Obstacles / Low Wire Fence",
+    "sidc": "10032500002903050000"
+  },
+  {
+    "standard": "APP6D",
+    "label": "Protection Lines / Wire Obstacles / High Wire Fence",
+    "sidc": "10032500002903060000"
+  },
+  {
+    "standard": "APP6D",
+    "label": "Protection Lines / Wire Obstacles / Single Concertina",
+    "sidc": "10032500002903070000"
+  },
+  {
+    "standard": "APP6D",
+    "label": "Protection Lines / Wire Obstacles / Double Strand Concertina",
+    "sidc": "10032500002903080000"
+  },
+  {
+    "standard": "APP6D",
+    "label": "Protection Lines / Wire Obstacles / Triple Strand Concertina",
+    "sidc": "10032500002903090000"
+  },
+  {
+    "standard": "APP6D",
+    "label": "Protection Lines / Mine Cluster",
+    "sidc": "10032500002904000000"
+  },
+  {
+    "standard": "APP6D",
+    "label": "Protection Lines / Trip Wire",
+    "sidc": "10032500002905000000"
+  },
+  {
+    "standard": "APP6D",
+    "label": "Protection Lines / Lane",
+    "sidc": "10032500002906000000"
+  },
+  {
+    "standard": "APP6D",
+    "label": "Protection Lines / Ferry",
+    "sidc": "10032500002907000000"
+  },
+  {
+    "standard": "APP6D",
+    "label": "Protection Lines / Raft Site",
+    "sidc": "10032500002908000000"
+  },
+  {
+    "standard": "APP6D",
+    "label": "Protection Lines / Fortified Line",
+    "sidc": "10032500002909000000"
+  },
+  {
+    "standard": "APP6D",
+    "label": "Protection Lines / Fortified Position",
+    "sidc": "10032500002910000000"
+  },
+  {
+    "standard": "APP6D",
+    "label": "Intelligence Lines",
+    "sidc": "10032500003000000000"
+  },
+  {
+    "standard": "APP6D",
+    "label": "Intelligence Lines / Intelligence Coordination Line",
+    "sidc": "10032500003001000000"
+  },
+  {
+    "standard": "APP6D",
+    "label": "Sustainment Areas",
+    "sidc": "10032500003100000000"
+  },
+  {
+    "standard": "APP6D",
+    "label": "Sustainment Areas / Detainee Holding Area",
+    "sidc": "10032500003101000000"
+  },
+  {
+    "standard": "APP6D",
+    "label": "Sustainment Areas / Enemy Prisoner of War Holding Area",
+    "sidc": "10032500003102000000"
+  },
+  {
+    "standard": "APP6D",
+    "label": "Sustainment Areas / Forward Arming and Refuelling Point",
+    "sidc": "10032500003103000000"
+  },
+  {
+    "standard": "APP6D",
+    "label": "Sustainment Areas / Refugee Holding Area",
+    "sidc": "10032500003104000000"
+  },
+  {
+    "standard": "APP6D",
+    "label": "Sustainment Areas / Regimental Support Area",
+    "sidc": "10032500003105000000"
+  },
+  {
+    "standard": "APP6D",
+    "label": "Sustainment Areas / Brigade Support Area",
+    "sidc": "10032500003106000000"
+  },
+  {
+    "standard": "APP6D",
+    "label": "Sustainment Areas / Division Support Area",
+    "sidc": "10032500003107000000"
+  },
+  {
+    "standard": "APP6D",
+    "label": "Sustainment Points",
+    "sidc": "10032500003200000000"
+  },
+  {
+    "standard": "APP6D",
+    "label": "Sustainment Lines",
+    "sidc": "10032500003300000000"
+  },
+  {
+    "standard": "APP6D",
+    "label": "Sustainment Lines / Moving Convoy",
+    "sidc": "10032500003301000000"
+  },
+  {
+    "standard": "APP6D",
+    "label": "Sustainment Lines / Halted Convoy",
+    "sidc": "10032500003302000000"
+  },
+  {
+    "standard": "APP6D",
+    "label": "Sustainment Lines / Main Supply Route",
+    "sidc": "10032500003303000000"
+  },
+  {
+    "standard": "APP6D",
+    "label": "Sustainment Lines / Main Supply Route / One Way Traffic",
+    "sidc": "10032500003303010000"
+  },
+  {
+    "standard": "APP6D",
+    "label": "Sustainment Lines / Main Supply Route / Two Way Traffic",
+    "sidc": "10032500003303020000"
+  },
+  {
+    "standard": "APP6D",
+    "label": "Sustainment Lines / Main Supply Route / Alternating Traffic",
+    "sidc": "10032500003303030000"
+  },
+  {
+    "standard": "APP6D",
+    "label": "Sustainment Lines / Alternate Supply Route",
+    "sidc": "10032500003304000000"
+  },
+  {
+    "standard": "APP6D",
+    "label": "Sustainment Lines / Alternate Supply Route / One Way Traffic",
+    "sidc": "10032500003304010000"
+  },
+  {
+    "standard": "APP6D",
+    "label": "Sustainment Lines / Alternate Supply Route / Two Way Traffic",
+    "sidc": "10032500003304020000"
+  },
+  {
+    "standard": "APP6D",
+    "label": "Sustainment Lines / Alternate Supply Route / Alternating Traffic",
+    "sidc": "10032500003304030000"
+  },
+  {
+    "standard": "APP6D",
+    "label": "Mission Tasks",
+    "sidc": "10032500003400000000"
+  },
+  {
+    "standard": "APP6D",
+    "label": "Mission Tasks / Block",
+    "sidc": "10032500003401000000"
+  },
+  {
+    "standard": "APP6D",
+    "label": "Mission Tasks / Breach",
+    "sidc": "10032500003402000000"
+  },
+  {
+    "standard": "APP6D",
+    "label": "Mission Tasks / Bypass",
+    "sidc": "10032500003403000000"
+  },
+  {
+    "standard": "APP6D",
+    "label": "Mission Tasks / Canalize",
+    "sidc": "10032500003404000000"
+  },
+  {
+    "standard": "APP6D",
+    "label": "Mission Tasks / Clear",
+    "sidc": "10032500003405000000"
+  },
+  {
+    "standard": "APP6D",
+    "label": "Mission Tasks / Counterattack",
+    "sidc": "10032500003406000000"
+  },
+  {
+    "standard": "APP6D",
+    "label": "Mission Tasks / Counterattack by Fire",
+    "sidc": "10032500003407000000"
+  },
+  {
+    "standard": "APP6D",
+    "label": "Mission Tasks / Delay",
+    "sidc": "10032500003408000000"
+  },
+  {
+    "standard": "APP6D",
+    "label": "Mission Tasks / Disrupt",
+    "sidc": "10032500003410000000"
+  },
+  {
+    "standard": "APP6D",
+    "label": "Mission Tasks / Fix",
+    "sidc": "10032500003411000000"
+  },
+  {
+    "standard": "APP6D",
+    "label": "Mission Tasks / Follow and Assume",
+    "sidc": "10032500003412000000"
+  },
+  {
+    "standard": "APP6D",
+    "label": "Mission Tasks / Follow and Support",
+    "sidc": "10032500003413000000"
+  },
+  {
+    "standard": "APP6D",
+    "label": "Mission Tasks / Isolate",
+    "sidc": "10032500003415000000"
+  },
+  {
+    "standard": "APP6D",
+    "label": "Mission Tasks / Occupy",
+    "sidc": "10032500003417000000"
+  },
+  {
+    "standard": "APP6D",
+    "label": "Mission Tasks / Penetrate",
+    "sidc": "10032500003418000000"
+  },
+  {
+    "standard": "APP6D",
+    "label": "Mission Tasks / Relief in Place (RIP)",
+    "sidc": "10032500003419000000"
+  },
+  {
+    "standard": "APP6D",
+    "label": "Mission Tasks / Retire/Retirement",
+    "sidc": "10032500003420000000"
+  },
+  {
+    "standard": "APP6D",
+    "label": "Mission Tasks / Secure",
+    "sidc": "10032500003421000000"
+  },
+  {
+    "standard": "APP6D",
+    "label": "Mission Tasks / Security",
+    "sidc": "10032500003422000000"
+  },
+  {
+    "standard": "APP6D",
+    "label": "Mission Tasks / Security / Cover",
+    "sidc": "10032500003422010000"
+  },
+  {
+    "standard": "APP6D",
+    "label": "Mission Tasks / Security / Guard",
+    "sidc": "10032500003422020000"
+  },
+  {
+    "standard": "APP6D",
+    "label": "Mission Tasks / Security / Screen",
+    "sidc": "10032500003422030000"
+  },
+  {
+    "standard": "APP6D",
+    "label": "Mission Tasks / Seize",
+    "sidc": "10032500003423000000"
+  },
+  {
+    "standard": "APP6D",
+    "label": "Mission Tasks / Withdraw",
+    "sidc": "10032500003424000000"
+  },
+  {
+    "standard": "APP6D",
+    "label": "Mission Tasks / Withdraw Under Pressure",
+    "sidc": "10032500003425000000"
+  },
+  {
+    "standard": "APP6D",
+    "label": "Space Debris",
+    "sidc": "10032500003500000000"
+  },
+  {
+    "standard": "APP6D",
+    "label": "Space Debris / Man Made Space Debris",
+    "sidc": "10032500003501000000"
+  },
+  {
+    "standard": "APP6D",
+    "label": "Space Debris / Natural Space Debris",
+    "sidc": "10032500003502000000"
+  }
+]

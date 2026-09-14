@@ -398,6 +398,8 @@ export type DeploymentEditorMode =
 export type MilitarySymbolCategory = string;
 
 export type MilitarySymbolDefinition = {
+  aliases?: Array<{ id: string; label: string; sidc: string; standard: string; standardId: string; category: string; supportsEchelon: boolean }>;
+  dedupReviewRequired?: boolean;
   id: ExpandedDeploymentUnitType;
   label: string;
   category: MilitarySymbolCategory;

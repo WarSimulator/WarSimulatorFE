@@ -45,7 +45,7 @@ export function SymbolPalette({ mode, onModeChange, isOpen, onToggle }: SymbolPa
   const filtered = useMemo(() => {
     const words = query.trim().toLowerCase().split(/\s+/).filter(Boolean);
     return symbolCatalog.filter(item => (category === 'all' || item.category === category) && words.every(word =>
-      `${item.label} ${getSymbolCategoryLabel(item.category)} ${item.standardId ?? ''} ${item.sidc ?? ''} ${item.id}`.toLowerCase().includes(word),
+      `${item.label} ${getSymbolCategoryLabel(item.category)} ${item.standardId ?? ''} ${item.sidc ?? ''} ${item.id} ${(item.aliases ?? []).map(alias => `${alias.label} ${alias.sidc} ${alias.standardId} ${alias.category}`).join(' ')}`.toLowerCase().includes(word),
     ));
   }, [category, query]);
   const pageCount = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));

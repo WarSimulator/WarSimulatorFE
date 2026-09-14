@@ -9,6 +9,15 @@ const bundle = await build({
 });
 const api = await import('data:text/javascript;base64,' + Buffer.from(bundle.outputFiles[0].text).toString('base64'));
 const saved = new Map();
+// Regression: 270701 must not silently regress to the upstream empty box.
+for (const [sidc, standard] of [['10032500002707010000', 'APP6'], ['13032500002707010000', '2525']]) {
+  for (const affiliation of ['3', '6']) {
+    const code = sidc.slice(0, 3) + affiliation + sidc.slice(4);
+    const svg = api.createMilitarySymbolSvg(code, 64, undefined, standard);
+    assert.equal((svg.match(/<circle /g) || []).length, 8, 'Four mines plus their contrast halos');
+    assert.ok(svg.includes('viewBox="0 0 40 104"'));
+  }
+}
 globalThis.window = { localStorage: { getItem: key => saved.get(key) ?? null, setItem: (key,value) => saved.set(key,value) } };
 assert.equal(new Set(api.symbolCatalog.map(s => s.id)).size, api.symbolCatalog.length);
 assert.deepEqual(api.catalogStandards.map(s => s.id), ['2525E', 'APP6D']);
@@ -20,14 +29,29 @@ const normalizeSvg = svg => svg.replace(/<title>.*?<\/title>/g, '').replace(/\s(
 const fingerprints = new Set();
 for (const definition of api.symbolCatalog) {
   const enemy = definition.sidc.slice(0, 3) + '6' + definition.sidc.slice(4);
-  const rendered = [definition.sidc, enemy].map(sidc => new ms.Symbol(sidc, { standard: definition.standard, size: 30 }).asSVG());
+  const rendered = [definition.sidc, enemy].map(sidc => api.createMilitarySymbolSvg(sidc, 30, undefined, definition.standard));
   const fingerprint = crypto.createHash('sha256').update(rendered.map(normalizeSvg).join('\n')).digest('hex');
-  assert.equal(fingerprints.has(fingerprint), false, `Duplicate rendered icon retained: ${definition.id}`);
-  fingerprints.add(fingerprint);
+  const key = JSON.stringify([definition.supportsEchelon, fingerprint]);
+  if (!definition.dedupReviewRequired) {
+    assert.equal(fingerprints.has(key), false, `Equivalent duplicate retained: ${definition.id}`);
+    fingerprints.add(key);
+  }
 }
 const duplicateReport = JSON.parse(fs.readFileSync(new URL('./symbol-catalog-duplicates.json', import.meta.url)));
 assert.ok(duplicateReport.duplicateCount > 0);
 assert.ok(duplicateReport.duplicates.some(item => item.excluded.standard === 'APP6D' && item.retained.standard === '2525E'));
+for (const id of ['catalog:APP6D:10032500002707010000', 'catalog:2525E:13032500002707010000', 'catalog:2525E:13031500002100000000']) {
+  assert.ok(api.getSymbolDefinition(id), `Meaningful symbol lost: ${id}`);
+}
+for (const {excluded, retained} of duplicateReport.duplicates) {
+  const alias = api.getSymbolDefinition(`catalog:${excluded.standard}:${excluded.sidc}`);
+  assert.equal(alias.label, excluded.label);
+  assert.equal(alias.sidc, excluded.sidc);
+  const representative = api.symbolCatalog.find(item => item.sidc === retained.sidc && item.standardId === retained.standard);
+  assert.ok(representative.aliases.some(item => item.sidc === excluded.sidc && item.standardId === excluded.standard));
+  assert.equal(api.createMilitarySymbolSvg(alias.sidc,30,undefined,alias.standard), api.createMilitarySymbolSvg(representative.sidc,30,undefined,representative.standard));
+}
+assert.equal(api.symbolCatalog.filter(item => item.sidc.slice(4,6) === '25' && item.sidc.slice(10,16) === '270701').length, 1);
 let checked = 0;
 for (const definition of api.symbolCatalog) {
   for (const affiliation of ['friendly', 'enemy']) {

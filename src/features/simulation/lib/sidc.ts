@@ -77,6 +77,14 @@ export const symbolCatalog: MilitarySymbolDefinition[] = catalogData.symbols.map
   ...entry, id: entry.id as ExpandedDeploymentUnitType, standard: entry.standard as '2525' | 'APP6', baseEchelon: 'company',
 }));
 const catalogById = new Map(symbolCatalog.map((entry) => [entry.id, entry]));
+for (const entry of symbolCatalog) {
+  for (const alias of entry.aliases ?? []) {
+    catalogById.set(alias.id as ExpandedDeploymentUnitType, {
+      ...entry, ...alias, id: alias.id as ExpandedDeploymentUnitType,
+      standard: alias.standard as '2525' | 'APP6',
+    });
+  }
+}
 export function getSymbolDefinition(unitType: ExpandedDeploymentUnitType) {
   return catalogById.get(unitType) ?? legacySymbols.find((entry) => entry.id === unitType);
 }
