@@ -64,7 +64,7 @@ export type SimulationUnit = {
   position: { x: number; y: number };
   icon: string;
   sidc?: string;
-  symbolStandard?: '2525';
+  symbolStandard?: '2525' | 'APP6';
   symbolScale?: number;
   /** Clockwise symbol rotation in degrees. Defaults to 0. */
   symbolRotation?: number;
@@ -323,7 +323,7 @@ export type DeploymentUnit = {
   unitType: ExpandedDeploymentUnitType;
   echelon: DeploymentEchelon;
   sidc: string;
-  symbolStandard?: '2525';
+  symbolStandard?: '2525' | 'APP6';
   symbolLabel?: string;
   symbolScale?: number;
   /** Clockwise symbol rotation in degrees. Defaults to 0. */
@@ -361,7 +361,7 @@ export type DeploymentPaletteItem =
       unitType: ExpandedDeploymentUnitType;
       echelon: DeploymentEchelon;
       sidc: string;
-      symbolStandard?: '2525';
+      symbolStandard?: '2525' | 'APP6';
     }
   | {
       kind: 'objective';
@@ -403,7 +403,7 @@ export type MilitarySymbolDefinition = {
   category: MilitarySymbolCategory;
   baseEchelon: DeploymentEchelon;
   standardId?: string;
-  standard?: '2525';
+  standard?: '2525' | 'APP6';
   sidc?: string;
   supportsEchelon?: boolean;
   remarks?: string;
