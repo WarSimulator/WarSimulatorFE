@@ -29,11 +29,13 @@ type TacticalMapProps = {
   onSelectUnit: (unitId: string) => void;
 };
 
-function getMapCenter(result: SimulationResult, deployment?: DeploymentSetup): [number, number] {
-  if (deployment?.mapView?.center) {
-    return deployment.mapView.center;
-  }
-  const positions = result.unitTracks.flatMap((track) => track.segments.flatMap((segment) => segment.keyframes.map((keyframe) => keyframe.position)));
+function getMapCenter(result: SimulationResult): [number, number] {
+  const positions = result.unitTracks.flatMap((track) => {
+    const initial = track.segments
+      .flatMap((segment) => segment.keyframes)
+      .sort((first, second) => first.time - second.time)[0]?.position;
+    return initial ? [initial] : [];
+  });
   if (positions.length === 0) {
     return DEFAULT_MAP_CENTER;
   }
@@ -177,7 +179,7 @@ export function TacticalMap({ runtime, playbackRef, units, result, deployment, o
   const clock = playbackRef ?? fallbackPlaybackRef;
   const [mapReady, setMapReady] = useState(false);
   const [mapError, setMapError] = useState(false);
-  const mapCenter = useMemo(() => getMapCenter(result, deployment), [deployment, result]);
+  const mapCenter = useMemo(() => getMapCenter(result), [result]);
   const mapZoom = deployment?.mapView?.zoom ?? DEFAULT_MAP_ZOOM + 1;
   const routeFeatures = useMemo(() => toRouteFeatures(result), [result]);
   const tacticalGraphicFeatures = useMemo(() => toTacticalGraphicFeatureCollection(deployment), [deployment]);

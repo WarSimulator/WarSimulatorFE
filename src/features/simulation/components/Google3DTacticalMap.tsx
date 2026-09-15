@@ -7,6 +7,7 @@ import { buildObservationSector, getActiveObservationEffects } from '../lib/obse
 import { resolvePlanReference } from '../lib/planReferenceMapping';
 import { createMilitarySymbolSvg, get3DUnitSymbolSize } from '../lib/symbolSvg';
 import { createOverlayStore, createOverlaySchedule } from '../lib/google3DOverlayStore';
+import { scannerFillColor, scannerVisualForAffiliation } from '../lib/scannerVisual';
 type ActionOverlayStore = ReturnType<typeof createOverlayStore>;
 
 type Props = {
@@ -50,6 +51,7 @@ const PHASE_LINE_DRAWS_OCCLUDED_SEGMENTS = true;
 const ACTION_OVERLAY_INTERVAL_MS = 75;
 const MAX_ROAD_SNAP_METERS = 500;
 const FIRE_ACTIONS = new Set(['Engage', 'Continue to Engage', 'Fight', 'Ambush', 'Disrupt']);
+const COMBAT_LINK_ALTITUDE_METERS = 600;
 const ACTION_COLORS: Record<string, string> = {
   Move: '#ffb95f', Observe: '#66d9ff', Engage: '#ff5d5d', 'Continue to Engage': '#ff7b7b',
   'Establish Security': '#5bd4ff', 'Establish Presence': '#5bd4ff', Confirm: '#b4c5ff',
@@ -107,7 +109,11 @@ function getCameraRange(result: SimulationResult, center: Position3D) {
 
 export function toSurfacePath(points: readonly Position3D[]): Position3D[] {
   if (points.length < 2) return [...points];
-  const path: Position3D[] = [{ lat: points[0].lat, lng: points[0].lng }];
+  // Explicit-altitude paths are deliberate 3D geometry. In particular, combat
+  // links use two vertical legs and one straight aerial span, so sampling them
+  // onto every terrain vertex would make the span appear glued to the ground.
+  if (points.every(point => point.altitude !== undefined)) return [...points];
+  const path: Position3D[] = [{ lat: points[0].lat, lng: points[0].lng, altitude: points[0].altitude }];
   for (let index = 1; index < points.length; index += 1) {
     const start = points[index - 1];
     const end = points[index];
@@ -116,7 +122,8 @@ export function toSurfacePath(points: readonly Position3D[]): Position3D[] {
     const samples = Math.max(1, Math.min(MAX_SURFACE_SAMPLES_PER_SEGMENT, Math.ceil(Math.hypot(latitudeMeters, longitudeMeters) / SURFACE_SAMPLE_METERS)));
     for (let sample = 1; sample <= samples; sample += 1) {
       const ratio = sample / samples;
-      path.push({ lat: start.lat + (end.lat - start.lat) * ratio, lng: start.lng + (end.lng - start.lng) * ratio });
+      const altitude = (start.altitude ?? 0) + ((end.altitude ?? 0) - (start.altitude ?? 0)) * ratio;
+      path.push({ lat: start.lat + (end.lat - start.lat) * ratio, lng: start.lng + (end.lng - start.lng) * ratio, altitude });
     }
   }
   return path;
@@ -240,7 +247,7 @@ function circlePath(center: Position3D, radiusMeters: number, points = 28): Posi
   const longitudeScale = radiusMeters / (111_000 * Math.max(0.1, Math.cos(center.lat * Math.PI / 180)));
   return Array.from({ length: points + 1 }, (_, index) => {
     const angle = index / points * Math.PI * 2;
-    return { lat: center.lat + Math.cos(angle) * latitudeScale, lng: center.lng + Math.sin(angle) * longitudeScale };
+    return { lat: center.lat + Math.cos(angle) * latitudeScale, lng: center.lng + Math.sin(angle) * longitudeScale, altitude: center.altitude };
   });
 }
 
@@ -278,8 +285,17 @@ function addDirectedAction(
   const color = actionColor(action);
   const pulseCenter = target ?? origin;
   if (target && (target.lat !== origin.lat || target.lng !== origin.lng)) {
+    const combatLink = FIRE_ACTIONS.has(action);
+    const path = combatLink
+      ? [
+        { ...origin, altitude: 0 },
+        { ...origin, altitude: COMBAT_LINK_ALTITUDE_METERS },
+        { ...target, altitude: COMBAT_LINK_ALTITUDE_METERS },
+        { ...target, altitude: 0 },
+      ]
+      : [origin, target];
     nodes.put(`${key}:line`, 'line', {
-      path: [origin, target], strokeColor: color, outerColor: '#111827', outerWidth: 0.22, strokeWidth: FIRE_ACTIONS.has(action) ? 7 : 5,
+      path, strokeColor: color, outerColor: '#111827', outerWidth: 0.22, strokeWidth: combatLink ? 7 : 5,
       altitudeMode: SURFACE_ALTITUDE_MODE, drawsOccludedSegments: SURFACE_DRAWS_OCCLUDED_SEGMENTS, zIndex: 29,
     });
   }
@@ -295,18 +311,22 @@ function addObservationAction(
   time: number,
 ) {
   const origin = getUnitPositionAtTime(effect.actor, time, result, deployment) ?? effect.origin;
+  const affiliation = deployment?.units.find(unit => unit.id === effect.actor || unit.designation === effect.actor)?.affiliation;
+  const visual = scannerVisualForAffiliation(affiliation);
   const liveEffect = {
     ...effect,
     origin,
     direction: effect.direction + Math.sin((time - effect.startTime) * Math.PI / 2) * effect.fovDegrees * 0.1,
   };
-  const sector = buildObservationSector(liveEffect, 0.18).geometry.coordinates[0]
-    .map(([lng, lat]) => ({ lat, lng }));
-  nodes.put(`${key}:sector`, 'polygon', {
-    path: sector, fillColor: effect.targetInRange ? '#66d9ff38' : '#f8c66d38', strokeColor: effect.targetInRange ? '#66d9ff' : '#f8c66d', strokeWidth: 3,
-    altitudeMode: SURFACE_ALTITUDE_MODE, drawsOccludedSegments: SURFACE_DRAWS_OCCLUDED_SEGMENTS, zIndex: 30,
+  const sector = buildObservationSector(liveEffect, visual.fillOpacity)
+    .geometry.coordinates[0].map(([lng, lat]) => ({ lat, lng, altitude: visual.altitudeOffsetMeters }));
+  // One polygon per sensor avoids overlapping translucent surfaces. Explicit
+  // transparent stroke also avoids the SDK's default black boundary color.
+  nodes.put(`${key}:scanner-fill`, 'polygon', {
+    path: sector, fillColor: scannerFillColor(visual.fillColor, visual.fillOpacity),
+    strokeColor: 'rgba(0, 0, 0, 0)', strokeWidth: 0,
+    altitudeMode: SURFACE_ALTITUDE_MODE, drawsOccludedSegments: visual.drawsOccludedSegments, zIndex: visual.zIndex,
   });
-  addPulse(nodes, key, position3D(origin), '#66d9ff', 45);
 }
 
 function updateActionOverlays(
@@ -424,12 +444,19 @@ export function Google3DTacticalMap({ runtime, playbackRef, units, result, deplo
         for (const graphic of deployment?.tacticalGraphics ?? []) {
           const color = graphicColor(graphic);
           if (graphic.geometry.type === 'Polygon') {
+            const path = toSurfacePath(graphic.geometry.coordinates[0].map(([lng, lat]) => ({ lat, lng })));
             const controlLine = new library.Polygon3DElement({
-              path: toSurfacePath(graphic.geometry.coordinates[0].map(([lng, lat]) => ({ lat, lng }))), fillColor: `${color}22`,
-              strokeColor: color, strokeWidth: 3, altitudeMode: SURFACE_ALTITUDE_MODE, drawsOccludedSegments: SURFACE_DRAWS_OCCLUDED_SEGMENTS,
+              path, fillColor: `${color}22`,
+              strokeWidth: 0, altitudeMode: 'CLAMP_TO_GROUND', drawsOccludedSegments: false,
             });
-            staticLayersRef.current.controlLines.push(controlLine);
-            map.append(controlLine);
+            // Drape the boundary like phase lines; keep it visible through the
+            // mesh without showing the translucent area fill through terrain.
+            const boundary = new library.Polyline3DElement({
+              path, strokeColor: color, strokeWidth: 3,
+              altitudeMode: 'CLAMP_TO_GROUND', drawsOccludedSegments: true,
+            });
+            staticLayersRef.current.controlLines.push(controlLine, boundary);
+            map.append(controlLine, boundary);
           } else if (graphic.type === 'phase-line') {
             const phaseLineNodes = createPhaseLineNodes(
               library,

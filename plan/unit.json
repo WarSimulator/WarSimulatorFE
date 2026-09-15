@@ -1,476 +1,1044 @@
 {
-  "version": "1.0.0",
-  "scenario_id": "atlas-final-demo",
-  "id": "final-deployment-demo",
-  "name": "AI Planning 통합 시뮬레이션 예시",
-  "coordinate_system": "WGS84",
+  "id": "deployment-1789352195836-ee98056a-13df-4136-bfc2-adfecdbe215b",
+  "name": "Deployment 2",
+  "mettTcDocumentId": "op-alpha-primary",
+  "scenario_id": "op-alpha-primary",
   "units": [
     {
-      "unit_id": "blue-main-tank",
-      "designation": "청군 1기갑여단 주공",
+      "id": "unit-44129f12-ae61-48a2-bce7-88db8c296e33",
+      "designation": "AA EAGLE",
       "affiliation": "friendly",
-      "unit_type": "armor",
+      "unitType": "catalog:2525E:13031000001206000000",
       "echelon": "brigade",
-      "sidc": "SFGPUCA----H---",
-      "symbolLabel": "Armor Brigade",
-      "symbolScale": 0.78,
-      "heading": 70,
+      "sidc": "13031000181206000000",
+      "symbolStandard": "2525",
       "position": {
-        "longitude": 126.7038,
-        "latitude": 37.6245
-      }
+        "longitude": 127.3318544235368,
+        "latitude": 38.50824885591555,
+        "lon": 127.3318544235368,
+        "lat": 38.50824885591555
+      },
+      "symbolScale": 0.75
     },
     {
-      "unit_id": "blue-recon",
-      "designation": "청군 수색중대",
+      "id": "unit-6d8ab22c-dc93-46d2-b4c5-2d9fd8234cfa",
+      "designation": "Cavalry",
       "affiliation": "friendly",
-      "unit_type": "recon",
-      "echelon": "company",
-      "sidc": "SFGPUCR----E---",
-      "symbolLabel": "Reconnaissance Company",
-      "symbolScale": 0.7,
-      "heading": 75,
-      "position": {
-        "longitude": 126.7065,
-        "latitude": 37.6297
-      }
-    },
-    {
-      "unit_id": "blue-artillery",
-      "designation": "청군 포병대대",
-      "affiliation": "friendly",
-      "unit_type": "artillery",
+      "unitType": "catalog:2525E:13031000001205010000",
       "echelon": "battalion",
-      "sidc": "SFGPUCF----F---",
-      "symbolLabel": "Field Artillery Battalion",
-      "symbolScale": 0.72,
+      "sidc": "13031000161205010000",
+      "symbolStandard": "2525",
       "position": {
-        "longitude": 126.7028,
-        "latitude": 37.6198
-      }
+        "longitude": 127.49127365475138,
+        "latitude": 38.53687043629987,
+        "lon": 127.49127365475138,
+        "lat": 38.53687043629987
+      },
+      "symbolScale": 1
     },
     {
-      "unit_id": "blue-engineer",
-      "designation": "청군 공병중대",
+      "id": "unit-06d52da1-c3ec-43b9-9eb3-a6afbe093508",
+      "designation": "MAIN",
       "affiliation": "friendly",
-      "unit_type": "engineer",
-      "echelon": "company",
-      "sidc": "SFGPUCE----E---",
-      "symbolLabel": "Engineer Company",
-      "symbolScale": 0.7,
+      "unitType": "catalog:2525E:13031000001800000000",
+      "echelon": "division",
+      "sidc": "13031000211800000000",
+      "symbolStandard": "2525",
       "position": {
-        "longitude": 126.7075,
-        "latitude": 37.6215
-      }
+        "longitude": 127.35998924972803,
+        "latitude": 38.439196940137265,
+        "lon": 127.35998924972803,
+        "lat": 38.439196940137265
+      },
+      "symbolScale": 1
     },
     {
-      "unit_id": "blue-reserve",
-      "designation": "청군 예비 기계화대대",
+      "id": "unit-36a39337-07ea-4cd1-8d1d-d6c146b77eb0",
+      "designation": "REAR",
       "affiliation": "friendly",
-      "unit_type": "mechanized_infantry",
-      "echelon": "battalion",
-      "sidc": "SFGPUCIZ---F---",
-      "symbolLabel": "Mechanized Infantry Battalion",
-      "symbolScale": 0.72,
+      "unitType": "catalog:2525E:13031000001800000000",
+      "echelon": "division",
+      "sidc": "13031000211800000000",
+      "symbolStandard": "2525",
       "position": {
-        "longitude": 126.7045,
-        "latitude": 37.6178
-      }
+        "longitude": 127.29779204200057,
+        "latitude": 38.429910582047604,
+        "lon": 127.29779204200057,
+        "lat": 38.429910582047604
+      },
+      "symbolScale": 1
     },
     {
-      "unit_id": "red-screen",
-      "designation": "적군 전방 보병연대",
-      "affiliation": "enemy",
-      "unit_type": "infantry",
+      "id": "unit-43616555-e394-45ff-b1d9-9921942bf0d2",
+      "designation": "TCF",
+      "affiliation": "friendly",
+      "unitType": "catalog:2525E:13031000001211020000",
       "echelon": "regiment",
-      "sidc": "SHGPUCI----G---",
-      "symbolLabel": "Enemy Infantry Regiment",
-      "symbolScale": 0.74,
-      "heading": 250,
+      "sidc": "13031000171211020000",
+      "symbolStandard": "2525",
       "position": {
-        "longitude": 126.7185,
-        "latitude": 37.6273
-      }
+        "longitude": 127.31383244673303,
+        "latitude": 38.38610409953887,
+        "lon": 127.31383244673303,
+        "lat": 38.38610409953887
+      },
+      "symbolScale": 1
     },
     {
-      "unit_id": "red-armor",
-      "designation": "적군 전차대대",
-      "affiliation": "enemy",
-      "unit_type": "armor",
+      "id": "unit-d345ed6f-94b9-48fb-af11-f46cabbf10f0",
+      "designation": "AA TANK",
+      "affiliation": "friendly",
+      "unitType": "catalog:2525E:13031500001202000000",
+      "echelon": "brigade",
+      "sidc": "13031500181202000000",
+      "symbolStandard": "2525",
+      "position": {
+        "longitude": 127.3677200444154,
+        "latitude": 38.41120601999544,
+        "lon": 127.3677200444154,
+        "lat": 38.41120601999544
+      },
+      "symbolScale": 1
+    },
+    {
+      "id": "unit-fdbee918-78c9-470c-9d30-b16bea678052",
+      "designation": "reserve mecha",
+      "affiliation": "friendly",
+      "unitType": "catalog:2525E:13031500001202000000",
       "echelon": "battalion",
-      "sidc": "SHGPUCA----F---",
-      "symbolLabel": "Enemy Armor Battalion",
-      "symbolScale": 0.76,
-      "heading": 250,
+      "sidc": "13031500161202000000",
+      "symbolStandard": "2525",
       "position": {
-        "longitude": 126.7225,
-        "latitude": 37.6237
-      }
+        "longitude": 127.35453092523588,
+        "latitude": 38.38186601216283,
+        "lon": 127.35453092523588,
+        "lat": 38.38186601216283
+      },
+      "symbolScale": 1
     },
     {
-      "unit_id": "red-recon",
-      "designation": "적군 수색중대",
+      "id": "unit-360dce9f-2100-42b2-aed6-91ef7ab510ae",
+      "designation": "South mecha",
+      "affiliation": "friendly",
+      "unitType": "catalog:2525E:13031500001202000000",
+      "echelon": "brigade",
+      "sidc": "13031500181202000000",
+      "symbolStandard": "2525",
+      "position": {
+        "longitude": 127.42630229360621,
+        "latitude": 38.406746169825546,
+        "lon": 127.42630229360621,
+        "lat": 38.406746169825546
+      },
+      "symbolScale": 1
+    },
+    {
+      "id": "unit-161432b1-a268-49fc-bd95-bada83830c55",
+      "designation": "TAC",
+      "affiliation": "friendly",
+      "unitType": "catalog:2525E:13031000001800000000",
+      "echelon": "division",
+      "sidc": "13031000211800000000",
+      "symbolStandard": "2525",
+      "position": {
+        "longitude": 127.44466407728179,
+        "latitude": 38.47463401445137,
+        "lon": 127.44466407728179,
+        "lat": 38.47463401445137
+      },
+      "symbolScale": 1
+    },
+    {
+      "id": "unit-19478354-46cd-40d2-aeaa-231859555b73",
+      "designation": "South mecha enemy",
       "affiliation": "enemy",
-      "unit_type": "recon",
+      "unitType": "catalog:2525E:13031000001211020000",
+      "echelon": "regiment",
+      "sidc": "13061000171211020000",
+      "symbolStandard": "2525",
+      "position": {
+        "longitude": 127.47375628875803,
+        "latitude": 38.39417599951097,
+        "lon": 127.47375628875803,
+        "lat": 38.39417599951097
+      },
+      "symbolScale": 1
+    },
+    {
+      "id": "unit-cbb277a7-c535-4797-96f4-2717d3e6d2c4",
+      "designation": "minefield",
+      "affiliation": "enemy",
+      "unitType": "catalog:2525E:13032500002707010000",
+      "echelon": "regiment",
+      "sidc": "13062500002707010000",
+      "symbolStandard": "2525",
+      "position": {
+        "longitude": 127.46770937405131,
+        "latitude": 38.39404940660471,
+        "lon": 127.46770937405131,
+        "lat": 38.39404940660471
+      },
+      "symbolScale": 2
+    },
+    {
+      "id": "unit-0937f143-979d-4d24-894e-894139a6d878",
+      "designation": "Bridge",
+      "affiliation": "friendly",
+      "unitType": "catalog:2525E:13031500001301000000",
       "echelon": "company",
-      "sidc": "SHGPUCR----E---",
-      "symbolLabel": "Enemy Reconnaissance Company",
-      "symbolScale": 0.68,
-      "heading": 250,
+      "sidc": "13031500151301000000",
+      "symbolStandard": "2525",
       "position": {
-        "longitude": 126.7215,
-        "latitude": 37.6302
-      }
+        "longitude": 127.5361966226846,
+        "latitude": 38.42070451972735,
+        "lon": 127.5361966226846,
+        "lat": 38.42070451972735
+      },
+      "symbolScale": 1.25
     },
     {
-      "unit_id": "red-artillery",
-      "designation": "적군 자주포대대",
+      "id": "unit-52ce82b2-d574-4f85-816d-ea8ab847c729",
+      "designation": "North mecha enemy",
       "affiliation": "enemy",
-      "unit_type": "artillery",
-      "echelon": "battalion",
-      "sidc": "SHGPUCF----F---",
-      "symbolLabel": "Enemy Artillery Battalion",
-      "symbolScale": 0.72,
-      "heading": 250,
+      "unitType": "catalog:2525E:13031000001211020000",
+      "echelon": "regiment",
+      "sidc": "13061000171211020000",
+      "symbolStandard": "2525",
       "position": {
-        "longitude": 126.7275,
-        "latitude": 37.6268
-      }
+        "longitude": 127.50175407409664,
+        "latitude": 38.49680830362099,
+        "lon": 127.50175407409664,
+        "lat": 38.49680830362099
+      },
+      "symbolScale": 1
     },
     {
-      "unit_id": "red-reserve",
-      "designation": "적군 예비 기갑대대",
+      "id": "unit-f87f952a-6e76-41c2-ace4-994bb37b9855",
+      "designation": "minefield",
       "affiliation": "enemy",
-      "unit_type": "armor",
-      "echelon": "battalion",
-      "sidc": "SHGPUCA----F---",
-      "symbolLabel": "Enemy Reserve Armor",
-      "symbolScale": 0.72,
-      "heading": 245,
+      "unitType": "catalog:2525E:13032500002707010000",
+      "echelon": "regiment",
+      "sidc": "13062500002707010000",
+      "symbolStandard": "2525",
       "position": {
-        "longitude": 126.728,
-        "latitude": 37.619
-      }
+        "longitude": 127.4870193679332,
+        "latitude": 38.49881502437227,
+        "lon": 127.4870193679332,
+        "lat": 38.49881502437227
+      },
+      "symbolScale": 2
+    },
+    {
+      "id": "unit-5307b9e9-a376-4736-b965-1dc398bcdec6",
+      "designation": "Propelled Enemy",
+      "affiliation": "enemy",
+      "unitType": "catalog:APP6D:10031000001303010000",
+      "echelon": "regiment",
+      "sidc": "10061000171303010000",
+      "symbolStandard": "APP6",
+      "position": {
+        "longitude": 127.49731931799549,
+        "latitude": 38.439629282386214,
+        "lon": 127.49731931799549,
+        "lat": 38.439629282386214
+      },
+      "symbolScale": 1
+    },
+    {
+      "id": "unit-1e8bac0a-5006-4c65-833b-1b599ba47ede",
+      "designation": "Artillery Enemy",
+      "affiliation": "enemy",
+      "unitType": "catalog:2525E:13031000001205000000",
+      "echelon": "battalion",
+      "sidc": "13061000161205000000",
+      "symbolStandard": "2525",
+      "position": {
+        "longitude": 127.5151974681673,
+        "latitude": 38.44163650187528,
+        "lon": 127.5151974681673,
+        "lat": 38.44163650187528
+      },
+      "symbolScale": 1
+    },
+    {
+      "id": "unit-c4d29521-a31a-4564-b90a-ec2d09169a6f",
+      "designation": "minefield",
+      "affiliation": "enemy",
+      "unitType": "catalog:2525E:13032500002707010000",
+      "echelon": "battalion",
+      "sidc": "13062500002707010000",
+      "symbolStandard": "2525",
+      "position": {
+        "longitude": 127.53537925424402,
+        "latitude": 38.489106069448496,
+        "lon": 127.53537925424402,
+        "lat": 38.489106069448496
+      },
+      "symbolScale": 2
+    },
+    {
+      "id": "unit-75c784c4-7e99-4c09-98bd-959c728b5d30",
+      "designation": "Enemy Bridge",
+      "affiliation": "enemy",
+      "unitType": "catalog:2525E:13032000001107010000",
+      "echelon": "battalion",
+      "sidc": "13062000001107010000",
+      "symbolStandard": "2525",
+      "position": {
+        "longitude": 127.54445012339072,
+        "latitude": 38.49469383998535,
+        "lon": 127.54445012339072,
+        "lat": 38.49469383998535
+      },
+      "symbolScale": 1
+    },
+    {
+      "id": "unit-f9d58959-b779-4343-8584-b883d3518a30",
+      "designation": "North Artillery Enemy",
+      "affiliation": "enemy",
+      "unitType": "catalog:2525E:13031000001205000000",
+      "echelon": "regiment",
+      "sidc": "13061000171205000000",
+      "symbolStandard": "2525",
+      "position": {
+        "longitude": 127.57346409136345,
+        "latitude": 38.50744759705456,
+        "lon": 127.57346409136345,
+        "lat": 38.50744759705456
+      },
+      "symbolScale": 1
+    },
+    {
+      "id": "unit-2f8f6efc-6d7f-47ab-a9a2-72c23fd2c02f",
+      "designation": "Propelled Field Artillery",
+      "affiliation": "friendly",
+      "unitType": "catalog:APP6D:10031000001303010000",
+      "echelon": "brigade",
+      "sidc": "10031000181303010000",
+      "symbolStandard": "APP6",
+      "position": {
+        "longitude": 127.4149954402226,
+        "latitude": 38.47705411091841,
+        "lon": 127.4149954402226,
+        "lat": 38.47705411091841
+      },
+      "symbolScale": 1
+    },
+    {
+      "id": "unit-dfc97ed2-3c4b-4c70-8d97-8de9d84a9392",
+      "designation": "North mecha",
+      "affiliation": "friendly",
+      "unitType": "catalog:2525E:13031500001202000000",
+      "echelon": "brigade",
+      "sidc": "13031500181202000000",
+      "symbolStandard": "2525",
+      "position": {
+        "longitude": 127.42982202780954,
+        "latitude": 38.50114161475478,
+        "lon": 127.42982202780954,
+        "lat": 38.50114161475478
+      },
+      "symbolScale": 1
+    },
+    {
+      "id": "unit-ce5db6aa-a095-426d-98ae-c0c1f65ed945",
+      "designation": "Enemy Headquarters",
+      "affiliation": "enemy",
+      "unitType": "catalog:2525E:13031000001800000000",
+      "echelon": "brigade",
+      "sidc": "13061000181800000000",
+      "symbolStandard": "2525",
+      "position": {
+        "longitude": 127.603560253663,
+        "latitude": 38.55033143998661,
+        "lon": 127.603560253663,
+        "lat": 38.55033143998661
+      },
+      "symbolScale": 1
     }
   ],
   "objectives": [
     {
-      "id": "obj-alpha",
-      "name": "OBJ ALPHA",
+      "id": "objective-1c1b81a8-ca10-4a40-ad3c-287e87335f52",
+      "name": "SLAM",
       "position": {
-        "longitude": 126.721,
-        "latitude": 37.6247
+        "longitude": 127.51185566244915,
+        "latitude": 38.405390872351084,
+        "lon": 127.51185566244915,
+        "lat": 38.405390872351084
       }
     }
   ],
   "tacticalGraphics": [
     {
-      "id": "attack-position",
+      "id": "graphic-4732a6d7-946f-4557-8bd0-5b8a5c174ae8",
       "type": "area",
-      "name": "ATTACK POSITION",
+      "name": "Area Alpha",
       "geometry": {
         "type": "Polygon",
         "coordinates": [
           [
             [
-              126.7108,
-              37.6255
+              127.38893858803715,
+              38.387400281611
             ],
             [
-              126.713,
-              37.6255
+              127.38658642945539,
+              38.37125762934202
             ],
             [
-              126.713,
-              37.6234
+              127.40173029196268,
+              38.3527203517909
             ],
             [
-              126.7108,
-              37.6234
+              127.41979394683041,
+              38.31821841622338
             ],
             [
-              126.7108,
-              37.6255
+              127.5138153020583,
+              38.32142787392919
+            ],
+            [
+              127.59095562119671,
+              38.41868816605805
+            ],
+            [
+              127.58562969275005,
+              38.50046007849471
+            ],
+            [
+              127.55255790452755,
+              38.52803127210041
+            ],
+            [
+              127.52274984926265,
+              38.53758039220414
+            ],
+            [
+              127.5231375969807,
+              38.55010768891443
+            ],
+            [
+              127.44038827922176,
+              38.566453265104954
+            ],
+            [
+              127.38648585522945,
+              38.53311658089755
+            ],
+            [
+              127.32279794283659,
+              38.52799845029923
+            ],
+            [
+              127.28418996894395,
+              38.46088392543691
+            ],
+            [
+              127.29146612352851,
+              38.410289309693276
+            ],
+            [
+              127.28702493377651,
+              38.35123136819273
+            ],
+            [
+              127.38893858803715,
+              38.387400281611
             ]
           ]
         ]
       }
     },
     {
-      "id": "blue-recon-line",
+      "id": "graphic-8b4525b2-1ba6-40ba-8abe-ccf3ed4c0cd8",
       "type": "phase-line",
-      "name": "BLUE RECON LINE",
+      "name": "PL ORANGE",
       "geometry": {
         "type": "LineString",
         "coordinates": [
           [
-            126.712,
-            37.6282
+            127.3824997937012,
+            38.54075515008471
           ],
           [
-            126.713,
-            37.631
+            127.36809665410588,
+            38.52321477612703
+          ],
+          [
+            127.37037613586259,
+            38.480196626928596
+          ],
+          [
+            127.37681452494056,
+            38.446205636637906
+          ],
+          [
+            127.3950298829194,
+            38.405995415111846
+          ],
+          [
+            127.37276451531497,
+            38.35745459651661
           ]
         ]
       }
     },
     {
-      "id": "breach-support",
-      "type": "area",
-      "name": "BREACH SUPPORT",
-      "geometry": {
-        "type": "Polygon",
-        "coordinates": [
-          [
-            [
-              126.711,
-              37.6225
-            ],
-            [
-              126.7123,
-              37.6225
-            ],
-            [
-              126.7123,
-              37.6215
-            ],
-            [
-              126.711,
-              37.6215
-            ],
-            [
-              126.711,
-              37.6225
-            ]
-          ]
-        ]
-      }
-    },
-    {
-      "id": "breach-lane",
-      "type": "axis",
-      "name": "BREACH LANE",
-      "geometry": {
-        "type": "LineString",
-        "coordinates": [
-          [
-            126.712,
-            37.622
-          ],
-          [
-            126.7155,
-            37.623
-          ],
-          [
-            126.7185,
-            37.624
-          ]
-        ]
-      }
-    },
-    {
-      "id": "obj-approach",
-      "type": "axis",
-      "name": "MAIN ATTACK AXIS",
-      "geometry": {
-        "type": "LineString",
-        "coordinates": [
-          [
-            126.712,
-            37.6245
-          ],
-          [
-            126.7165,
-            37.6245
-          ],
-          [
-            126.7202,
-            37.6247
-          ]
-        ]
-      }
-    },
-    {
-      "id": "support-position",
-      "type": "area",
-      "name": "SUPPORT POSITION",
-      "geometry": {
-        "type": "Polygon",
-        "coordinates": [
-          [
-            [
-              126.714,
-              37.6197
-            ],
-            [
-              126.716,
-              37.6197
-            ],
-            [
-              126.716,
-              37.6182
-            ],
-            [
-              126.714,
-              37.6182
-            ],
-            [
-              126.714,
-              37.6197
-            ]
-          ]
-        ]
-      }
-    },
-    {
-      "id": "defense-line",
+      "id": "graphic-db624b43-339b-4d09-881d-41447b36b59e",
       "type": "phase-line",
-      "name": "DEFENSE LINE RED",
+      "name": "PL AMBER",
       "geometry": {
         "type": "LineString",
         "coordinates": [
           [
-            126.719,
-            37.6175
+            127.43636465650907,
+            38.57231462863634
           ],
           [
-            126.7197,
-            37.6225
+            127.43707673174369,
+            38.553457458684946
           ],
           [
-            126.7205,
-            37.6285
+            127.45496148195267,
+            38.52881927210212
+          ],
+          [
+            127.45222795832021,
+            38.496194698166214
+          ],
+          [
+            127.48303686282607,
+            38.46769162246476
+          ],
+          [
+            127.48072554338283,
+            38.42234641048991
+          ],
+          [
+            127.44686682917171,
+            38.37047008516812
+          ],
+          [
+            127.40695317948988,
+            38.325098561131654
           ]
         ]
       }
     },
     {
-      "id": "red-screen-line",
+      "id": "graphic-22b82d21-bba9-4cc5-807f-3e022f388215",
       "type": "phase-line",
-      "name": "RED SCREEN LINE",
+      "name": "PL BLUE",
       "geometry": {
         "type": "LineString",
         "coordinates": [
           [
-            126.7163,
-            37.622
+            127.52954853933106,
+            38.55563286568673
           ],
           [
-            126.7168,
-            37.6288
+            127.54366202890456,
+            38.50478922223552
+          ],
+          [
+            127.54449378919921,
+            38.46822083769319
+          ],
+          [
+            127.53587508228537,
+            38.416419721818265
+          ],
+          [
+            127.51806086525262,
+            38.377069905609964
+          ],
+          [
+            127.5022284583416,
+            38.34377256127207
+          ],
+          [
+            127.47474823440638,
+            38.30665715481649
           ]
         ]
       }
     },
     {
-      "id": "red-observation-post",
+      "id": "graphic-3ea58937-d73d-4462-a2f4-3d90b8d9c7b0",
+      "type": "phase-line",
+      "name": "PL RED",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            127.58029054249485,
+            38.53230819550932
+          ],
+          [
+            127.58407881009079,
+            38.50229317428479
+          ],
+          [
+            127.59017591665457,
+            38.416646474093824
+          ],
+          [
+            127.51436336362235,
+            38.3226078753146
+          ],
+          [
+            127.5039684159195,
+            38.30745431508773
+          ]
+        ]
+      }
+    },
+    {
+      "id": "graphic-a5d1bed1-3498-4be4-bd2c-9e8d815d853a",
       "type": "area",
-      "name": "RED OP",
+      "name": "OBJ SLAM",
       "geometry": {
         "type": "Polygon",
         "coordinates": [
           [
             [
-              126.7168,
-              37.6298
+              127.51298729145518,
+              38.39181466861946
             ],
             [
-              126.718,
-              37.6298
+              127.50370666586795,
+              38.39265958573263
             ],
             [
-              126.718,
-              37.6288
+              127.49493268051889,
+              38.39091676784667
             ],
             [
-              126.7168,
-              37.6288
+              127.49318785997691,
+              38.40244818476914
             ],
             [
-              126.7168,
-              37.6298
+              127.49982977471535,
+              38.40843175702432
+            ],
+            [
+              127.50712752206186,
+              38.41746343030149
+            ],
+            [
+              127.51689861708199,
+              38.41898493916226
+            ],
+            [
+              127.5267762825486,
+              38.41878942351099
+            ],
+            [
+              127.53355092419302,
+              38.4208792884482
+            ],
+            [
+              127.53206416504436,
+              38.41582685465876
+            ],
+            [
+              127.52796990323529,
+              38.4092870681883
+            ],
+            [
+              127.52605211828988,
+              38.40235996961554
+            ],
+            [
+              127.52254423168597,
+              38.39155124896435
+            ],
+            [
+              127.51298729145518,
+              38.39181466861946
             ]
           ]
         ]
       }
     },
     {
-      "id": "red-counterattack-position",
+      "id": "graphic-6764dfef-0422-49ab-bf9a-df468bb25244",
+      "type": "phase-line",
+      "name": "PL GREEN",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            127.49298977095229,
+            38.43743318172614
+          ],
+          [
+            127.48919802278589,
+            38.41042464111122
+          ],
+          [
+            127.48000758144545,
+            38.39419772704784
+          ],
+          [
+            127.48692434965604,
+            38.38149355824502
+          ],
+          [
+            127.49628676031577,
+            38.37007237683549
+          ],
+          [
+            127.49806174756483,
+            38.362534113525676
+          ],
+          [
+            127.48729434767378,
+            38.3457280902905
+          ],
+          [
+            127.47062106039566,
+            38.314994876512074
+          ]
+        ]
+      }
+    },
+    {
+      "id": "graphic-90018323-1633-4949-92e8-972ab470098c",
       "type": "area",
-      "name": "RED COUNTERATTACK",
+      "name": "BIG TOWN",
       "geometry": {
         "type": "Polygon",
         "coordinates": [
           [
             [
-              126.721,
-              37.6198
+              127.37355144133883,
+              38.53225084826848
             ],
             [
-              126.723,
-              37.6198
+              127.32303280919199,
+              38.526155598294835
             ],
             [
-              126.723,
-              37.6182
+              127.28523983836543,
+              38.45968414407569
             ],
             [
-              126.721,
-              37.6182
+              127.29208550290046,
+              38.409743779213
             ],
             [
-              126.721,
-              37.6198
+              127.2880156388785,
+              38.3521082317781
+            ],
+            [
+              127.38469556837488,
+              38.38691386387778
+            ],
+            [
+              127.39348826464892,
+              38.40451157253479
+            ],
+            [
+              127.38503976694093,
+              38.424835331251515
+            ],
+            [
+              127.37550978471604,
+              38.44399772855635
+            ],
+            [
+              127.36881262728534,
+              38.47753321070512
+            ],
+            [
+              127.36695479200436,
+              38.52045650279023
+            ],
+            [
+              127.37318059187801,
+              38.53098326177224
+            ],
+            [
+              127.37355144133883,
+              38.53225084826848
             ]
           ]
         ]
       }
     },
     {
-      "id": "red-fallback",
-      "type": "phase-line",
-      "name": "RED FALLBACK LINE",
-      "geometry": {
-        "type": "LineString",
-        "coordinates": [
-          [
-            126.725,
-            37.618
-          ],
-          [
-            126.726,
-            37.6285
-          ]
-        ]
-      }
-    },
-    {
-      "id": "red-artillery-fallback",
+      "id": "graphic-75e0e19e-f524-44f3-beb7-5163ca9f25e3",
       "type": "area",
-      "name": "RED ARTILLERY FALLBACK",
+      "name": "NORTH TOWN",
       "geometry": {
         "type": "Polygon",
         "coordinates": [
           [
             [
-              126.728,
-              37.6255
+              127.37464669167333,
+              38.5301577527445
             ],
             [
-              126.73,
-              37.6255
+              127.3695498817419,
+              38.51771089024513
             ],
             [
-              126.73,
-              37.6238
+              127.37126373689318,
+              38.479999337697045
             ],
             [
-              126.728,
-              37.6238
+              127.37550770028166,
+              38.47788229417686
             ],
             [
-              126.728,
-              37.6255
+              127.38055616960952,
+              38.48426341841637
+            ],
+            [
+              127.39979026702355,
+              38.49477065961704
+            ],
+            [
+              127.40084365983377,
+              38.49429851971794
+            ],
+            [
+              127.41445611330471,
+              38.50689966776856
+            ],
+            [
+              127.42159753956629,
+              38.511309293516106
+            ],
+            [
+              127.43293525262061,
+              38.53069903669311
+            ],
+            [
+              127.45178639912193,
+              38.526073055802584
+            ],
+            [
+              127.43592453748377,
+              38.54822243462095
+            ],
+            [
+              127.435577188238,
+              38.56058633165875
+            ],
+            [
+              127.37464669167333,
+              38.5301577527445
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "id": "graphic-3ea9c5bc-c0bc-43b9-bad7-b4f683e564bb",
+      "type": "area",
+      "name": "RIVER TOWN",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              127.5383334212578,
+              38.531083282156665
+            ],
+            [
+              127.54178517396379,
+              38.51776561767248
+            ],
+            [
+              127.54752846229698,
+              38.47407607155544
+            ],
+            [
+              127.52446276778564,
+              38.38871533454825
+            ],
+            [
+              127.50693121784985,
+              38.35114485489286
+            ],
+            [
+              127.48784463221303,
+              38.32231234189102
+            ],
+            [
+              127.51349261098147,
+              38.32236937289617
+            ],
+            [
+              127.58654558675069,
+              38.416668059706424
+            ],
+            [
+              127.58166645674147,
+              38.497922575941004
+            ],
+            [
+              127.53865159770335,
+              38.528780094497634
+            ],
+            [
+              127.5383334212578,
+              38.531083282156665
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "id": "graphic-bdbef00d-d949-461e-a5ef-3a838fde19d5",
+      "type": "area",
+      "name": "WEST TOWN",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              127.48155723286095,
+              38.437379921308676
+            ],
+            [
+              127.50179555663748,
+              38.43617304902086
+            ],
+            [
+              127.51975524016864,
+              38.43921153146579
+            ],
+            [
+              127.5388395714859,
+              38.450940759683306
+            ],
+            [
+              127.54318703835055,
+              38.486752047432205
+            ],
+            [
+              127.52955099735313,
+              38.5131700021086
+            ],
+            [
+              127.51611962338701,
+              38.51663926025452
+            ],
+            [
+              127.5026616443699,
+              38.51313249464679
+            ],
+            [
+              127.49512359934579,
+              38.517851739686336
+            ],
+            [
+              127.47909296199495,
+              38.51158803319997
+            ],
+            [
+              127.46603170595495,
+              38.51654807834063
+            ],
+            [
+              127.45494036630303,
+              38.51339842982169
+            ],
+            [
+              127.45290971473565,
+              38.496396586195324
+            ],
+            [
+              127.483681217349,
+              38.46872360759679
+            ],
+            [
+              127.48198074045511,
+              38.438782684783924
+            ],
+            [
+              127.49203322987866,
+              38.43754479169852
+            ],
+            [
+              127.40714885471313,
+              38.387724860664036
+            ],
+            [
+              127.48155723286095,
+              38.437379921308676
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "id": "graphic-4a15fd7d-3480-4595-b121-ad84bd37e3ed",
+      "type": "area",
+      "name": "METRO CITY",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              127.29217124662307,
+              38.436470707820696
+            ],
+            [
+              127.3238238637056,
+              38.43168233950647
+            ],
+            [
+              127.33707887737815,
+              38.37970513184692
+            ],
+            [
+              127.30493342255527,
+              38.381404478510795
+            ],
+            [
+              127.29080542940918,
+              38.43448222947108
+            ],
+            [
+              127.29217124662307,
+              38.436470707820696
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "id": "graphic-495674dc-11c1-4dc6-b5a4-0815f2daca09",
+      "type": "area",
+      "name": "Enemy area",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              127.603560253663,
+              38.55033143998661
+            ],
+            [
+              127.60301950382973,
+              38.53212006904403
+            ],
+            [
+              127.58850844374778,
+              38.543578921867336
+            ],
+            [
+              127.58943133686635,
+              38.54481021820658
+            ],
+            [
+              127.603560253663,
+              38.55033143998661
             ]
           ]
         ]
@@ -479,9 +1047,11 @@
   ],
   "mapView": {
     "center": [
-      126.716,
-      37.624
+      127.44,
+      38.44
     ],
-    "zoom": 13.5
-  }
+    "zoom": 11
+  },
+  "createdAt": "2026-09-14T02:16:35.836Z",
+  "updatedAt": "2026-09-15T02:45:25.789Z"
 }

@@ -1,270 +1,29 @@
 {
   "status": "tfd-complete",
   "complete": true,
-  "scenario_id": "atlas-final-demo",
+  "scenario_id": "op-alpha-primary",
   "form_option": "AreaDefenseOption",
   "time_unit": "simulation-step",
   "temporal_plan": {
     "steps": [
-      {
-        "sequence": 1,
-        "start": 0,
-        "duration": 5,
-        "end": 5,
-        "pddl_action": "aa-move",
-        "action_key": "move",
-        "action": "Move",
-        "actor_unit_id": "red-screen",
-        "parameters": {
-          "source": "current_position",
-          "destination": "red-screen-line"
-        }
-      },
-      {
-        "sequence": 2,
-        "start": 0,
-        "duration": 4,
-        "end": 4,
-        "pddl_action": "aa-establish_security",
-        "action_key": "establish_security",
-        "action": "Establish Security",
-        "actor_unit_id": "red-armor",
-        "parameters": {
-          "target": "obj-alpha"
-        }
-      },
-      {
-        "sequence": 3,
-        "start": 0,
-        "duration": 3,
-        "end": 3,
-        "pddl_action": "aa-move",
-        "action_key": "move",
-        "action": "Move",
-        "actor_unit_id": "red-recon",
-        "parameters": {
-          "source": "current_position",
-          "destination": "red-observation-post"
-        }
-      },
-      {
-        "sequence": 4,
-        "start": 3,
-        "duration": 9,
-        "end": 12,
-        "pddl_action": "aa-observe",
-        "action_key": "observe",
-        "action": "Observe",
-        "actor_unit_id": "red-recon",
-        "parameters": {
-          "target": "blue-main-tank",
-          "sensor_range_m": 900,
-          "field_of_view_deg": 40
-        }
-      },
-      {
-        "sequence": 5,
-        "start": 4,
-        "duration": 5,
-        "end": 9,
-        "pddl_action": "aa-disrupt",
-        "action_key": "disrupt",
-        "action": "Disrupt",
-        "actor_unit_id": "red-artillery",
-        "parameters": {
-          "target": "blue-main-tank"
-        }
-      },
-      {
-        "sequence": 6,
-        "start": 5,
-        "duration": 5,
-        "end": 10,
-        "pddl_action": "aa-contain",
-        "action_key": "contain",
-        "action": "Contain",
-        "actor_unit_id": "red-screen",
-        "parameters": {
-          "target": "blue-main-tank"
-        }
-      },
-      {
-        "sequence": 7,
-        "start": 8,
-        "duration": 2,
-        "end": 10,
-        "pddl_action": "aa-report",
-        "action_key": "report",
-        "action": "Report",
-        "actor_unit_id": "red-recon",
-        "parameters": {
-          "recipient": "red-armor",
-          "result": "friendly-main-located"
-        }
-      },
-      {
-        "sequence": 8,
-        "start": 8,
-        "duration": 6,
-        "end": 14,
-        "pddl_action": "aa-move",
-        "action_key": "move",
-        "action": "Move",
-        "actor_unit_id": "red-reserve",
-        "parameters": {
-          "source": "current_position",
-          "destination": "red-counterattack-position"
-        }
-      },
-      {
-        "sequence": 9,
-        "start": 10,
-        "duration": 5,
-        "end": 15,
-        "pddl_action": "aa-engage",
-        "action_key": "engage",
-        "action": "Engage",
-        "actor_unit_id": "red-armor",
-        "parameters": {
-          "target": "blue-main-tank"
-        }
-      },
-      {
-        "sequence": 10,
-        "start": 12,
-        "duration": 4,
-        "end": 16,
-        "pddl_action": "aa-engage",
-        "action_key": "engage",
-        "action": "Engage",
-        "actor_unit_id": "red-artillery",
-        "parameters": {
-          "target": "blue-engineer"
-        }
-      },
-      {
-        "sequence": 11,
-        "start": 14,
-        "duration": 4,
-        "end": 18,
-        "pddl_action": "aa-ambush",
-        "action_key": "ambush",
-        "action": "Ambush",
-        "actor_unit_id": "red-reserve",
-        "parameters": {
-          "target": "blue-reserve"
-        }
-      },
-      {
-        "sequence": 12,
-        "start": 15,
-        "duration": 6,
-        "end": 21,
-        "pddl_action": "aa-fight",
-        "action_key": "fight",
-        "action": "Fight",
-        "actor_unit_id": "red-armor",
-        "parameters": {
-          "target": "blue-main-tank"
-        }
-      },
-      {
-        "sequence": 13,
-        "start": 18,
-        "duration": 2,
-        "end": 20,
-        "pddl_action": "aa-re_orient",
-        "action_key": "re_orient",
-        "action": "Re-Orient",
-        "actor_unit_id": "red-reserve",
-        "parameters": {
-          "target": "obj-alpha"
-        }
-      },
-      {
-        "sequence": 14,
-        "start": 18,
-        "duration": 5,
-        "end": 23,
-        "pddl_action": "aa-withdraw",
-        "action_key": "withdraw",
-        "action": "Withdraw",
-        "actor_unit_id": "red-screen",
-        "parameters": {
-          "source": "red-screen-line",
-          "destination": "red-fallback"
-        }
-      },
-      {
-        "sequence": 15,
-        "start": 20,
-        "duration": 5,
-        "end": 25,
-        "pddl_action": "aa-move",
-        "action_key": "move",
-        "action": "Move",
-        "actor_unit_id": "red-artillery",
-        "parameters": {
-          "source": "current_position",
-          "destination": "red-artillery-fallback"
-        }
-      },
-      {
-        "sequence": 16,
-        "start": 21,
-        "duration": 4,
-        "end": 25,
-        "pddl_action": "aa-continue_to_engage",
-        "action_key": "continue_to_engage",
-        "action": "Continue to Engage",
-        "actor_unit_id": "red-armor",
-        "parameters": {
-          "target": "blue-main-tank"
-        }
-      },
-      {
-        "sequence": 17,
-        "start": 24,
-        "duration": 5,
-        "end": 29,
-        "pddl_action": "aa-block",
-        "action_key": "block",
-        "action": "Block",
-        "actor_unit_id": "red-reserve",
-        "parameters": {
-          "target": "defense-line"
-        }
-      },
-      {
-        "sequence": 18,
-        "start": 25,
-        "duration": 5,
-        "end": 30,
-        "pddl_action": "aa-withdraw",
-        "action_key": "withdraw",
-        "action": "Withdraw",
-        "actor_unit_id": "red-armor",
-        "parameters": {
-          "source": "obj-alpha",
-          "destination": "red-fallback"
-        }
-      },
-      {
-        "sequence": 19,
-        "start": 30,
-        "duration": 2,
-        "end": 32,
-        "pddl_action": "aa-report",
-        "action_key": "report",
-        "action": "Report",
-        "actor_unit_id": "red-recon",
-        "parameters": {
-          "recipient": "red-reserve",
-          "result": "defense-reorganized"
-        }
-      }
-    ],
-    "step_count": 19,
-    "makespan": 32
+      { "sequence": 1, "start": 0, "duration": 8, "end": 8, "pddl_action": "aa-establish_security", "action_key": "establish_security", "action": "Establish Security", "actor_unit_id": "unit-19478354-46cd-40d2-aeaa-231859555b73", "parameters": { "target": "OBJ SLAM" } },
+      { "sequence": 2, "start": 0, "duration": 6, "end": 6, "pddl_action": "aa-observe", "action_key": "observe", "action": "Observe", "actor_unit_id": "unit-52ce82b2-d574-4f85-816d-ea8ab847c729", "parameters": { "target": "unit-dfc97ed2-3c4b-4c70-8d97-8de9d84a9392", "sensor_range_m": 9000, "field_of_view_deg": 60 } },
+      { "sequence": 3, "start": 2, "duration": 6, "end": 8, "pddl_action": "aa-disrupt", "action_key": "disrupt", "action": "Disrupt", "actor_unit_id": "unit-5307b9e9-a376-4736-b965-1dc398bcdec6", "parameters": { "target": "unit-2f8f6efc-6d7f-47ab-a9a2-72c23fd2c02f" } },
+      { "sequence": 4, "start": 3, "duration": 6, "end": 9, "pddl_action": "aa-disrupt", "action_key": "disrupt", "action": "Disrupt", "actor_unit_id": "unit-1e8bac0a-5006-4c65-833b-1b599ba47ede", "parameters": { "target": "unit-dfc97ed2-3c4b-4c70-8d97-8de9d84a9392" } },
+      { "sequence": 5, "start": 6, "duration": 6, "end": 12, "pddl_action": "aa-engage", "action_key": "engage", "action": "Engage", "actor_unit_id": "unit-52ce82b2-d574-4f85-816d-ea8ab847c729", "parameters": { "target": "unit-dfc97ed2-3c4b-4c70-8d97-8de9d84a9392" } },
+      { "sequence": 6, "start": 8, "duration": 7, "end": 15, "pddl_action": "aa-engage", "action_key": "engage", "action": "Engage", "actor_unit_id": "unit-19478354-46cd-40d2-aeaa-231859555b73", "parameters": { "target": "unit-360dce9f-2100-42b2-aed6-91ef7ab510ae" } },
+      { "sequence": 7, "start": 8, "duration": 6, "end": 14, "pddl_action": "aa-engage", "action_key": "engage", "action": "Engage", "actor_unit_id": "unit-5307b9e9-a376-4736-b965-1dc398bcdec6", "parameters": { "target": "unit-2f8f6efc-6d7f-47ab-a9a2-72c23fd2c02f" } },
+      { "sequence": 8, "start": 9, "duration": 6, "end": 15, "pddl_action": "aa-engage", "action_key": "engage", "action": "Engage", "actor_unit_id": "unit-1e8bac0a-5006-4c65-833b-1b599ba47ede", "parameters": { "target": "unit-dfc97ed2-3c4b-4c70-8d97-8de9d84a9392" } },
+      { "sequence": 9, "start": 10, "duration": 7, "end": 17, "pddl_action": "aa-engage", "action_key": "engage", "action": "Engage", "actor_unit_id": "unit-f9d58959-b779-4343-8584-b883d3518a30", "parameters": { "target": "unit-6d8ab22c-dc93-46d2-b4c5-2d9fd8234cfa" } },
+      { "sequence": 10, "start": 15, "duration": 6, "end": 21, "pddl_action": "aa-continue_to_engage", "action_key": "continue_to_engage", "action": "Continue to Engage", "actor_unit_id": "unit-19478354-46cd-40d2-aeaa-231859555b73", "parameters": { "target": "unit-d345ed6f-94b9-48fb-af11-f46cabbf10f0" } },
+      { "sequence": 11, "start": 15, "duration": 5, "end": 20, "pddl_action": "aa-continue_to_engage", "action_key": "continue_to_engage", "action": "Continue to Engage", "actor_unit_id": "unit-5307b9e9-a376-4736-b965-1dc398bcdec6", "parameters": { "target": "unit-2f8f6efc-6d7f-47ab-a9a2-72c23fd2c02f" } },
+      { "sequence": 12, "start": 15, "duration": 5, "end": 20, "pddl_action": "aa-continue_to_engage", "action_key": "continue_to_engage", "action": "Continue to Engage", "actor_unit_id": "unit-1e8bac0a-5006-4c65-833b-1b599ba47ede", "parameters": { "target": "unit-dfc97ed2-3c4b-4c70-8d97-8de9d84a9392" } },
+      { "sequence": 13, "start": 17, "duration": 5, "end": 22, "pddl_action": "aa-continue_to_engage", "action_key": "continue_to_engage", "action": "Continue to Engage", "actor_unit_id": "unit-f9d58959-b779-4343-8584-b883d3518a30", "parameters": { "target": "unit-6d8ab22c-dc93-46d2-b4c5-2d9fd8234cfa" } },
+      { "sequence": 14, "start": 20, "duration": 10, "end": 30, "pddl_action": "aa-withdraw", "action_key": "withdraw", "action": "Withdraw", "actor_unit_id": "unit-5307b9e9-a376-4736-b965-1dc398bcdec6", "parameters": { "source": "current_position", "destination": "Enemy area", "routing_profile": "driving" } },
+      { "sequence": 15, "start": 20, "duration": 10, "end": 30, "pddl_action": "aa-withdraw", "action_key": "withdraw", "action": "Withdraw", "actor_unit_id": "unit-1e8bac0a-5006-4c65-833b-1b599ba47ede", "parameters": { "source": "current_position", "destination": "Enemy area", "routing_profile": "driving" } },
+      { "sequence": 16, "start": 21, "duration": 10, "end": 31, "pddl_action": "aa-withdraw", "action_key": "withdraw", "action": "Withdraw", "actor_unit_id": "unit-19478354-46cd-40d2-aeaa-231859555b73", "parameters": { "source": "current_position", "destination": "Enemy area", "routing_profile": "driving" } },
+      { "sequence": 17, "start": 22, "duration": 10, "end": 32, "pddl_action": "aa-withdraw", "action_key": "withdraw", "action": "Withdraw", "actor_unit_id": "unit-f9d58959-b779-4343-8584-b883d3518a30", "parameters": { "source": "current_position", "destination": "Enemy area", "routing_profile": "driving" } },
+      { "sequence": 18, "start": 31, "duration": 3, "end": 34, "pddl_action": "aa-report", "action_key": "report", "action": "Report", "actor_unit_id": "unit-ce5db6aa-a095-426d-98ae-c0c1f65ed945", "parameters": { "recipient": "unit-ce5db6aa-a095-426d-98ae-c0c1f65ed945", "result": "withdrawing-units-arriving-enemy-area" } }
+    ]
   }
 }

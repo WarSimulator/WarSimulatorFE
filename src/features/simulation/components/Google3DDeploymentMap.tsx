@@ -47,6 +47,11 @@ function nextUnitDesignation(units: DeploymentUnit[], item: Extract<DeploymentPa
 }
 
 function getInitialEditorCenter(deployment: DeploymentSetup): Position3D {
+  const firstUnit = deployment.units[0];
+  if (firstUnit) {
+    const [lng, lat] = getLngLat(firstUnit.position);
+    return { lng, lat, altitude: 0 };
+  }
   if (deployment.mapView?.center) {
     return { lng: deployment.mapView.center[0], lat: deployment.mapView.center[1], altitude: 0 };
   }
