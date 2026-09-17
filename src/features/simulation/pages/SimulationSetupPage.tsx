@@ -212,7 +212,7 @@ export function SimulationSetupPage({ editorMapMode = '2d' }: { editorMapMode?: 
         <div>
           <h2 className="flex items-center gap-2 font-display-lg text-display-lg tracking-tight text-primary">
             <Icon name="play_circle" className="text-[28px]" />
-            {editorMapMode === '3d' ? 'SIMULATION 3D EDIT' : 'SIMULATION SETUP'}
+            {editorMapMode === '3d' ? 'MIL-SIMULATOR 3D EDIT' : 'MIL-SIMULATOR SETUP'}
           </h2>
           <p className="mt-1 font-body-base text-body-base text-on-surface-variant">METT-TC document and initial force deployment setup.</p>
         </div>

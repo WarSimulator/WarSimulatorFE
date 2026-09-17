@@ -77,7 +77,7 @@ export function SimulationLibraryPage() {
     <div className="mx-auto flex max-w-[1440px] flex-col gap-6 p-container-padding">
       <header className="flex items-end justify-between gap-6">
         <div>
-          <h2 className="font-headline-md text-headline-md text-on-surface">SIMULATION LIBRARY</h2>
+          <h2 className="font-headline-md text-headline-md text-on-surface">MIL-SIMULATOR LIBRARY</h2>
           <p className="mt-1 font-data-mono text-sm text-on-surface-variant">Review and manage previous simulation runs.</p>
         </div>
         <SimulationLibraryToolbar

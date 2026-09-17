@@ -321,8 +321,8 @@ export async function buildFinalSimulation(inputs: FinalSimulationInputs): Promi
   // Give each run its own ID so an older browser-saved deployment can never win.
   deployment.id = `final-deployment-${runTimestamp}`;
   const grouped = {
-    offensive: planSteps(inputs.offensive, '공격 계획'),
-    defensive: planSteps(inputs.defensive, '수비 계획'),
+    offensive: planSteps(inputs.offensive, 'Blue-Force Plan'),
+    defensive: planSteps(inputs.defensive, 'Red-Force Plan'),
     withdrawal: inputs.withdrawal ? planSteps(inputs.withdrawal, '후퇴 계획') : [],
   };
   const steps = Object.entries(grouped).flatMap(([planType, items]) => items.map(item => ({ ...item, planType })))

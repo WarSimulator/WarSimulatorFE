@@ -7,11 +7,11 @@ const navItems = [
 ];
 
 const simulationItems = [
-  { to: '/simulations/setup', label: 'Simulation Setup', icon: 'precision_manufacturing' },
-  { to: '/simulations/library', label: 'Simulation Library', icon: 'database' },
-  { to: '/simulations/final', label: 'Simulation Final', icon: 'play_circle' },
-  { to: '/simulations/3d', label: 'Simulation 3D', icon: 'view_in_ar' },
-  { to: '/simulations/3d/edit', label: 'Simulation 3D EDIT', icon: 'edit_location_alt' },
+  { to: '/simulations/setup', label: 'Mil-Simulator Setup', icon: 'precision_manufacturing' },
+  { to: '/simulations/library', label: 'Mil-Simulator Library', icon: 'database' },
+  { to: '/simulations/final', label: 'Mil-Simulator Final', icon: 'play_circle' },
+  { to: '/simulations/3d', label: 'Mil-Simulator 3D', icon: 'view_in_ar' },
+  { to: '/simulations/3d/edit', label: 'Mil-Simulator 3D EDIT', icon: 'edit_location_alt' },
 ];
 
 export function Sidebar() {
@@ -29,15 +29,7 @@ export function Sidebar() {
   return (
     <nav className="fixed left-0 top-0 z-40 hidden h-full w-sidebar-width flex-col border-r border-outline-variant bg-surface-container md:flex">
       <div className="flex flex-col gap-3 border-b border-outline-variant px-5 pb-4 pt-6">
-        <div className="flex items-center gap-3">
-          <div className="flex h-10 w-10 items-center justify-center overflow-hidden rounded border border-outline-variant bg-surface-variant">
-            <Icon name="security" className="text-primary" filled />
-          </div>
-          <div>
-            <h1 className="font-display-lg text-[16px] font-bold leading-tight tracking-tighter text-primary">ATLAS DEFENSE</h1>
-            <p className="font-data-mono text-[10px] text-on-surface-variant">V3.4 Tactical</p>
-          </div>
-        </div>
+        <img src="/softonnet-logo.png" alt="SoftOnNet" className="h-auto w-full object-contain" />
       </div>
 
       <div className="flex flex-1 flex-col gap-1 overflow-y-auto py-4">
@@ -66,7 +58,7 @@ export function Sidebar() {
         ))}
 
         <div className="mb-2 mt-4">
-          <div className="mb-2 px-5 font-label-caps text-[10px] uppercase tracking-widest text-on-surface-variant opacity-70">SIMULATIONS</div>
+          <div className="mb-2 px-5 font-label-caps text-[10px] uppercase tracking-widest text-on-surface-variant opacity-70">MIL-SIMULATOR</div>
           {simulationItems.map((item) => (
             <NavLink
               key={item.to}
