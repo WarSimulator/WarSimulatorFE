@@ -8,6 +8,7 @@ import type {
   TacticalGraphicType,
 } from '../../../types';
 import { DEFAULT_MAP_CENTER } from '../lib/mapConfig';
+import { renderTacticalGraphic } from '../lib/renderTacticalGraphic';
 import { graphicColor } from '../lib/graphicColor';
 import { createGeoPosition, getLngLat } from '../lib/position';
 import { removeDeploymentEntity } from '../lib/deploymentEditing';
@@ -17,7 +18,6 @@ import {
   loadGoogleMaps,
   createPhaseLineNodes,
   SURFACE_ALTITUDE_MODE,
-  SURFACE_DRAWS_OCCLUDED_SEGMENTS,
   toSurfacePath,
   type Map3DNode,
   type Maps3DLibrary,
@@ -109,6 +109,8 @@ export function Google3DDeploymentMap({ deployment, selectedEntityId, mode, onCh
   const relocateRef = useRef(false);
   const editingVertexRef = useRef<number | undefined>(undefined);
   const [drawPointCount, setDrawPointCount] = useState(0);
+  const [graphicError, setGraphicError] = useState('');
+  const [taskScale, setTaskScale] = useState(100000);
   const [relocate, setRelocate] = useState(false);
   const [editingVertex, setEditingVertex] = useState<number | undefined>();
   const [ready, setReady] = useState(false);
@@ -202,6 +204,7 @@ export function Google3DDeploymentMap({ deployment, selectedEntityId, mode, onCh
     const currentMode = modeRef.current;
     const current = deploymentRef.current;
     let graphic: TacticalGraphic | undefined;
+    try {
     if (currentMode.type === 'draw-task') {
       const task = getTacticalTask(currentMode.definitionId);
       if (task && points.length >= task.minPoints && points.length <= task.maxPoints) graphic = createTaskGraphic(task, currentMode.affiliation, points);
@@ -213,7 +216,12 @@ export function Google3DDeploymentMap({ deployment, selectedEntityId, mode, onCh
           : { type: 'LineString', coordinates: points },
       };
     }
+    } catch (caught) {
+      setGraphicError(caught instanceof Error ? caught.message : String(caught));
+      return;
+    }
     if (!graphic) return;
+    setGraphicError('');
     onChange({ ...current, tacticalGraphics: [...current.tacticalGraphics, graphic] });
     onSelectEntity(graphic.id);
     onModeChange({ type: 'select' });
@@ -229,6 +237,14 @@ export function Google3DDeploymentMap({ deployment, selectedEntityId, mode, onCh
         const library = await google.maps.importLibrary('maps3d') as Maps3DLibrary;
         if (cancelled || !containerRef.current) return;
         const map = new library.Map3DElement({ center, range: cameraRange, tilt: 58, heading: 0, mode: 'HYBRID' });
+        const updateScale = () => {
+          const range = (map as Map3DNode & { range?: number }).range ?? cameraRange;
+          // Approximate ground metres per CSS pixel at the camera centre.
+          const scale = Math.max(1000, range * 2 * Math.tan(Math.PI / 8) / Math.max(containerRef.current?.clientHeight ?? 600, 1) * (96 / 0.0254));
+          setTaskScale(previous => Math.abs(previous - scale) / previous > 0.1 ? scale : previous);
+        };
+        map.addEventListener('gmp-steadychange', updateScale);
+        updateScale();
         map.style.width = '100%'; map.style.height = '100%';
         map.addEventListener('gmp-click', event => {
           const position = (event as MapClickEvent).position;
@@ -257,10 +273,77 @@ export function Google3DDeploymentMap({ deployment, selectedEntityId, mode, onCh
       onSelectEntity(graphicId);
       onModeChange({ type: 'select' });
     };
+    const failures: string[] = [];
+    const surfacePath = (coordinates: number[][]) => toSurfacePath(coordinates.map(([lng, lat]) => ({ lng, lat })))
+      .map(point => ({ ...point, altitude: 3 }));
+    const textMarker = (coordinates: number[], label: string, color: string) => {
+      const marker = new library.Marker3DInteractiveElement({
+        position: { lng: coordinates[0], lat: coordinates[1], altitude: 5 },
+        altitudeMode: SURFACE_ALTITUDE_MODE, drawsWhenOccluded: true,
+        sizePreserved: true, zIndex: 100,
+      });
+      const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+      svg.setAttribute('width', String(Math.max(36, label.length * 18 + 16)));
+      svg.setAttribute('height', '32');
+      const text = document.createElementNS(svg.namespaceURI, 'text');
+      text.setAttribute('x', '50%'); text.setAttribute('y', '22');
+      text.setAttribute('text-anchor', 'middle'); text.setAttribute('font-size', '18');
+      text.setAttribute('font-weight', 'bold'); text.setAttribute('fill', color);
+      text.setAttribute('stroke', '#111827'); text.setAttribute('stroke-width', '4');
+      text.setAttribute('paint-order', 'stroke'); text.textContent = label;
+      svg.append(text);
+      const template = document.createElement('template'); template.content.append(svg); marker.append(template);
+      return marker;
+    };
     const graphicsInteractive = mode.type === 'select' && !relocate;
     deployment.tacticalGraphics.forEach(graphic => {
       const selected = graphic.id === selectedEntityId;
       const color = graphicColor(graphic);
+      if (graphic.type === 'mil-task') {
+        try {
+          const task = getTacticalTask(graphic.tacticalSymbol?.definitionId);
+          const taskColor = graphic.tacticalSymbol?.affiliation === 'enemy' ? '#ff7777' : '#80d8ff';
+          const attach = (node: HTMLElement) => {
+            if (graphicsInteractive) node.addEventListener('gmp-click', selectGraphic(graphic.id));
+            else node.style.pointerEvents = 'none';
+            append(node);
+          };
+          if (task?.minPoints === 1 && task.maxPoints === 1 && graphic.geometry.type === 'LineString') {
+            const [lng, lat] = graphic.geometry.coordinates[0];
+            const marker = new library.Marker3DInteractiveElement({ position: { lng, lat, altitude: 5 },
+              altitudeMode: SURFACE_ALTITUDE_MODE, drawsWhenOccluded: true, sizePreserved: true,
+              ...markerText(graphic.name), zIndex: selected ? 150 : 80 });
+            const template = document.createElement('template');
+            template.innerHTML = createMilitarySymbolSvg(graphic.tacticalSymbol!.sidc, selected ? 58 : 48);
+            marker.append(template); attach(marker);
+          } else {
+            // Use the same MIL-STD geometry as the 2D editor, not its control-point polyline.
+            const features = renderTacticalGraphic(graphic, taskScale);
+            const line = (points: number[][]) => attach(new (graphicsInteractive ? library.Polyline3DInteractiveElement : library.Polyline3DElement)({
+              path: surfacePath(points), altitudeMode: SURFACE_ALTITUDE_MODE, drawsOccludedSegments: true,
+              strokeColor: taskColor, strokeWidth: selected ? 7 : 4, outerColor: selected ? '#ffb95f' : '#111827', outerWidth: 0.4,
+            }));
+            for (const feature of features) {
+              const geometry = feature.geometry;
+              if (geometry.type === 'LineString') line(geometry.coordinates);
+              else if (geometry.type === 'MultiLineString') geometry.coordinates.forEach(line);
+              else if (geometry.type === 'Polygon' || geometry.type === 'MultiPolygon') {
+                const polygons = geometry.type === 'Polygon' ? [geometry.coordinates] : geometry.coordinates;
+                for (const rings of polygons) {
+                  attach(new (graphicsInteractive ? library.Polygon3DInteractiveElement : library.Polygon3DElement)({
+                    path: surfacePath(rings[0]), altitudeMode: SURFACE_ALTITUDE_MODE, drawsOccludedSegments: true,
+                    fillColor: `${taskColor}55`, strokeColor: taskColor, strokeWidth: selected ? 7 : 4,
+                  }));
+                  rings.forEach(line);
+                }
+              } else if (geometry.type === 'Point' && feature.properties?.label) {
+                attach(textMarker(geometry.coordinates, String(feature.properties.label), taskColor));
+              }
+            }
+          }
+        } catch (caught) { failures.push(`${graphic.name}: ${caught instanceof Error ? caught.message : String(caught)}`); }
+        return;
+      }
       if (graphic.type === 'phase-line' && graphic.geometry.type === 'LineString') {
         createPhaseLineNodes(
           library,
@@ -283,13 +366,13 @@ export function Google3DDeploymentMap({ deployment, selectedEntityId, mode, onCh
         strokeColor: color,
         strokeWidth: selected ? 7 : 4,
         altitudeMode: SURFACE_ALTITUDE_MODE,
-        drawsOccludedSegments: SURFACE_DRAWS_OCCLUDED_SEGMENTS,
+        drawsOccludedSegments: true,
       };
       const PolygonElement = graphicsInteractive ? library.Polygon3DInteractiveElement : library.Polygon3DElement;
       const PolylineElement = graphicsInteractive ? library.Polyline3DInteractiveElement : library.Polyline3DElement;
       const node = graphic.geometry.type === 'Polygon'
-        ? new PolygonElement({ ...common, path: toSurfacePath(graphic.geometry.coordinates[0].map(([lng, lat]) => ({ lng, lat }))), fillColor: `${color}${selected ? '55' : '2f'}`, zIndex: selected ? 50 : 1 })
-        : new PolylineElement({ ...common, path: toSurfacePath(graphic.geometry.coordinates.map(([lng, lat]) => ({ lng, lat }))), outerColor: '#111827', outerWidth: selected ? 0.55 : 0.35, zIndex: selected ? 50 : 1 });
+        ? new PolygonElement({ ...common, path: surfacePath(graphic.geometry.coordinates[0]), fillColor: '#00000000', zIndex: selected ? 50 : 1 })
+        : new PolylineElement({ ...common, path: surfacePath(graphic.geometry.coordinates), outerColor: '#111827', outerWidth: selected ? 0.55 : 0.35, zIndex: selected ? 50 : 1 });
       if (graphicsInteractive) {
         node.style.cursor = 'pointer';
         node.addEventListener('gmp-click', selectGraphic(graphic.id));
@@ -297,8 +380,45 @@ export function Google3DDeploymentMap({ deployment, selectedEntityId, mode, onCh
         node.style.pointerEvents = 'none';
       }
       append(node);
+      if (graphic.type === 'axis' && graphic.geometry.type === 'LineString' && graphic.geometry.coordinates.length >= 2) {
+        const points = graphic.geometry.coordinates;
+        const tip = points[points.length - 1], previous = points[points.length - 2];
+        const cos = Math.cos(tip[1] * Math.PI / 180);
+        const dx = (tip[0] - previous[0]) * cos, dy = tip[1] - previous[1];
+        const length = Math.hypot(dx, dy);
+        if (length > 0) {
+          const size = Math.min(length * 0.3, taskScale * 0.003 / 111000);
+          const wing = (sign: number) => [tip[0] + (-dx + sign * dy * 0.55) / length * size / cos,
+            tip[1] + (-dy - sign * dx * 0.55) / length * size];
+          const arrow = new PolylineElement({ ...common, path: surfacePath([wing(1), tip, wing(-1)]), outerColor: '#111827', outerWidth: 0.35 });
+          if (graphicsInteractive) arrow.addEventListener('gmp-click', selectGraphic(graphic.id));
+          else arrow.style.pointerEvents = 'none';
+          append(arrow);
+        }
+      }
     });
 
+    setGraphicError(failures.join(' '));
+    if (mode.type === 'draw' || mode.type === 'draw-task') {
+      const points = drawPointsRef.current;
+      points.forEach((point, index) => {
+        const marker = textMarker(point, `● ${index + 1}`, '#ffb95f');
+        marker.style.pointerEvents = 'none'; append(marker);
+      });
+      if (points.length >= 2) {
+        const path = surfacePath(points);
+        const preview = new library.Polyline3DElement({ path,
+          altitudeMode: SURFACE_ALTITUDE_MODE, drawsOccludedSegments: true,
+          strokeColor: '#ffb95f', strokeWidth: 5, outerColor: '#111827', outerWidth: 0.4 });
+        preview.style.pointerEvents = 'none'; append(preview);
+        if (mode.type === 'draw' && mode.graphicType === 'area' && points.length >= 3) {
+          const area = new library.Polygon3DElement({ path: [...path, path[0]],
+            altitudeMode: SURFACE_ALTITUDE_MODE, drawsOccludedSegments: true,
+            fillColor: '#00000000', strokeColor: '#ffb95f', strokeWidth: 4 });
+          area.style.pointerEvents = 'none'; append(area);
+        }
+      }
+    }
     if (mode.type === 'append-geometry') {
       const graphic = deployment.tacticalGraphics.find(item => item.id === mode.graphicId);
       if (graphic) {
@@ -307,7 +427,7 @@ export function Google3DDeploymentMap({ deployment, selectedEntityId, mode, onCh
           : graphic.geometry.coordinates;
         vertices.forEach(([lng, lat], index) => {
           const active = index === editingVertex;
-          const marker = new library.Marker3DInteractiveElement({ position: { lng, lat }, sizePreserved: true, zIndex: 200 + index, title: `${index + 1}번 기준점` });
+          const marker = new library.Marker3DInteractiveElement({ position: { lng, lat, altitude: 5 }, altitudeMode: SURFACE_ALTITUDE_MODE, drawsWhenOccluded: true, sizePreserved: true, zIndex: 200 + index, title: `${index + 1}번 기준점` });
           const template = document.createElement('template');
           template.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="${active ? 28 : 22}" height="${active ? 28 : 22}" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" fill="${active ? '#ffb95f' : '#ffffff'}" stroke="#111827" stroke-width="3"/><text x="12" y="15" text-anchor="middle" font-size="9" font-weight="700" fill="#111827">${index + 1}</text></svg>`;
           marker.append(template);
@@ -351,7 +471,7 @@ export function Google3DDeploymentMap({ deployment, selectedEntityId, mode, onCh
       } else marker.style.pointerEvents = 'none';
       append(marker);
     });
-  }, [deployment, editingVertex, mode, onModeChange, onSelectEntity, ready, relocate, selectedEntityId]);
+  }, [deployment, drawPointCount, taskScale, editingVertex, mode, onModeChange, onSelectEntity, ready, relocate, selectedEntityId]);
 
   const deleteSelected = () => {
     if (!selectedEntityId) return;
@@ -384,7 +504,12 @@ export function Google3DDeploymentMap({ deployment, selectedEntityId, mode, onCh
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
       if ((event.target as HTMLElement)?.closest('input,textarea,select')) return;
-      if (event.key === 'Escape') {
+      if (event.key === 'Enter' && (mode.type === 'draw' || mode.type === 'draw-task')) {
+        event.preventDefault(); finishDrawing();
+      } else if (event.key === 'Backspace' && (mode.type === 'draw' || mode.type === 'draw-task')) {
+        event.preventDefault(); drawPointsRef.current = drawPointsRef.current.slice(0, -1);
+        setDrawPointCount(drawPointsRef.current.length);
+      } else if (event.key === 'Escape') {
         selectVertex(undefined);
         onSelectEntity(undefined);
         onModeChange({ type: 'select' });
@@ -411,6 +536,7 @@ export function Google3DDeploymentMap({ deployment, selectedEntityId, mode, onCh
   return <section className="relative h-full overflow-hidden bg-[#101418]">
     <div ref={containerRef} className="absolute inset-0" />
     <div className="pointer-events-none absolute left-[var(--map-controls-left)] top-4 z-20 rounded border border-secondary/50 bg-surface/90 px-3 py-2 font-data-mono text-[11px] text-secondary shadow backdrop-blur">GOOGLE 3D EDIT · {modeText(mode)}</div>
+    {graphicError && <p role="alert" className="absolute left-[var(--map-controls-left)] top-16 z-30 max-w-lg rounded bg-surface/95 p-3 text-sm text-error">{graphicError}</p>}
     {ready && <div className="absolute bottom-5 left-[var(--map-controls-left)] z-20 flex gap-2">
       {mode.type === 'select' && selectedMovable && <button className={`rounded border px-3 py-2 font-data-mono text-xs shadow ${relocate ? 'border-secondary bg-secondary text-on-secondary' : 'border-outline-variant bg-surface/90 text-on-surface'}`} onClick={() => setRelocation(!relocate)}>{relocate ? '이동할 지도 위치 클릭' : '유닛 위치 이동'}</button>}
       {mode.type === 'select' && selectedEntityId && <button type="button" className="rounded border border-error/60 bg-surface/90 px-3 py-2 font-data-mono text-xs text-error shadow" onPointerDown={event => event.stopPropagation()} onClick={event => { event.stopPropagation(); deleteSelected(); }}>선택 항목 삭제</button>}
@@ -421,6 +547,7 @@ export function Google3DDeploymentMap({ deployment, selectedEntityId, mode, onCh
       </>}
       {(mode.type === 'draw' || mode.type === 'draw-task') && <>
         <span className="rounded border border-outline-variant bg-surface/90 px-3 py-2 font-data-mono text-xs text-on-surface">기준점 {drawPointCount}개</span>
+        <button disabled={!drawPointCount} className="rounded bg-surface/90 px-3 py-2 text-xs text-on-surface disabled:opacity-40" onClick={() => { drawPointsRef.current = drawPointsRef.current.slice(0, -1); setDrawPointCount(drawPointsRef.current.length); }}>마지막 점 취소</button>
         <button disabled={drawPointCount < minimumPoints} className="rounded bg-secondary px-3 py-2 font-data-mono text-xs text-on-secondary disabled:opacity-40" onClick={finishDrawing}>그리기 완료</button>
         <button className="rounded border border-outline-variant bg-surface/90 px-3 py-2 font-data-mono text-xs text-on-surface" onClick={() => onModeChange({ type: 'select' })}>취소</button>
       </>}

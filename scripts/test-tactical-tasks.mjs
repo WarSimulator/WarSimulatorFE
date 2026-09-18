@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { build } from 'esbuild';
-const bundle = await build({ stdin: { contents: `export * from './src/features/simulation/lib/tacticalTasks'; export * from './src/features/simulation/lib/renderTacticalGraphic'; export * from './src/features/simulation/lib/deploymentStorage';`, resolveDir: process.cwd(), loader: 'ts' }, bundle: true, write: false, platform: 'node', format: 'esm', define: { 'import.meta.env': '{}' } });
+const bundle = await build({ stdin: { contents: `export * from './src/features/simulation/lib/tacticalTasks'; export * from './src/features/simulation/lib/renderTacticalGraphic'; export * from './src/features/simulation/lib/deploymentStorage'; export * from './src/features/simulation/lib/symbolSvg';`, resolveDir: process.cwd(), loader: 'ts' }, bundle: true, write: false, platform: 'node', format: 'esm', define: { 'import.meta.env': '{}' } });
 const api = await import('data:text/javascript;base64,' + Buffer.from(bundle.outputFiles[0].text).toString('base64'));
 const saved=new Map();globalThis.window={localStorage:{getItem:k=>saved.get(k)??null,setItem:(k,v)=>saved.set(k,v)}};
 let count=0;
@@ -9,6 +9,13 @@ for(const task of api.tacticalTasks){
   const graphic=api.createTaskGraphic(task,affiliation,task.samplePoints);
   assert.equal(graphic.tacticalSymbol.sidc[3],affiliation==='enemy'?'6':'3');
   for(const scale of [20000,100000,500000]) {
+   // Single-point tasks use SVG markers in 3D rather than multipoint geometry.
+   if (task.minPoints === 1 && task.maxPoints === 1) {
+    const svg = api.createMilitarySymbolSvg(graphic.tacticalSymbol.sidc, 48);
+    assert.ok(svg.includes('<svg') && !/NaN|Infinity/.test(svg), task.id);
+    count++;
+    continue;
+   }
    const features=api.renderTacticalGraphic(graphic,scale);
    assert.ok(features.length>0,task.id);
    for(const f of features) {assert.equal(f.properties.id,graphic.id);assert.ok(!/NaN|Infinity/.test(JSON.stringify(f)),task.id);}
