@@ -94,7 +94,7 @@ function modeText(mode: DeploymentEditorMode) {
 
 function markerText(value?: string) {
   const text = value?.trim();
-  return text ? { label: text, title: text } : {};
+  return text ? { label: text } : {};
 }
 
 export function Google3DDeploymentMap({ deployment, selectedEntityId, mode, onChange, onSelectEntity, onModeChange }: Props) {
@@ -457,6 +457,7 @@ export function Google3DDeploymentMap({ deployment, selectedEntityId, mode, onCh
     deployment.units.forEach(unit => {
       const [lng, lat] = getLngLat(unit.position);
       const marker: Marker3DNode = new library.Marker3DInteractiveElement({ position: { lng, lat }, ...markerText(unit.designation), sizePreserved: true, zIndex: unit.id === selectedEntityId ? 100 : 3 });
+      marker.setAttribute('aria-label', unit.designation);
       const template = document.createElement('template');
       template.innerHTML = createMilitarySymbolSvg(unit.sidc, get3DUnitSymbolSize(unit.symbolScale, unit.id === selectedEntityId), undefined, unit.symbolStandard);
       marker.append(template);
