@@ -6,7 +6,7 @@
   "units": [
     {
       "id": "unit-44129f12-ae61-48a2-bce7-88db8c296e33",
-      "designation": "AA EAGLE",
+      "designation": "div-cav-sqn",
       "affiliation": "friendly",
       "unitType": "catalog:2525E:13031000001206000000",
       "echelon": "brigade",
@@ -22,7 +22,7 @@
     },
     {
       "id": "unit-6d8ab22c-dc93-46d2-b4c5-2d9fd8234cfa",
-      "designation": "Cavalry",
+      "designation": "mech-bde-north",
       "affiliation": "friendly",
       "unitType": "catalog:2525E:13031000001205010000",
       "echelon": "battalion",
@@ -38,7 +38,7 @@
     },
     {
       "id": "unit-06d52da1-c3ec-43b9-9eb3-a6afbe093508",
-      "designation": "MAIN",
+      "designation": "MUSR121_006",
       "affiliation": "friendly",
       "unitType": "catalog:2525E:13031000001800000000",
       "echelon": "division",
@@ -54,7 +54,7 @@
     },
     {
       "id": "unit-36a39337-07ea-4cd1-8d1d-d6c146b77eb0",
-      "designation": "REAR",
+      "designation": "MUSR121_011",
       "affiliation": "friendly",
       "unitType": "catalog:2525E:13031000001800000000",
       "echelon": "division",
@@ -70,7 +70,7 @@
     },
     {
       "id": "unit-43616555-e394-45ff-b1d9-9921942bf0d2",
-      "designation": "TCF",
+      "designation": "MUSR121_015",
       "affiliation": "friendly",
       "unitType": "catalog:2525E:13031000001211020000",
       "echelon": "regiment",
@@ -86,7 +86,7 @@
     },
     {
       "id": "unit-d345ed6f-94b9-48fb-af11-f46cabbf10f0",
-      "designation": "AA TANK",
+      "designation": "MUSR121_012",
       "affiliation": "friendly",
       "unitType": "catalog:2525E:13031500001202000000",
       "echelon": "brigade",
@@ -102,7 +102,7 @@
     },
     {
       "id": "unit-fdbee918-78c9-470c-9d30-b16bea678052",
-      "designation": "reserve mecha",
+      "designation": "tank-heavy-bde",
       "affiliation": "friendly",
       "unitType": "catalog:2525E:13031500001202000000",
       "echelon": "battalion",
@@ -118,7 +118,7 @@
     },
     {
       "id": "unit-360dce9f-2100-42b2-aed6-91ef7ab510ae",
-      "designation": "South mecha",
+      "designation": "mech-bde-south",
       "affiliation": "friendly",
       "unitType": "catalog:2525E:13031500001202000000",
       "echelon": "brigade",
@@ -134,7 +134,7 @@
     },
     {
       "id": "unit-161432b1-a268-49fc-bd95-bada83830c55",
-      "designation": "TAC",
+      "designation": "MUSR121_010",
       "affiliation": "friendly",
       "unitType": "catalog:2525E:13031000001800000000",
       "echelon": "division",
@@ -150,7 +150,7 @@
     },
     {
       "id": "unit-19478354-46cd-40d2-aeaa-231859555b73",
-      "designation": "South mecha enemy",
+      "designation": "MUSR121_014",
       "affiliation": "enemy",
       "unitType": "catalog:2525E:13031000001211020000",
       "echelon": "regiment",
@@ -198,7 +198,7 @@
     },
     {
       "id": "unit-52ce82b2-d574-4f85-816d-ea8ab847c729",
-      "designation": "North mecha enemy",
+      "designation": "MUSR121_005",
       "affiliation": "enemy",
       "unitType": "catalog:2525E:13031000001211020000",
       "echelon": "regiment",
@@ -230,7 +230,7 @@
     },
     {
       "id": "unit-5307b9e9-a376-4736-b965-1dc398bcdec6",
-      "designation": "Propelled Enemy",
+      "designation": "MUSR121_007",
       "affiliation": "enemy",
       "unitType": "catalog:APP6D:10031000001303010000",
       "echelon": "regiment",
@@ -246,7 +246,7 @@
     },
     {
       "id": "unit-1e8bac0a-5006-4c65-833b-1b599ba47ede",
-      "designation": "Artillery Enemy",
+      "designation": "MUSR121_008",
       "affiliation": "enemy",
       "unitType": "catalog:2525E:13031000001205000000",
       "echelon": "battalion",
@@ -294,7 +294,7 @@
     },
     {
       "id": "unit-f9d58959-b779-4343-8584-b883d3518a30",
-      "designation": "North Artillery Enemy",
+      "designation": "div-cav-sqn",
       "affiliation": "enemy",
       "unitType": "catalog:2525E:13031000001205000000",
       "echelon": "regiment",
@@ -310,7 +310,7 @@
     },
     {
       "id": "unit-2f8f6efc-6d7f-47ab-a9a2-72c23fd2c02f",
-      "designation": "Propelled Field Artillery",
+      "designation": "MUSR121_009",
       "affiliation": "friendly",
       "unitType": "catalog:APP6D:10031000001303010000",
       "echelon": "brigade",
@@ -326,7 +326,7 @@
     },
     {
       "id": "unit-dfc97ed2-3c4b-4c70-8d97-8de9d84a9392",
-      "designation": "North mecha",
+      "designation": "MUSR121_004",
       "affiliation": "friendly",
       "unitType": "catalog:2525E:13031500001202000000",
       "echelon": "brigade",

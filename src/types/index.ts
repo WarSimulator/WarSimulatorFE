@@ -200,6 +200,7 @@ export type SimulationUnitTrack = {
   actor: string;
   startTime: number;
   endTime: number;
+  eliminatedAt?: number;
   segments: SimulationTrackSegment[];
 };
 

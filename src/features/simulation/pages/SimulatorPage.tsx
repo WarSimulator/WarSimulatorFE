@@ -2,7 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { createInitialRuntimeState, SIMULATION_PLAYBACK_RATE } from '../lib/runtime';
 import { getDeploymentById } from '../lib/deploymentStorage';
-import { clampResultTime } from '../lib/playback';
+import { clampResultTime, isUnitEliminated } from '../lib/playback';
 import { getSimulationResult, getSimulationResultDeployment, getSimulationResultUnit, getSimulationResultUnits } from '../lib/simulationResultService';
 import { getCommanderReports } from '../lib/unitAgent';
 import { CommanderInbox } from '../components/CommanderInbox';
@@ -84,6 +84,10 @@ export function SimulatorPage() {
     );
     return [unit.id, segment && segment.action.toLowerCase() !== 'hold' ? segment.action : '대기'];
   })), [rosterUnits, runtime.simulationTime, simulationResult]);
+  const visibleRosterUnits = useMemo(
+    () => rosterUnits.filter(unit => !isUnitEliminated(simulationResult, unit.id, runtime.simulationTime)),
+    [rosterUnits, runtime.simulationTime, simulationResult],
+  );
 
   useEffect(() => {
     const channel = new BroadcastChannel(`atlas-simulation-${simulationId ?? 'current'}`);
@@ -228,7 +232,7 @@ export function SimulatorPage() {
       {isAnalysisView ? (
         <div className="flex min-h-0 flex-1">
           <UnitListPanel
-            units={rosterUnits}
+            units={visibleRosterUnits}
             selectedUnitId={runtime.selectedUnitId}
             tacticalLayers={runtime.tacticalLayers}
             onSelectUnit={selectUnit}
@@ -242,7 +246,7 @@ export function SimulatorPage() {
       ) : (
         <div className="flex min-h-0 flex-1">
           {mapMode !== '3d' && <UnitListPanel
-            units={rosterUnits}
+            units={visibleRosterUnits}
             selectedUnitId={runtime.selectedUnitId}
             tacticalLayers={runtime.tacticalLayers}
             onSelectUnit={selectUnit}

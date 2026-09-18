@@ -13,34 +13,22 @@ import type {
   SimulationUnitTrack,
 } from '../../../types';
 import { createSidc } from './sidc';
+import { ForcePlanError, parseForcePlan, type ImportedStep, type PlanIssue } from './forcePlan';
 
 const STORAGE_KEY = 'atlas-defense.simulation-final-runs';
+const MAX_ROUTE_KEYFRAMES = 160;
 
 type JsonObject = Record<string, unknown>;
-
-type ImportedStep = {
-  sequence?: number;
-  start?: number;
-  duration?: number;
-  end?: number;
-  action?: string;
-  action_key?: string;
-  pddl_action?: string;
-  actor_unit_id?: string;
-  unit_id?: string;
-  actor?: string;
-  parameters?: unknown;
-};
 
 type StoredFinalRun = {
   result: SimulationResult;
   deployment: DeploymentSetup;
-  planCounts: { offensive: number; defensive: number; withdrawal: number };
+  planCounts: { blueForce: number; redForce: number; withdrawal: number };
 };
 
 export type FinalSimulationInputs = {
-  offensive: unknown;
-  defensive: unknown;
+  blueForce: unknown;
+  redForce: unknown;
   withdrawal?: unknown;
   deployment: unknown;
 };
@@ -55,7 +43,7 @@ const actionNames: Record<string, string> = {
   integrate: 'Integrate', contain: 'Contain', block: 'Block', report: 'Report', identify: 'Identify',
   fight: 'Fight', withdraw: 'Withdraw', do_not_seek_a_decisive_engagement: 'Do Not Seek a Decisive Engagement',
   disassemble_disarm: 'Disassemble/Disarm', ambush: 'Ambush', breach: 'Breach', clear: 'Clear',
-  seize: 'Seize', disrupt: 'Disrupt',
+  seize: 'Seize', disrupt: 'Disrupt', destroy: 'Destroy',
 };
 
 const visualizationIds: Record<string, string> = {
@@ -92,7 +80,7 @@ function planSteps(payload: unknown, label: string): ImportedStep[] {
 }
 
 function normalizeAffiliation(value: unknown): DeploymentAffiliation {
-  return String(value).toLowerCase().includes('hostile') || String(value).toLowerCase().includes('enemy') ? 'enemy' : 'friendly';
+  return String(value).toLowerCase() === 'red' || String(value).toLowerCase().includes('hostile') || String(value).toLowerCase().includes('enemy') ? 'enemy' : 'friendly';
 }
 
 function normalizeType(value: unknown): ExpandedDeploymentUnitType {
@@ -120,7 +108,7 @@ function normalizeDeployment(payload: unknown): DeploymentSetup {
     const unit = object(raw, `units[${index}]`);
     const id = String(unit.id ?? unit.unit_id ?? '').trim();
     if (!id) throw new Error(`units[${index}]에 id 또는 unit_id가 없습니다.`);
-    const affiliation = normalizeAffiliation(unit.affiliation ?? unit.side);
+    const affiliation = normalizeAffiliation(unit.force_side || unit.affiliation || unit.side);
     const unitType = normalizeType(unit.unitType ?? unit.unit_type ?? unit.icon_family);
     const echelon = normalizeEchelon(unit.echelon);
     let unitPosition = position(unit.position);
@@ -162,7 +150,7 @@ function normalizeDeployment(payload: unknown): DeploymentSetup {
     if (at) objectives.push({ id: String(feature.feature_id), name: String(feature.label ?? feature.feature_id), position: at });
   }
 
-  const tacticalGraphics = Array.isArray(root.tacticalGraphics) ? root.tacticalGraphics as DeploymentSetup['tacticalGraphics'] : [];
+  const tacticalGraphics = Array.isArray(root.tacticalGraphics) ? [...root.tacticalGraphics] as DeploymentSetup['tacticalGraphics'] : [];
   for (const raw of rawFeatures) {
     const feature = object(raw, 'feature');
     if (!feature.geometry || typeof feature.geometry !== 'object') continue;
@@ -249,15 +237,19 @@ function distributeRouteKeyframes(
   start: number,
   end: number,
 ): SimulationTrackSegment['keyframes'] {
-  const cumulativeDistances = coordinates.reduce<number[]>((distances, coordinate, index) => {
+  const routeCoordinates = coordinates.length <= MAX_ROUTE_KEYFRAMES ? coordinates : Array.from(
+    { length: MAX_ROUTE_KEYFRAMES },
+    (_, index) => coordinates[Math.round(index * (coordinates.length - 1) / (MAX_ROUTE_KEYFRAMES - 1))],
+  );
+  const cumulativeDistances = routeCoordinates.reduce<number[]>((distances, coordinate, index) => {
     if (index === 0) return [0];
-    return [...distances, distances[index - 1] + distanceMeters(coordinates[index - 1], coordinate)];
+    return [...distances, distances[index - 1] + distanceMeters(routeCoordinates[index - 1], coordinate)];
   }, []);
   const totalDistance = cumulativeDistances.at(-1) ?? 0;
   const duration = Math.max(0, end - start);
 
-  return coordinates.map((coordinate, index) => ({
-    time: totalDistance > 0 ? start + duration * (cumulativeDistances[index] / totalDistance) : start + duration * (index / Math.max(1, coordinates.length - 1)),
+  return routeCoordinates.map((coordinate, index) => ({
+    time: totalDistance > 0 ? start + duration * (cumulativeDistances[index] / totalDistance) : start + duration * (index / Math.max(1, routeCoordinates.length - 1)),
     position: coordinate,
   }));
 }
@@ -320,17 +312,53 @@ export async function buildFinalSimulation(inputs: FinalSimulationInputs): Promi
   // The same source deployment may be uploaded repeatedly while iterating on plans.
   // Give each run its own ID so an older browser-saved deployment can never win.
   deployment.id = `final-deployment-${runTimestamp}`;
+  const blue = parseForcePlan(inputs.blueForce, 'BLUE');
+  const red = parseForcePlan(inputs.redForce, 'RED');
   const grouped = {
-    offensive: planSteps(inputs.offensive, 'Blue-Force Plan'),
-    defensive: planSteps(inputs.defensive, 'Red-Force Plan'),
+    blueForce: blue.steps,
+    redForce: red.steps,
     withdrawal: inputs.withdrawal ? planSteps(inputs.withdrawal, '후퇴 계획') : [],
   };
   const steps = Object.entries(grouped).flatMap(([planType, items]) => items.map(item => ({ ...item, planType })))
     .sort((a, b) => finite(a.start, 0) - finite(b.start, 0) || finite(a.sequence, 0) - finite(b.sequence, 0));
   if (steps.length === 0) throw new Error('실행할 계획 행동이 없습니다.');
 
-  const unitById = new Map(deployment.units.flatMap(unit => [[unit.id, unit], [unit.designation, unit]]));
   const refs = referencePositions(deployment);
+  // Validate the complete package before making road requests or generating effects.
+  const issues: PlanIssue[] = [
+    ...blue.issues,
+    ...red.issues,
+  ];
+  const checked = new Set<string>();
+  const issue = (key: string, value: PlanIssue) => {
+    if (!checked.has(key)) { checked.add(key); issues.push(value); }
+  };
+  const boundUnits = new Map<ImportedStep, DeploymentUnit>();
+  for (const step of steps) {
+    const actor = String(step.actor_unit_id ?? step.unit_id ?? step.actor ?? '').trim();
+    const metadata = step.planning;
+    // Legacy plans keep exact ID/designation lookup; Planning actors are side-scoped.
+    const matches = deployment.units.filter(unit => (unit.id === actor || unit.designation === actor)
+      && (!metadata || unit.affiliation === (metadata.forceSide === 'BLUE' ? 'friendly' : 'enemy')));
+    const label = metadata ? `${metadata.forceSide}/${metadata.actionId}` : `${step.planType}/${step.sequence}`;
+    if (matches.length !== 1) {
+      issue(`actor:${metadata?.actorKey ?? actor}`, { code: 'UNRESOLVED_ACTOR', actionId: metadata?.actionId,
+        message: `${label}: 부대 '${actor || '(없음)'}'의 배치 연결이 ${matches.length}개입니다. 진영과 ID 또는 배치 이름이 일치해야 합니다.` });
+    } else boundUnits.set(step, matches[0]);
+    if (metadata?.conditional) issue(`condition:${metadata.forceSide}:${metadata.sourceTaskId ?? metadata.actionId}`, {
+      code: 'UNSUPPORTED_CONDITION', actionId: metadata.actionId,
+      message: `${label}: 조건부 임무 '${metadata.sourceTaskId ?? ''}'의 실행 조건 평가가 필요합니다 (${metadata.condition ?? '조건 미기재'}).`,
+    });
+    const parameters = step.parameters && typeof step.parameters === 'object' && !Array.isArray(step.parameters) ? step.parameters as Record<string, unknown> : {};
+    const name = actionName(step);
+    const requiredReference = name === 'Move' || name === 'Withdraw' ? parameters.destination ?? parameters.target
+      : name === 'Observe' || name === 'Destroy' ? parameters.target : undefined;
+    if (['Move', 'Withdraw', 'Observe', 'Destroy'].includes(name) && (typeof requiredReference !== 'string' || !refs.has(requiredReference))) {
+      issue(`reference:${label}`, { code: 'UNRESOLVED_REFERENCE', actionId: metadata?.actionId,
+        message: `${label}: ${name}의 목적지/관측 위치 '${String(requiredReference ?? '(미해석)')}'를 배치 좌표에 연결해야 합니다.` });
+    }
+  }
+  if (issues.length) throw new ForcePlanError(issues);
   const current = new Map(deployment.units.map(unit => [unit.id, position(unit.position)!]));
   const segments = new Map<string, SimulationTrackSegment[]>();
   const actionEffects: AtomicActionEffect[] = [];
@@ -340,11 +368,11 @@ export async function buildFinalSimulation(inputs: FinalSimulationInputs): Promi
 
   for (const step of steps) {
     sequence += 1;
-    const actorRef = String(step.actor_unit_id ?? step.unit_id ?? step.actor ?? '').trim();
-    const unit = unitById.get(actorRef);
-    if (!unit) throw new Error(`${step.planType} 계획 ${step.sequence ?? sequence}번 행동의 actor '${actorRef || '(없음)'}'를 유닛 배치에서 찾을 수 없습니다.`);
-    const start = finite(step.start, 0); const duration = Math.max(.1, finite(step.duration, finite(step.end, start + 1) - start)); const end = finite(step.end, start + duration);
-    const parameters = step.parameters && typeof step.parameters === 'object' && !Array.isArray(step.parameters) ? step.parameters as Record<string, unknown> : {};
+    const unit = boundUnits.get(step)!;
+    const start = finite(step.start, 0); const duration = step.planning ? step.duration! : Math.max(.1, finite(step.duration, finite(step.end, start + 1) - start)); const end = finite(step.end, start + duration);
+    const parameters = { ...(step.parameters && typeof step.parameters === 'object' && !Array.isArray(step.parameters) ? step.parameters as Record<string, unknown> : {}),
+      ...(step.planning ? { planning: step.planning, forceSide: step.planning.forceSide } : {}),
+    } as Record<string, unknown>;
     const name = actionName(step); const origin = current.get(unit.id)!;
     let movement: SimulationTrackSegment | undefined;
     if (name === 'Move' || name === 'Withdraw') {
@@ -359,7 +387,11 @@ export async function buildFinalSimulation(inputs: FinalSimulationInputs): Promi
       });
       let keyframes = [{ time: start, position: origin }, { time: end, position: destination }];
       let routing: SimulationTrackSegment['routing'] | undefined;
-      try {
+      if (String(parameters.routing_mode ?? '').toLowerCase() === 'straight') {
+        routing = {
+          generatedBy: 'Straight-line scenario route', provider: 'scenario', moveDuration: end - start, timingMode: 'linear',
+        };
+      } else try {
         const route = await requestRoadRoute(origin, destination, waypoints, routingProfile(parameters));
         keyframes = distributeRouteKeyframes(route.coordinates, start, end);
         routing = {
@@ -399,12 +431,20 @@ export async function buildFinalSimulation(inputs: FinalSimulationInputs): Promi
 
   const startTime = Math.min(...actionEffects.map(effect => effect.startTime), 0);
   const endTime = Math.max(...actionEffects.map(effect => effect.endTime));
+  const eliminatedAt = new Map<string, number>();
+  for (const effect of actionEffects) {
+    if (effect.action !== 'Destroy') continue;
+    const target = String(effect.parameters.target ?? '');
+    const targetUnit = deployment.units.find(unit => unit.id === target || unit.designation === target);
+    if (targetUnit) eliminatedAt.set(targetUnit.id, Math.min(eliminatedAt.get(targetUnit.id) ?? Number.POSITIVE_INFINITY, effect.endTime));
+  }
   const unitTracks: SimulationUnitTrack[] = deployment.units.map(unit => {
     const unitSegments = segments.get(unit.id) ?? [];
     const at = position(unit.position)!;
-    return { unitId: unit.id, actor: unit.designation, startTime, endTime, segments: unitSegments.length ? unitSegments : [{ actionSequence: 0, action: 'Hold', startTime, endTime, source: unit.id, destination: unit.id, keyframes: [{ time: startTime, position: at }, { time: endTime, position: at }] }] };
+    return { unitId: unit.id, actor: unit.designation, startTime, endTime, eliminatedAt: eliminatedAt.get(unit.id), segments: unitSegments.length ? unitSegments : [{ actionSequence: 0, action: 'Hold', startTime, endTime, source: unit.id, destination: unit.id, keyframes: [{ time: startTime, position: at }, { time: endTime, position: at }] }] };
   });
-  return { simulationId, deployment, result: { schemaVersion: '1.0', planIndex: 0, deploymentId: deployment.id, startTime, endTime, unitTracks, observationEffects, actionEffects, events: events.sort((a, b) => a.time - b.time) }, planCounts: { offensive: grouped.offensive.length, defensive: grouped.defensive.length, withdrawal: grouped.withdrawal.length } };
+  return { simulationId, deployment, result: { schemaVersion: '1.0', planIndex: 0, deploymentId: deployment.id, startTime, endTime, unitTracks, observationEffects, actionEffects, events: events.sort((a, b) => a.time - b.time) },
+    planCounts: { blueForce: grouped.blueForce.length, redForce: grouped.redForce.length, withdrawal: grouped.withdrawal.length } };
 }
 
 function loadRuns(): Record<string, StoredFinalRun> {
@@ -412,8 +452,20 @@ function loadRuns(): Record<string, StoredFinalRun> {
 }
 
 export function saveFinalSimulation(build: FinalSimulationBuild) {
-  const runs = loadRuns(); runs[build.simulationId] = { result: build.result, deployment: build.deployment, planCounts: build.planCounts };
-  window.localStorage.setItem(STORAGE_KEY, JSON.stringify(runs));
+  const latestRun = { [build.simulationId]: { result: build.result, deployment: build.deployment, planCounts: build.planCounts } };
+  const serialized = JSON.stringify(latestRun);
+  try {
+    window.localStorage.setItem(STORAGE_KEY, serialized);
+  } catch {
+    // Older accumulated runs may already consume the quota. Remove only this
+    // simulator-owned cache and retry while preserving all other local data.
+    window.localStorage.removeItem(STORAGE_KEY);
+    try {
+      window.localStorage.setItem(STORAGE_KEY, serialized);
+    } catch {
+      throw new Error('시뮬레이션 결과가 브라우저 저장 용량을 초과했습니다. 이동 경로 또는 입력 계획의 크기를 줄여주세요.');
+    }
+  }
 }
 
 export function getFinalSimulation(simulationId?: string) { return simulationId ? loadRuns()[simulationId] : undefined; }

@@ -34,7 +34,8 @@ export function toObservationSectorFeatures(
     type: 'FeatureCollection',
     features: getActiveObservationEffects(result, simulationTime).flatMap(effect => {
       const elapsed = simulationTime - effect.startTime;
-      const origin = getUnitPositionAtTime(effect.actor, simulationTime, result, deployment) ?? effect.origin;
+      const unitId = result.actionEffects?.find(action => action.actionSequence === effect.actionSequence)?.unitId;
+      const origin = getUnitPositionAtTime(unitId ?? effect.actor, simulationTime, result, deployment) ?? effect.origin;
       const liveEffect = {
         ...effect,
         origin,

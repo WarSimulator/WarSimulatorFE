@@ -2,7 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { AtomicActionEffect, DeploymentSetup, ObservationEffect, SimulationResult, SimulationResultPosition, SimulationRuntimeState, SimulationUnit } from '../../../types';
 import { DEFAULT_MAP_CENTER } from '../lib/mapConfig';
 import { graphicColor } from '../lib/graphicColor';
-import { getTrackPositionsAtTime, getUnitPositionAtTime } from '../lib/playback';
+import { getTrackPositionsAtTime, getUnitPositionAtTime, isUnitEliminated } from '../lib/playback';
 import { buildObservationSector, getActiveObservationEffects } from '../lib/observation';
 import { resolvePlanReference } from '../lib/planReferenceMapping';
 import { createMilitarySymbolSvg, get3DUnitSymbolSize } from '../lib/symbolSvg';
@@ -373,7 +373,7 @@ function positionsAtTime(result: SimulationResult, units: SimulationUnit[], time
     ...moving.flatMap(item => item.position ? [{ ...item, position: item.position }] : []),
     ...units.flatMap(unit => {
       const position = unit.geographicPosition;
-      return !movingIds.has(unit.id) && position
+      return !movingIds.has(unit.id) && !isUnitEliminated(result, unit.id, time) && position
         ? [{ unitId: unit.id, actor: unit.name, position }]
         : [];
     }),
@@ -430,14 +430,13 @@ export function Google3DTacticalMap({ runtime, playbackRef, units, result, deplo
 
         for (const track of result.unitTracks) {
           for (const segment of track.segments) {
-            if (segment.keyframes.length < 2) continue;
+            if (!['Move', 'Withdraw'].includes(segment.action) || segment.keyframes.length < 2) continue;
             const route = new library.Polyline3DElement({
               path: toSurfacePath(visibleRoutePositions(segment).map(position => ({ lat: position.latitude, lng: position.longitude }))),
               strokeColor: '#ffb95f', outerColor: '#121212', strokeWidth: 5, outerWidth: 0.3,
               altitudeMode: SURFACE_ALTITUDE_MODE, drawsOccludedSegments: SURFACE_DRAWS_OCCLUDED_SEGMENTS,
             });
             staticLayersRef.current.routes.push({ node: route, startTime: segment.startTime, endTime: segment.endTime });
-            map.append(route);
           }
         }
 
@@ -478,15 +477,6 @@ export function Google3DTacticalMap({ runtime, playbackRef, units, result, deplo
           }
         }
 
-        for (const objective of deployment?.objectives ?? []) {
-          const lng = objective.position.longitude ?? objective.position.lon;
-          const lat = objective.position.latitude ?? objective.position.lat;
-          if (typeof lng !== 'number' || typeof lat !== 'number') continue;
-          const objectiveMarker = new library.Marker3DInteractiveElement({ position: { lat, lng }, ...markerText(objective.name ? `OBJ · ${objective.name}` : 'OBJ'), sizePreserved: true });
-          staticLayersRef.current.objectives.push(objectiveMarker);
-          map.append(objectiveMarker);
-        }
-
         const unitById = new Map(units.map(unit => [unit.id, unit]));
         for (const item of positionsAtTime(result, units, clock.current.simulationTime)) {
           const unit = unitById.get(item.unitId);
@@ -525,7 +515,9 @@ export function Google3DTacticalMap({ runtime, playbackRef, units, result, deplo
     const { routes, controlLines, objectives, unitLabels } = staticLayersRef.current;
     for (const route of routes) {
       const active = route.startTime <= runtime.simulationTime && runtime.simulationTime < route.endTime;
-      route.node.style.display = runtime.tacticalLayers.routes && active ? '' : 'none';
+      if (runtime.tacticalLayers.routes && active) {
+        if (!route.node.isConnected) mapRef.current?.append(route.node);
+      } else if (route.node.isConnected) route.node.remove();
     }
     for (const node of controlLines) node.style.display = runtime.tacticalLayers.controlLines ? '' : 'none';
     for (const marker of objectives) marker.style.display = runtime.tacticalLayers.controlLines ? '' : 'none';
@@ -542,7 +534,21 @@ export function Google3DTacticalMap({ runtime, playbackRef, units, result, deplo
     const tick = (timestamp: number) => {
       const time = clock.current.simulationTime;
       if (time !== previousTime) {
-        for (const item of positionsAtTime(result, units, time)) {
+        for (const route of staticLayersRef.current.routes) {
+          const active = clock.current.tacticalLayers.routes && route.startTime <= time && time < route.endTime;
+          if (active) {
+            if (!route.node.isConnected) mapRef.current?.append(route.node);
+          } else if (route.node.isConnected) route.node.remove();
+        }
+        const positions = positionsAtTime(result, units, time);
+        const visibleUnitIds = new Set(positions.map(item => item.unitId));
+        for (const [unitId, marker] of markersRef.current) {
+          const visible = visibleUnitIds.has(unitId);
+          if (visible) {
+            if (!marker.isConnected) mapRef.current?.append(marker);
+          } else if (marker.isConnected) marker.remove();
+        }
+        for (const item of positions) {
           const marker = markersRef.current.get(item.unitId);
           const previous = previousPositions.get(item.unitId);
           if (marker && (previous?.lat !== item.position.latitude || previous?.lng !== item.position.longitude)) {

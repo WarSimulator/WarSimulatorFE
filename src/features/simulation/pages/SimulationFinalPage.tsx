@@ -3,12 +3,12 @@ import { useNavigate } from 'react-router-dom';
 import { Icon } from '../../../components/layout/Icon';
 import { buildFinalSimulation, saveFinalSimulation } from '../lib/finalSimulation';
 
-type FileKey = 'offensive' | 'defensive' | 'withdrawal' | 'deployment';
+type FileKey = 'blueForce' | 'redForce' | 'withdrawal' | 'deployment';
 type SelectedFiles = Partial<Record<FileKey, File>>;
 
 const fields: { key: FileKey; title: string; description: string; icon: string; iconClass?: string; iconFilled?: boolean; optional?: boolean }[] = [
-  { key: 'offensive', title: 'Blue-Force Plan', description: 'TFD Blue Force 실행 계획 JSON · temporal_plan.steps', icon: 'person', iconClass: 'text-blue-400', iconFilled: true },
-  { key: 'defensive', title: 'Red-Force Plan', description: 'TFD Red Force 실행 계획 JSON · temporal_plan.steps', icon: 'person', iconClass: 'text-red-400', iconFilled: true },
+  { key: 'blueForce', title: 'Blue-Force Plan', description: 'TFD Blue Force 실행 계획 JSON', icon: 'person', iconClass: 'text-blue-400', iconFilled: true },
+  { key: 'redForce', title: 'Red-Force Plan', description: 'TFD Red Force 실행 계획 JSON', icon: 'person', iconClass: 'text-red-400', iconFilled: true },
   { key: 'withdrawal', title: '후퇴 계획', description: '이번 검증에서는 비워두어도 실행됩니다.', icon: 'keyboard_return', optional: true },
   { key: 'deployment', title: '유닛 배치 데이터', description: '유닛 SIDC·좌표와 목표·통제선 geometry JSON', icon: 'map' },
 ];
@@ -22,10 +22,11 @@ export function SimulationFinalPage({ mapMode = '2d' }: { mapMode?: '2d' | '3d' 
   const [files, setFiles] = useState<SelectedFiles>({});
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
-  const ready = Boolean(files.offensive && files.defensive && files.deployment);
+  const ready = Boolean(files.blueForce && files.redForce && files.deployment);
+  const visibleFields = mapMode === '3d' ? fields.filter(field => field.key !== 'withdrawal') : fields;
 
   const start = async () => {
-    if (!files.offensive || !files.defensive || !files.deployment) return;
+    if (!files.blueForce || !files.redForce || !files.deployment) return;
     const analysisWindow = window.open('about:blank', '_blank', 'popup=yes,width=1400,height=900');
     if (!analysisWindow) {
       setError('상태 분석 화면을 열 수 없습니다. 이 사이트의 팝업을 허용한 뒤 다시 실행해 주세요.');
@@ -35,10 +36,10 @@ export function SimulationFinalPage({ mapMode = '2d' }: { mapMode?: '2d' | '3d' 
     analysisWindow.document.body.innerHTML = '<p style="font:16px sans-serif;padding:24px">시뮬레이션 상태 분석 화면을 준비하고 있습니다…</p>';
     setLoading(true); setError('');
     try {
-      const [offensive, defensive, withdrawal, deployment] = await Promise.all([
-        readJson(files.offensive), readJson(files.defensive), files.withdrawal ? readJson(files.withdrawal) : undefined, readJson(files.deployment),
+      const [blueForce, redForce, withdrawal, deployment] = await Promise.all([
+        readJson(files.blueForce), readJson(files.redForce), files.withdrawal ? readJson(files.withdrawal) : undefined, readJson(files.deployment),
       ]);
-      const build = await buildFinalSimulation({ offensive, defensive, withdrawal, deployment });
+      const build = await buildFinalSimulation({ blueForce, redForce, withdrawal, deployment });
       saveFinalSimulation(build);
       analysisWindow.location.href = new URL(`/simulations/${build.simulationId}/run?view=analysis`, window.location.origin).href;
       navigate(`/simulations/${build.simulationId}/run?view=tactical${mapMode === '3d' ? '&map=3d' : ''}`);
@@ -60,10 +61,10 @@ export function SimulationFinalPage({ mapMode = '2d' }: { mapMode?: '2d' | '3d' 
     <section className="rounded border border-outline-variant bg-surface-container p-5">
       <div className="mb-5 flex items-start justify-between gap-6">
         <div><p className="font-label-caps text-xs uppercase tracking-widest text-secondary">INPUT PACKAGE</p><h3 className="mt-1 text-lg font-semibold text-on-surface">AI Planning 결과 파일</h3></div>
-        <div className="rounded border border-outline-variant bg-surface px-3 py-2 font-data-mono text-xs text-on-surface-variant">Blue Force + Red Force + 배치 필수 · 후퇴 선택</div>
+        <div className="rounded border border-outline-variant bg-surface px-3 py-2 font-data-mono text-xs text-on-surface-variant">{mapMode === '3d' ? 'Blue Force + Red Force + 배치 필수' : 'Blue Force + Red Force + 배치 필수 · 후퇴 선택'}</div>
       </div>
       <div className="grid gap-4 lg:grid-cols-2">
-        {fields.map(field => <label key={field.key} className={`group relative flex min-h-[150px] cursor-pointer flex-col justify-between rounded border p-4 transition-colors ${files[field.key] ? 'border-primary bg-primary/5' : 'border-outline-variant bg-surface-container-low hover:border-secondary/70'}`}>
+        {visibleFields.map(field => <label key={field.key} className={`group relative flex min-h-[150px] cursor-pointer flex-col justify-between rounded border p-4 transition-colors ${files[field.key] ? 'border-primary bg-primary/5' : 'border-outline-variant bg-surface-container-low hover:border-secondary/70'}`}>
           <input className="sr-only" type="file" accept=".json,.txt,application/json,text/plain" onChange={event => { const file = event.target.files?.[0]; setError(''); setFiles(current => ({ ...current, [field.key]: file })); }} />
           <div className="flex items-start justify-between gap-4"><span className="flex h-10 w-10 items-center justify-center rounded bg-surface"><Icon name={field.icon} className={field.iconClass ?? (files[field.key] ? 'text-primary' : 'text-on-surface-variant')} filled={field.iconFilled} /></span><span className={`rounded px-2 py-1 text-[10px] font-bold uppercase tracking-wider ${field.optional ? 'bg-surface-variant text-on-surface-variant' : 'bg-secondary/15 text-secondary'}`}>{field.optional ? 'OPTIONAL' : 'REQUIRED'}</span></div>
           <div className="mt-4"><div className="flex items-center gap-2"><strong>{field.title}</strong>{files[field.key] && <Icon name="check_circle" className="text-[18px] text-primary" filled />}</div><p className="mt-1 text-xs text-on-surface-variant">{files[field.key]?.name ?? field.description}</p></div>

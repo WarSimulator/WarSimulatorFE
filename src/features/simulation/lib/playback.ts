@@ -65,14 +65,25 @@ export function getPositionAtTime(track: SimulationUnitTrack, simulationTime: nu
   return last.position;
 }
 
+/** A Destroy action removes its referenced target after the action completes. */
+export function isUnitEliminated(result: SimulationResult, unitId: string, simulationTime: number) {
+  const track = result.unitTracks.find(candidate => candidate.unitId === unitId || candidate.actor === unitId);
+  if (track?.eliminatedAt !== undefined && track.eliminatedAt <= simulationTime) return true;
+  return (result.actionEffects ?? []).some((effect) =>
+    (String(effect.action ?? '').toLowerCase() === 'destroy' || effect.visualizationId === 'destroy')
+    && effect.endTime <= simulationTime
+    && [unitId, track?.unitId, track?.actor].includes(String(effect.parameters.target ?? '')),
+  );
+}
+
 export function getTrackPositionsAtTime(result: SimulationResult, simulationTime: number) {
-  const positions = result.unitTracks.map((track) => ({
+  const positions = result.unitTracks.filter((track) => !isUnitEliminated(result, track.unitId, simulationTime)).map((track) => ({
     unitId: track.unitId,
     actor: track.actor,
     position: getPositionAtTime(track, simulationTime),
   }));
   for (const effect of result.actionEffects ?? []) {
-    if (!positions.some(position => position.unitId === effect.unitId)) {
+    if (!isUnitEliminated(result, effect.unitId, simulationTime) && !positions.some(position => position.unitId === effect.unitId)) {
       positions.push({ unitId: effect.unitId, actor: effect.actor, position: effect.origin });
     }
   }
@@ -86,11 +97,16 @@ export function getUnitPositionAtTime(
   result: SimulationResult,
   deployment?: DeploymentSetup,
 ): SimulationResultPosition | undefined {
+  const deploymentUnit = deployment?.units.find((candidate) => candidate.id === actorOrUnitId || candidate.designation === actorOrUnitId);
+  const resolvedUnitId = result.unitTracks.find((candidate) => candidate.unitId === actorOrUnitId || candidate.actor === actorOrUnitId)?.unitId
+    ?? deploymentUnit?.id
+    ?? actorOrUnitId;
+  if (isUnitEliminated(result, resolvedUnitId, simulationTime)) return undefined;
   const track = result.unitTracks.find((candidate) => candidate.unitId === actorOrUnitId || candidate.actor === actorOrUnitId);
   const animatedPosition = track ? getPositionAtTime(track, simulationTime) : undefined;
   if (animatedPosition) return animatedPosition;
 
-  const unit = deployment?.units.find((candidate) => candidate.id === actorOrUnitId || candidate.designation === actorOrUnitId);
+  const unit = deploymentUnit;
   const longitude = unit?.position.longitude ?? unit?.position.lon;
   const latitude = unit?.position.latitude ?? unit?.position.lat;
   return typeof longitude === 'number' && typeof latitude === 'number' ? { longitude, latitude } : undefined;

@@ -367,6 +367,46 @@
         "lon": 127.51185566244915,
         "lat": 38.405390872351084
       }
+    },
+    {
+      "id": "objective-pfa-blocking-position",
+      "name": "PFA BLOCKING POSITION",
+      "position": {
+        "longitude": 127.474,
+        "latitude": 38.423,
+        "lon": 127.474,
+        "lat": 38.423
+      }
+    },
+    {
+      "id": "objective-north-mecha-blocking-position",
+      "name": "NORTH MECHA BLOCKING POSITION",
+      "position": {
+        "longitude": 127.481,
+        "latitude": 38.432,
+        "lon": 127.481,
+        "lat": 38.432
+      }
+    },
+    {
+      "id": "objective-propelled-support-limit",
+      "name": "PROPELLED SUPPORT LIMIT",
+      "position": {
+        "longitude": 127.483,
+        "latitude": 38.415,
+        "lon": 127.483,
+        "lat": 38.415
+      }
+    },
+    {
+      "id": "objective-artillery-support-limit",
+      "name": "ARTILLERY SUPPORT LIMIT",
+      "position": {
+        "longitude": 127.493,
+        "latitude": 38.421,
+        "lon": 127.493,
+        "lat": 38.421
+      }
     }
   ],
   "tacticalGraphics": [

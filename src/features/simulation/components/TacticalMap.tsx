@@ -6,7 +6,7 @@ import { Icon } from '../../../components/layout/Icon';
 import type { DeploymentSetup, SimulationResult, SimulationRuntimeState, SimulationUnit } from '../../../types';
 import { createDefaultMapStyle, DEFAULT_MAP_CENTER, DEFAULT_MAP_ZOOM, getMapStyleUrl } from '../lib/mapConfig';
 import { ensureAxisArrowImage, ensureMilitarySymbolImage, ensureObjectiveImage, getMilitarySymbolImageId } from '../lib/militarySymbolRegistry';
-import { getTrackPositionsAtTime } from '../lib/playback';
+import { getTrackPositionsAtTime, isUnitEliminated } from '../lib/playback';
 import { toObservationSectorFeatures } from '../lib/observation';
 import { toTacticalGraphicAxisArrowFeatures, toTacticalGraphicFeatureCollection } from '../lib/tacticalGraphics';
 import { resolvePlanReference } from '../lib/planReferenceMapping';
@@ -60,7 +60,7 @@ function toUnitFeatures(
   const positions = getTrackPositionsAtTime(result, simulationTime);
   const positionedIds = new Set(positions.map(({ unitId }) => unitId));
   const staticPositions = units.flatMap((unit) => (
-    !positionedIds.has(unit.id) && unit.geographicPosition
+    !positionedIds.has(unit.id) && !isUnitEliminated(result, unit.id, simulationTime) && unit.geographicPosition
       ? [{ unitId: unit.id, actor: unit.name, position: unit.geographicPosition }]
       : []
   ));
@@ -98,11 +98,15 @@ function toUnitFeatures(
   };
 }
 
-function toRouteFeatures(result: SimulationResult): GeoJSON.FeatureCollection<GeoJSON.LineString> {
+function toRouteFeatures(result: SimulationResult, simulationTime: number): GeoJSON.FeatureCollection<GeoJSON.LineString> {
   return {
     type: 'FeatureCollection',
     features: result.unitTracks.flatMap((track) =>
-      track.segments.map((segment) => ({
+      track.segments.filter((segment) =>
+        (segment.action === 'Move' || segment.action === 'Withdraw')
+        && segment.startTime <= simulationTime
+        && simulationTime < segment.endTime,
+      ).map((segment) => ({
         type: 'Feature' as const,
         id: `track-${track.unitId}-${segment.actionSequence}`,
         properties: {
@@ -181,7 +185,6 @@ export function TacticalMap({ runtime, playbackRef, units, result, deployment, o
   const [mapError, setMapError] = useState(false);
   const mapCenter = useMemo(() => getMapCenter(result), [result]);
   const mapZoom = deployment?.mapView?.zoom ?? DEFAULT_MAP_ZOOM + 1;
-  const routeFeatures = useMemo(() => toRouteFeatures(result), [result]);
   const tacticalGraphicFeatures = useMemo(() => toTacticalGraphicFeatureCollection(deployment), [deployment]);
   const axisArrowFeatures = useMemo(() => toTacticalGraphicAxisArrowFeatures(deployment), [deployment]);
   const objectiveFeatures = useMemo(() => toObjectiveFeatures(deployment), [deployment]);
@@ -269,6 +272,13 @@ export function TacticalMap({ runtime, playbackRef, units, result, deployment, o
           [UNIT_SOURCE_ID, toUnitFeatures(result, units, simulationTime)],
           [OBSERVATION_SECTOR_SOURCE_ID, toObservationSectorFeatures(result, simulationTime, deployment)],
           [ACTION_EFFECT_SOURCE_ID, toActionEffectFeatures(result, simulationTime, deployment)],
+          [GRAPHICS_SOURCE_ID, {
+            type: 'FeatureCollection',
+            features: [
+              ...(clock.current.tacticalLayers.controlLines ? tacticalGraphicFeatures.features : []),
+              ...(clock.current.tacticalLayers.routes ? toRouteFeatures(result, simulationTime).features : []),
+            ],
+          }],
         ];
         lastTime = simulationTime;
       }
@@ -290,7 +300,7 @@ export function TacticalMap({ runtime, playbackRef, units, result, deployment, o
     };
     frame = requestAnimationFrame(tick);
     return () => cancelAnimationFrame(frame);
-  }, [clock, deployment, mapReady, result, units]);
+  }, [clock, deployment, mapReady, result, tacticalGraphicFeatures, units]);
 
   useEffect(() => {
     if (!mapReady || !mapRef.current) {
@@ -306,13 +316,14 @@ export function TacticalMap({ runtime, playbackRef, units, result, deployment, o
       type: 'FeatureCollection',
       features: [
         ...(runtime.tacticalLayers.controlLines ? tacticalGraphicFeatures.features : []),
-        ...(runtime.tacticalLayers.routes ? routeFeatures.features : []),
+        ...(runtime.tacticalLayers.routes ? toRouteFeatures(result, clock.current.simulationTime).features : []),
       ],
     });
-    objectiveSource?.setData(runtime.tacticalLayers.controlLines ? objectiveFeatures : { type: 'FeatureCollection', features: [] });
+    // Objectives remain available to plan resolution but are intentionally not rendered as map pins.
+    objectiveSource?.setData({ type: 'FeatureCollection', features: [] });
     axisSource?.setData(runtime.tacticalLayers.controlLines ? axisArrowFeatures : { type: 'FeatureCollection', features: [] });
     map.setLayoutProperty('deployment-units', 'text-field', runtime.tacticalLayers.labels ? ['get', 'designation'] : '');
-  }, [axisArrowFeatures, mapReady, objectiveFeatures, routeFeatures, runtime.tacticalLayers.controlLines, runtime.tacticalLayers.labels, runtime.tacticalLayers.routes, tacticalGraphicFeatures]);
+  }, [axisArrowFeatures, clock, mapReady, objectiveFeatures, result, runtime.tacticalLayers.controlLines, runtime.tacticalLayers.labels, runtime.tacticalLayers.routes, tacticalGraphicFeatures]);
 
   useEffect(() => {
     if (!mapReady || !mapRef.current?.isStyleLoaded()) {
