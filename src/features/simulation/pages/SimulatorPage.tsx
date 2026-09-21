@@ -2,7 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { createInitialRuntimeState, SIMULATION_PLAYBACK_RATE } from '../lib/runtime';
 import { createGeoPosition } from '../lib/position';
-import { loadLiveEditUnits, saveLiveEditUnits } from '../lib/liveEditUnits';
+import { loadHiddenLiveEditUnitIds, loadLiveEditUnits, saveHiddenLiveEditUnitIds, saveLiveEditUnits } from '../lib/liveEditUnits';
 import { getDeploymentById } from '../lib/deploymentStorage';
 import { clampResultTime, isUnitEliminated } from '../lib/playback';
 import { getSimulationResult, getSimulationResultDeployment, getSimulationResultUnit, getSimulationResultUnits } from '../lib/simulationResultService';
@@ -56,9 +56,11 @@ export function SimulatorPage() {
   }));
   const [exitDialogOpen, setExitDialogOpen] = useState(false);
   const [liveUnits, setLiveUnits] = useState<DeploymentUnit[]>(() => liveEditMode ? loadLiveEditUnits(simulationId) : []);
+  const [hiddenBaseUnitIds, setHiddenBaseUnitIds] = useState<string[]>(() => liveEditMode ? loadHiddenLiveEditUnitIds(simulationId) : []);
   const [liveEditorMode, setLiveEditorMode] = useState<DeploymentEditorMode>({ type: 'select' });
   const [livePaletteOpen, setLivePaletteOpen] = useState(false);
   const [selectedLiveUnitId, setSelectedLiveUnitId] = useState<string>();
+  const [relocatingUnitId, setRelocatingUnitId] = useState<string>();
   const lastFrameTimeRef = useRef<number | undefined>(undefined);
   const runtimeRef = useRef(runtime);
   const publishTimeRef = useRef(0);
@@ -67,6 +69,9 @@ export function SimulatorPage() {
   useEffect(() => {
     if (liveEditMode) saveLiveEditUnits(simulationId, liveUnits);
   }, [liveEditMode, liveUnits, simulationId]);
+  useEffect(() => {
+    if (liveEditMode) saveHiddenLiveEditUnitIds(simulationId, hiddenBaseUnitIds);
+  }, [hiddenBaseUnitIds, liveEditMode, simulationId]);
 
   const placeLiveUnit = useCallback((item: Extract<DeploymentPaletteItem, { kind: 'unit' }>, location: { lng: number; lat: number }) => {
     const id = `unit-${crypto.randomUUID()}`;
@@ -83,7 +88,37 @@ export function SimulatorPage() {
     setLiveEditorMode({ type: 'select' });
   }, [deployment]);
 
-  const changeLiveDeployment = useCallback((next: DeploymentSetup) => setLiveUnits(next.units), []);
+  const changeLiveDeployment = useCallback((next: DeploymentSetup) => {
+    const id = selectedLiveUnitId;
+    if (!id) return;
+    const updated = next.units.find(unit => unit.id === id);
+    const isBaseUnit = deployment?.units.some(unit => unit.id === id) ?? false;
+    if (updated) {
+      setLiveUnits(current => [...current.filter(unit => unit.id !== id), updated]);
+    } else {
+      setLiveUnits(current => current.filter(unit => unit.id !== id));
+      if (isBaseUnit) setHiddenBaseUnitIds(current => current.includes(id) ? current : [...current, id]);
+      setRelocatingUnitId(undefined);
+    }
+  }, [deployment, selectedLiveUnitId]);
+
+  const moveLiveUnit = useCallback((id: string, location: { lng: number; lat: number }) => {
+    setLiveUnits(current => {
+      const unit = current.find(item => item.id === id) ?? deployment?.units.find(item => item.id === id);
+      if (!unit) return current;
+      return [...current.filter(item => item.id !== id), { ...unit, position: createGeoPosition(location.lng, location.lat) }];
+    });
+    setRelocatingUnitId(undefined);
+  }, [deployment]);
+  const deleteLiveUnit = useCallback((id: string) => {
+    setLiveUnits(current => current.filter(unit => unit.id !== id));
+    if (deployment?.units.some(unit => unit.id === id)) {
+      setHiddenBaseUnitIds(current => current.includes(id) ? current : [...current, id]);
+    }
+    setSelectedLiveUnitId(undefined);
+    setRelocatingUnitId(undefined);
+    setLiveEditorMode({ type: 'select' });
+  }, [deployment]);
   const publishRuntime = useCallback((next: typeof runtime) => {
     syncChannelRef.current?.postMessage({ type: 'state', source: syncSourceRef.current, runtime: next });
   }, []);
@@ -299,17 +334,22 @@ export function SimulatorPage() {
               atomicActionVisuals={atomicActionVisuals}
               liveEdit={liveEditMode ? {
                 units: liveUnits,
+                hiddenBaseUnitIds,
                 mode: liveEditorMode,
                 paletteOpen: livePaletteOpen,
                 selectedUnitId: selectedLiveUnitId,
+                relocatingUnitId,
                 onModeChange: setLiveEditorMode,
                 onTogglePalette: () => setLivePaletteOpen(open => {
                   if (open) setLiveEditorMode({ type: 'select' });
                   return !open;
                 }),
                 onPlaceUnit: placeLiveUnit,
-                onSelectUnit: setSelectedLiveUnitId,
+                onSelectUnit: id => { setSelectedLiveUnitId(id); setRelocatingUnitId(undefined); },
                 onChangeDeployment: changeLiveDeployment,
+                onSetRelocatingUnit: setRelocatingUnitId,
+                onMoveUnit: moveLiveUnit,
+                onDeleteUnit: deleteLiveUnit,
               } : undefined}
             /> : <TacticalMap
               runtime={runtime}

@@ -16,14 +16,19 @@ type ActionOverlayStore = ReturnType<typeof createOverlayStore>;
 
 type LiveEdit = {
   units: DeploymentUnit[];
+  hiddenBaseUnitIds: string[];
   mode: DeploymentEditorMode;
   paletteOpen: boolean;
   selectedUnitId?: string;
+  relocatingUnitId?: string;
   onModeChange: (mode: DeploymentEditorMode) => void;
   onTogglePalette: () => void;
   onPlaceUnit: (item: Extract<DeploymentPaletteItem, { kind: 'unit' }>, position: Position3D) => void;
   onSelectUnit: (unitId?: string) => void;
   onChangeDeployment: (deployment: DeploymentSetup) => void;
+  onSetRelocatingUnit: (unitId?: string) => void;
+  onMoveUnit: (unitId: string, position: Position3D) => void;
+  onDeleteUnit: (unitId: string) => void;
 };
 
 type Props = {
@@ -479,7 +484,9 @@ export function Google3DTacticalMap({ runtime, playbackRef, units, result, deplo
           const editor = liveEditRef.current;
           const position = (event as MapClickEvent).position;
           if (!editor || !position || !Number.isFinite(position.lng) || !Number.isFinite(position.lat)) return;
-          if (editor.mode.type === 'place' && editor.mode.item.kind === 'unit') {
+          if (editor.relocatingUnitId) {
+            editor.onMoveUnit(editor.relocatingUnitId, position);
+          } else if (editor.mode.type === 'place' && editor.mode.item.kind === 'unit') {
             editor.onPlaceUnit(editor.mode.item, position);
           } else if (editor.mode.type === 'select') {
             editor.onSelectUnit(undefined);
@@ -558,7 +565,7 @@ export function Google3DTacticalMap({ runtime, playbackRef, units, result, deplo
           marker.append(template);
           marker.addEventListener('gmp-click', event => {
             event.stopPropagation();
-            liveEditRef.current?.onSelectUnit(undefined);
+            if (liveEditRef.current) liveEditRef.current.onSelectUnit(unit.id);
             onSelectUnit(unit.id);
           });
           markersRef.current.set(unit.id, marker);
@@ -603,6 +610,7 @@ export function Google3DTacticalMap({ runtime, playbackRef, units, result, deplo
       const template = document.createElement('template');
       template.innerHTML = createMilitarySymbolSvg(unit.sidc, get3DUnitSymbolSize(unit.symbolScale) + (selected ? 10 : 0), undefined, unit.symbolStandard);
       marker.append(template);
+      if (liveEdit.relocatingUnitId) marker.style.pointerEvents = 'none';
       marker.addEventListener('gmp-click', event => {
         event.stopPropagation();
         liveEditRef.current?.onSelectUnit(unit.id);
@@ -614,11 +622,20 @@ export function Google3DTacticalMap({ runtime, playbackRef, units, result, deplo
       liveMarkersRef.current.forEach(marker => marker.remove());
       liveMarkersRef.current.clear();
     };
-  }, [ready, liveEdit?.units, liveEdit?.selectedUnitId, runtime.tacticalLayers.labels]);
+  }, [ready, liveEdit?.units, liveEdit?.selectedUnitId, liveEdit?.relocatingUnitId, runtime.tacticalLayers.labels]);
 
   useEffect(() => {
-    if (mapRef.current) mapRef.current.style.cursor = liveEdit?.mode.type === 'place' ? 'crosshair' : '';
-  }, [liveEdit?.mode, ready]);
+    const replacedIds = new Set(liveEdit?.units.map(unit => unit.id) ?? []);
+    const hiddenIds = new Set(liveEdit?.hiddenBaseUnitIds ?? []);
+    for (const [id, marker] of markersRef.current) {
+      marker.style.display = replacedIds.has(id) || hiddenIds.has(id) ? 'none' : '';
+      marker.style.pointerEvents = liveEdit?.relocatingUnitId ? 'none' : '';
+    }
+  }, [ready, liveEdit?.units, liveEdit?.hiddenBaseUnitIds, liveEdit?.relocatingUnitId]);
+
+  useEffect(() => {
+    if (mapRef.current) mapRef.current.style.cursor = liveEdit?.mode.type === 'place' || liveEdit?.relocatingUnitId ? 'crosshair' : '';
+  }, [liveEdit?.mode, liveEdit?.relocatingUnitId, ready]);
 
   useEffect(() => {
     const { routes, controlLines, objectives, unitLabels } = staticLayersRef.current;
@@ -692,8 +709,12 @@ export function Google3DTacticalMap({ runtime, playbackRef, units, result, deplo
       {atomicActionVisuals && ready && <AtomicActionPlaybackOverlay result={result} deployment={deployment} simulationTime={runtime.simulationTime} selectedUnitId={runtime.selectedUnitId} onSelectUnit={onSelectUnit} />}
       {liveEdit && <>
         <SymbolPalette unitsOnly mode={liveEdit.mode} onModeChange={liveEdit.onModeChange} isOpen={liveEdit.paletteOpen} onToggle={liveEdit.onTogglePalette} />
+        {liveEdit.selectedUnitId && <div className="absolute bottom-5 left-4 z-30 flex gap-2">
+          <button type="button" className={`rounded border px-3 py-2 font-data-mono text-xs shadow ${liveEdit.relocatingUnitId ? 'border-secondary bg-secondary text-on-secondary' : 'border-outline-variant bg-surface/90 text-on-surface'}`} onClick={() => liveEdit.onSetRelocatingUnit(liveEdit.relocatingUnitId ? undefined : liveEdit.selectedUnitId)}>{liveEdit.relocatingUnitId ? '이동할 지도 위치 클릭' : '유닛 위치 이동'}</button>
+          <button type="button" className="rounded border border-error/60 bg-surface/90 px-3 py-2 font-data-mono text-xs text-error shadow" onClick={() => liveEdit.onDeleteUnit(liveEdit.selectedUnitId!)}>선택 유닛 삭제</button>
+        </div>}
         {liveEdit.selectedUnitId && <UnitPropertiesPanel
-          deployment={{ id: deployment?.id ?? 'live-edit', name: deployment?.name ?? 'Live Edit', mettTcDocumentId: deployment?.mettTcDocumentId ?? '', units: liveEdit.units, objectives: [], tacticalGraphics: [] }}
+          deployment={{ id: deployment?.id ?? 'live-edit', name: deployment?.name ?? 'Live Edit', mettTcDocumentId: deployment?.mettTcDocumentId ?? '', units: [...(deployment?.units ?? []).filter(unit => !liveEdit.hiddenBaseUnitIds.includes(unit.id) && !liveEdit.units.some(edited => edited.id === unit.id)), ...liveEdit.units], objectives: [], tacticalGraphics: [] }}
           selectedEntityId={liveEdit.selectedUnitId}
           onChange={liveEdit.onChangeDeployment}
           onModeChange={liveEdit.onModeChange}

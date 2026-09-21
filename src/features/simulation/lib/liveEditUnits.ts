@@ -1,6 +1,7 @@
 import type { DeploymentUnit } from '../../../types';
 
 const KEY_PREFIX = 'atlas-defense.simulation-live-edit.';
+const HIDDEN_KEY_PREFIX = 'atlas-defense.simulation-live-edit-hidden.';
 
 export function loadLiveEditUnits(simulationId?: string): DeploymentUnit[] {
   if (!simulationId) return [];
@@ -25,5 +26,24 @@ export function saveLiveEditUnits(simulationId: string | undefined, units: Deplo
     window.localStorage.setItem(`${KEY_PREFIX}${simulationId}`, JSON.stringify(units));
   } catch {
     // The current session keeps working even when browser storage is full.
+  }
+}
+
+export function loadHiddenLiveEditUnitIds(simulationId?: string): string[] {
+  if (!simulationId) return [];
+  try {
+    const stored: unknown = JSON.parse(window.localStorage.getItem(`${HIDDEN_KEY_PREFIX}${simulationId}`) ?? '[]');
+    return Array.isArray(stored) ? stored.filter((id): id is string => typeof id === 'string') : [];
+  } catch {
+    return [];
+  }
+}
+
+export function saveHiddenLiveEditUnitIds(simulationId: string | undefined, ids: string[]) {
+  if (!simulationId) return;
+  try {
+    window.localStorage.setItem(`${HIDDEN_KEY_PREFIX}${simulationId}`, JSON.stringify(ids));
+  } catch {
+    // Keep the current editor usable if browser storage is unavailable.
   }
 }
