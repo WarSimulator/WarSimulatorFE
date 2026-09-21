@@ -1,14 +1,30 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import type { AtomicActionEffect, DeploymentSetup, ObservationEffect, SimulationResult, SimulationResultPosition, SimulationRuntimeState, SimulationUnit } from '../../../types';
+import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties } from 'react';
+import type { AtomicActionEffect, DeploymentEditorMode, DeploymentPaletteItem, DeploymentSetup, DeploymentUnit, ObservationEffect, SimulationResult, SimulationResultPosition, SimulationRuntimeState, SimulationUnit } from '../../../types';
 import { DEFAULT_MAP_CENTER } from '../lib/mapConfig';
 import { graphicColor } from '../lib/graphicColor';
+import { getLngLat } from '../lib/position';
 import { getTrackPositionsAtTime, getUnitPositionAtTime, isUnitEliminated } from '../lib/playback';
 import { buildObservationSector, getActiveObservationEffects } from '../lib/observation';
 import { resolvePlanReference } from '../lib/planReferenceMapping';
 import { createMilitarySymbolSvg, get3DUnitSymbolSize } from '../lib/symbolSvg';
 import { createOverlayStore, createOverlaySchedule } from '../lib/google3DOverlayStore';
 import { scannerFillColor, scannerVisualForAffiliation } from '../lib/scannerVisual';
+import { AtomicActionPlaybackOverlay } from './AtomicActionPlaybackOverlay';
+import { SymbolPalette } from './SymbolPalette';
+import { UnitPropertiesPanel } from './UnitPropertiesPanel';
 type ActionOverlayStore = ReturnType<typeof createOverlayStore>;
+
+type LiveEdit = {
+  units: DeploymentUnit[];
+  mode: DeploymentEditorMode;
+  paletteOpen: boolean;
+  selectedUnitId?: string;
+  onModeChange: (mode: DeploymentEditorMode) => void;
+  onTogglePalette: () => void;
+  onPlaceUnit: (item: Extract<DeploymentPaletteItem, { kind: 'unit' }>, position: Position3D) => void;
+  onSelectUnit: (unitId?: string) => void;
+  onChangeDeployment: (deployment: DeploymentSetup) => void;
+};
 
 type Props = {
   runtime: SimulationRuntimeState;
@@ -17,11 +33,14 @@ type Props = {
   result: SimulationResult;
   deployment?: DeploymentSetup;
   onSelectUnit: (unitId: string) => void;
+  atomicActionVisuals?: boolean;
+  liveEdit?: LiveEdit;
 };
 
 export type Position3D = { lat: number; lng: number; altitude?: number };
 export type Map3DNode = HTMLElement;
 export type Marker3DNode = HTMLElement & { position: Position3D; label?: string; zIndex?: number };
+type MapClickEvent = Event & { position?: Position3D };
 type StaticLayerNodes = {
   routes: Array<{ node: HTMLElement; startTime: number; endTime: number }>;
   controlLines: HTMLElement[];
@@ -50,8 +69,10 @@ const PHASE_LINE_GAP_METERS = 50;
 const PHASE_LINE_DRAWS_OCCLUDED_SEGMENTS = true;
 const ACTION_OVERLAY_INTERVAL_MS = 75;
 const MAX_ROAD_SNAP_METERS = 500;
-const FIRE_ACTIONS = new Set(['Engage', 'Continue to Engage', 'Fight', 'Ambush', 'Disrupt']);
+const FIRE_ACTIONS = new Set(['Engage', 'Continue to Engage', 'Fight', 'Ambush', 'Disrupt', 'Destroy']);
+const AREA_ACTIONS = new Set(['Establish Security', 'Establish Presence', 'Confirm Control', 'Contain', 'Block', 'Clear', 'Seize']);
 const COMBAT_LINK_ALTITUDE_METERS = 600;
+const DEMO_COMBAT_LINK_ALTITUDE_METERS = 80;
 const ACTION_COLORS: Record<string, string> = {
   Move: '#ffb95f', Observe: '#66d9ff', Engage: '#ff5d5d', 'Continue to Engage': '#ff7b7b',
   'Establish Security': '#5bd4ff', 'Establish Presence': '#5bd4ff', Confirm: '#b4c5ff',
@@ -60,7 +81,7 @@ const ACTION_COLORS: Record<string, string> = {
   Contain: '#fb923c', Block: '#fb923c', Report: '#a78bfa', Identify: '#b4c5ff',
   Fight: '#ff5d5d', Withdraw: '#a78bfa', 'Do not seek a decisive engagement': '#a78bfa',
   'Disassemble / Disarm': '#64e7a2', Ambush: '#ff5d5d', Breach: '#ffd166', Clear: '#5bd4ff',
-  Seize: '#64e7a2', Disrupt: '#ff9f43',
+  Seize: '#64e7a2', Disrupt: '#ff9f43', Destroy: '#ff5d5d',
 };
 
 let googleMapsLoad: Promise<GoogleMapsRuntime> | undefined;
@@ -262,9 +283,18 @@ function actionPulseRadius(action: string, progress: number) {
 
 function actionTarget(effect: Pick<AtomicActionEffect, 'parameters'>, result: SimulationResult, deployment: DeploymentSetup | undefined, time: number) {
   const parameters = effect.parameters;
-  const reference = [parameters.target, parameters.destination, parameters.effectArea, parameters.result, parameters.recipient]
+  const reference = [parameters.target, parameters.destination, parameters.recipient, parameters.effectArea, parameters.result]
     .find((value): value is string => typeof value === 'string' && value.trim().length > 0);
   return reference ? getUnitPositionAtTime(reference, time, result, deployment) ?? resolvePlanReference(deployment, reference) : undefined;
+}
+
+function actionAreaPath(effect: AtomicActionEffect, deployment?: DeploymentSetup): Position3D[] | undefined {
+  const reference = effect.parameters.target ?? effect.parameters.effectArea;
+  if (typeof reference !== 'string') return undefined;
+  const graphic = deployment?.tacticalGraphics.find(item => item.id === reference || item.name === reference);
+  if (graphic?.geometry.type !== 'Polygon') return undefined;
+  const points = graphic.geometry.coordinates[0];
+  return points.length >= 3 ? points.map(([lng, lat]) => ({ lat, lng })) : undefined;
 }
 
 function addPulse(nodes: ActionOverlayStore, key: string, center: Position3D, color: string, radiusMeters: number) {
@@ -281,6 +311,7 @@ function addDirectedAction(
   origin: Position3D,
   target: Position3D | undefined,
   progress: number,
+  linkAltitude = COMBAT_LINK_ALTITUDE_METERS,
 ) {
   const color = actionColor(action);
   const pulseCenter = target ?? origin;
@@ -289,8 +320,8 @@ function addDirectedAction(
     const path = combatLink
       ? [
         { ...origin, altitude: 0 },
-        { ...origin, altitude: COMBAT_LINK_ALTITUDE_METERS },
-        { ...target, altitude: COMBAT_LINK_ALTITUDE_METERS },
+        { ...origin, altitude: linkAltitude },
+        { ...target, altitude: linkAltitude },
         { ...target, altitude: 0 },
       ]
       : [origin, target];
@@ -334,6 +365,7 @@ function updateActionOverlays(
   result: SimulationResult,
   deployment: DeploymentSetup | undefined,
   time: number,
+  atomicActionVisuals = false,
 ) {
   nodes.begin();
   const activeObservations = getActiveObservationEffects(result, time);
@@ -342,12 +374,32 @@ function updateActionOverlays(
 
   for (const effect of result.actionEffects ?? []) {
     if (effect.startTime > time || time >= effect.endTime || (effect.action === 'Observe' && observationSequences.has(effect.actionSequence))) continue;
+    // Move and Withdraw use their timed route geometry; Observe uses its sensor sector.
+    if (atomicActionVisuals && (effect.action === 'Move' || effect.action === 'Withdraw' || effect.action === 'Observe')) continue;
     const origin = getUnitPositionAtTime(effect.unitId, time, result, deployment)
       ?? getUnitPositionAtTime(effect.actor, time, result, deployment)
       ?? effect.origin;
     const target = actionTarget(effect, result, deployment, time);
     const progress = Math.max(0, Math.min(1, (time - effect.startTime) / Math.max(0.01, effect.endTime - effect.startTime)));
-    addDirectedAction(nodes, `action:${effect.unitId}:${effect.actionSequence}`, effect.action, position3D(origin), target ? position3D(target) : undefined, progress);
+    const key = `action:${effect.unitId}:${effect.actionSequence}`;
+    const areaPath = atomicActionVisuals && AREA_ACTIONS.has(effect.action) ? actionAreaPath(effect, deployment) : undefined;
+    if (areaPath) {
+      const color = actionColor(effect.action);
+      const fillAlpha = Math.round((.04 + .16 * progress) * 255).toString(16).padStart(2, '0');
+      nodes.put(`${key}:area`, 'polygon', {
+        path: areaPath, fillColor: `${color}${fillAlpha}`, strokeColor: color, strokeWidth: 4,
+        altitudeMode: 'CLAMP_TO_GROUND', drawsOccludedSegments: true, zIndex: 31,
+      });
+      if (effect.action === 'Seize' && target) {
+        nodes.put(`${key}:approach`, 'line', {
+          path: [position3D(origin), position3D(target)], strokeColor: color, strokeWidth: 4,
+          altitudeMode: SURFACE_ALTITUDE_MODE, drawsOccludedSegments: false, zIndex: 30,
+        });
+      }
+    } else {
+      addDirectedAction(nodes, key, effect.action, position3D(origin), target ? position3D(target) : undefined, progress,
+        atomicActionVisuals ? DEMO_COMBAT_LINK_ALTITUDE_METERS : COMBAT_LINK_ALTITUDE_METERS);
+    }
   }
 
   for (const effect of result.engagementEffects ?? []) {
@@ -385,10 +437,13 @@ function markerText(value?: string) {
   return text ? { label: text, title: text } : {};
 }
 
-export function Google3DTacticalMap({ runtime, playbackRef, units, result, deployment, onSelectUnit }: Props) {
+export function Google3DTacticalMap({ runtime, playbackRef, units, result, deployment, onSelectUnit, atomicActionVisuals = false, liveEdit }: Props) {
   const containerRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<Map3DNode | null>(null);
+  const libraryRef = useRef<Maps3DLibrary | null>(null);
   const markersRef = useRef(new Map<string, Marker3DNode>());
+  const liveMarkersRef = useRef(new Map<string, Marker3DNode>());
+  const liveEditRef = useRef(liveEdit);
   const staticLayersRef = useRef<StaticLayerNodes>({ routes: [], controlLines: [], objectives: [], unitLabels: new Map() });
   const actionOverlaysRef = useRef<ActionOverlayStore | null>(null);
   const fallbackPlaybackRef = useRef(runtime);
@@ -397,10 +452,12 @@ export function Google3DTacticalMap({ runtime, playbackRef, units, result, deplo
   const center = useMemo(() => getCenter(result, deployment), [deployment, result]);
   const cameraRange = useMemo(() => getCameraRange(result, center), [center, result]);
   useEffect(() => { fallbackPlaybackRef.current = runtime; }, [runtime]);
+  useEffect(() => { liveEditRef.current = liveEdit; }, [liveEdit]);
   const clock = playbackRef ?? fallbackPlaybackRef;
   const refreshActionOverlays = useCallback((time: number) => {
-    if (actionOverlaysRef.current) updateActionOverlays(actionOverlaysRef.current, result, deployment, time);
-  }, [deployment, result]);
+    if (!actionOverlaysRef.current) return;
+    updateActionOverlays(actionOverlaysRef.current, result, deployment, time, atomicActionVisuals);
+  }, [atomicActionVisuals, deployment, result]);
 
   useEffect(() => {
     setReady(false);
@@ -418,8 +475,19 @@ export function Google3DTacticalMap({ runtime, playbackRef, units, result, deplo
         const map = new library.Map3DElement({ center, range: cameraRange, tilt: 62, heading: 0, mode: 'HYBRID' });
         map.style.width = '100%';
         map.style.height = '100%';
+        map.addEventListener('gmp-click', event => {
+          const editor = liveEditRef.current;
+          const position = (event as MapClickEvent).position;
+          if (!editor || !position || !Number.isFinite(position.lng) || !Number.isFinite(position.lat)) return;
+          if (editor.mode.type === 'place' && editor.mode.item.kind === 'unit') {
+            editor.onPlaceUnit(editor.mode.item, position);
+          } else if (editor.mode.type === 'select') {
+            editor.onSelectUnit(undefined);
+          }
+        });
         containerRef.current.replaceChildren(map);
         mapRef.current = map;
+        libraryRef.current = library;
         actionOverlaysRef.current = createOverlayStore(
           (kind, options) => kind === 'polygon'
             ? new library.Polygon3DElement(options) : new library.Polyline3DElement(options),
@@ -488,7 +556,11 @@ export function Google3DTacticalMap({ runtime, playbackRef, units, result, deplo
           const template = document.createElement('template');
           template.innerHTML = createMilitarySymbolSvg(unit.sidc, get3DUnitSymbolSize(unit.symbolScale), undefined, unit.symbolStandard);
           marker.append(template);
-          marker.addEventListener('gmp-click', () => onSelectUnit(unit.id));
+          marker.addEventListener('gmp-click', event => {
+            event.stopPropagation();
+            liveEditRef.current?.onSelectUnit(undefined);
+            onSelectUnit(unit.id);
+          });
           markersRef.current.set(unit.id, marker);
           staticLayersRef.current.unitLabels.set(marker, unit.name);
           map.append(marker);
@@ -503,6 +575,9 @@ export function Google3DTacticalMap({ runtime, playbackRef, units, result, deplo
     return () => {
       cancelled = true;
       markersRef.current.clear();
+      liveMarkersRef.current.forEach(marker => marker.remove());
+      liveMarkersRef.current.clear();
+      libraryRef.current = null;
       staticLayersRef.current = { routes: [], controlLines: [], objectives: [], unitLabels: new Map() };
       actionOverlaysRef.current?.clear();
       actionOverlaysRef.current = null;
@@ -510,6 +585,40 @@ export function Google3DTacticalMap({ runtime, playbackRef, units, result, deplo
       mapRef.current = null;
     };
   }, [cameraRange, center, clock, deployment, onSelectUnit, refreshActionOverlays, result, units]);
+
+  useEffect(() => {
+    liveMarkersRef.current.forEach(marker => marker.remove());
+    liveMarkersRef.current.clear();
+    const map = mapRef.current;
+    const library = libraryRef.current;
+    if (!ready || !map || !library || !liveEdit) return;
+    for (const unit of liveEdit.units) {
+      const [lng, lat] = getLngLat(unit.position);
+      const selected = unit.id === liveEdit.selectedUnitId;
+      const marker = new library.Marker3DInteractiveElement({
+        position: { lng, lat, altitude: 5 }, altitudeMode: SURFACE_ALTITUDE_MODE,
+        drawsWhenOccluded: true, sizePreserved: true, collisionBehavior: 'REQUIRED', zIndex: selected ? 210 : 110,
+        ...markerText(runtime.tacticalLayers.labels ? unit.designation : undefined),
+      });
+      const template = document.createElement('template');
+      template.innerHTML = createMilitarySymbolSvg(unit.sidc, get3DUnitSymbolSize(unit.symbolScale) + (selected ? 10 : 0), undefined, unit.symbolStandard);
+      marker.append(template);
+      marker.addEventListener('gmp-click', event => {
+        event.stopPropagation();
+        liveEditRef.current?.onSelectUnit(unit.id);
+      });
+      liveMarkersRef.current.set(unit.id, marker);
+      map.append(marker);
+    }
+    return () => {
+      liveMarkersRef.current.forEach(marker => marker.remove());
+      liveMarkersRef.current.clear();
+    };
+  }, [ready, liveEdit?.units, liveEdit?.selectedUnitId, runtime.tacticalLayers.labels]);
+
+  useEffect(() => {
+    if (mapRef.current) mapRef.current.style.cursor = liveEdit?.mode.type === 'place' ? 'crosshair' : '';
+  }, [liveEdit?.mode, ready]);
 
   useEffect(() => {
     const { routes, controlLines, objectives, unitLabels } = staticLayersRef.current;
@@ -577,9 +686,20 @@ export function Google3DTacticalMap({ runtime, playbackRef, units, result, deplo
   }, [runtime.selectedUnitId]);
 
   return (
-    <section className="relative flex-1 overflow-hidden bg-[#101418]">
+    <section className="relative flex-1 overflow-hidden bg-[#101418]" style={liveEdit ? { '--palette-width': 'min(760px, calc(100vw - 32px))' } as CSSProperties : undefined}>
       <div ref={containerRef} className="absolute inset-0" />
-      <div className="pointer-events-none absolute left-6 top-6 z-10 rounded border border-secondary/50 bg-surface/85 px-3 py-2 font-data-mono text-[11px] text-secondary backdrop-blur">GOOGLE 3D · ACTION PLAYBACK</div>
+      <div className={`pointer-events-none absolute z-10 rounded border border-secondary/50 bg-surface/85 px-3 py-2 font-data-mono text-[11px] text-secondary backdrop-blur ${liveEdit ? 'left-4 top-[72px]' : 'left-6 top-6'}`}>GOOGLE 3D · {liveEdit ? 'LIVE UNIT EDIT' : 'ACTION PLAYBACK'}</div>
+      {atomicActionVisuals && ready && <AtomicActionPlaybackOverlay result={result} deployment={deployment} simulationTime={runtime.simulationTime} selectedUnitId={runtime.selectedUnitId} onSelectUnit={onSelectUnit} />}
+      {liveEdit && <>
+        <SymbolPalette unitsOnly mode={liveEdit.mode} onModeChange={liveEdit.onModeChange} isOpen={liveEdit.paletteOpen} onToggle={liveEdit.onTogglePalette} />
+        {liveEdit.selectedUnitId && <UnitPropertiesPanel
+          deployment={{ id: deployment?.id ?? 'live-edit', name: deployment?.name ?? 'Live Edit', mettTcDocumentId: deployment?.mettTcDocumentId ?? '', units: liveEdit.units, objectives: [], tacticalGraphics: [] }}
+          selectedEntityId={liveEdit.selectedUnitId}
+          onChange={liveEdit.onChangeDeployment}
+          onModeChange={liveEdit.onModeChange}
+          onClearSelection={() => liveEdit.onSelectUnit(undefined)}
+        />}
+      </>}
       {!ready && !error && <div className="absolute inset-0 z-20 flex items-center justify-center bg-surface/90 text-sm text-on-surface-variant">Google 3D 지도를 불러오는 중입니다…</div>}
       {error && <div className="absolute inset-0 z-20 flex items-center justify-center bg-surface/95 p-6">
         <div className="max-w-xl rounded border border-error/50 bg-surface-container-high p-6 text-center">

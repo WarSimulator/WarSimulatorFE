@@ -2,6 +2,9 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Icon } from '../../../components/layout/Icon';
 import { buildFinalSimulation, saveFinalSimulation } from '../lib/finalSimulation';
+import demoOffensive from '../../../../plan/ver1/offensive.json';
+import demoDefensive from '../../../../plan/ver1/defensive.json';
+import demoDeployment from '../../../../plan/ver1/unit.json';
 
 type FileKey = 'blueForce' | 'redForce' | 'withdrawal' | 'deployment';
 type SelectedFiles = Partial<Record<FileKey, File>>;
@@ -20,13 +23,22 @@ async function readJson(file: File, tolerateInvalid = false) {
   }
 }
 
-export function SimulationFinalPage({ mapMode = '2d', reportMode = false }: { mapMode?: '2d' | '3d'; reportMode?: boolean }) {
+function demoFile(name: string, payload: unknown) {
+  return new File([JSON.stringify(payload)], name, { type: 'application/json' });
+}
+
+export function SimulationFinalPage({ mapMode = '2d', reportMode = false, demoMode = false, liveEditMode = false }: { mapMode?: '2d' | '3d'; reportMode?: boolean; demoMode?: boolean; liveEditMode?: boolean }) {
   const navigate = useNavigate();
   const [files, setFiles] = useState<SelectedFiles>({});
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const ready = Boolean(files.blueForce && files.redForce && files.deployment);
-  const visibleFields = mapMode === '3d' ? fields.filter(field => field.key !== 'withdrawal') : fields;
+  const demoFields: typeof fields = [
+    { key: 'blueForce', title: '공격 계획', description: 'offensive.json · 아군 공격 행동 계획', icon: 'swords', iconClass: 'text-blue-400', iconFilled: true },
+    { key: 'redForce', title: '수비 계획', description: 'defensive.json · 적군 수비 행동 계획', icon: 'shield', iconClass: 'text-red-400', iconFilled: true },
+    { key: 'deployment', title: '유닛 배치 데이터', description: 'unit.json · 유닛·목표·전술도형과 지도 좌표', icon: 'map' },
+  ];
+  const visibleFields = demoMode ? demoFields : mapMode === '3d' ? fields.filter(field => field.key !== 'withdrawal') : fields;
 
   const start = async () => {
     if (!files.blueForce || !files.redForce || !files.deployment) return;
@@ -44,8 +56,8 @@ export function SimulationFinalPage({ mapMode = '2d', reportMode = false }: { ma
       ]);
       const build = await buildFinalSimulation({ blueForce, redForce, withdrawal, deployment }, { mode: reportMode ? 'report' : 'strict' });
       saveFinalSimulation(build);
-      analysisWindow.location.href = new URL(`/simulations/${build.simulationId}/run?view=analysis`, window.location.origin).href;
-      navigate(`/simulations/${build.simulationId}/run?view=tactical${mapMode === '3d' ? '&map=3d' : ''}`);
+      analysisWindow.location.href = new URL(`/simulations/${build.simulationId}/run?view=analysis${demoMode ? '&visualization=atomic3d' : ''}`, window.location.origin).href;
+      navigate(`/simulations/${build.simulationId}/run?view=tactical${mapMode === '3d' ? '&map=3d' : ''}${demoMode ? '&visualization=atomic3d' : ''}${liveEditMode ? '&edit=live' : ''}`);
     } catch (caught) {
       analysisWindow.close();
       setError(caught instanceof Error ? caught.message : '파일을 처리하지 못했습니다.');
@@ -57,14 +69,17 @@ export function SimulationFinalPage({ mapMode = '2d', reportMode = false }: { ma
     <header className="border-b border-outline-variant pb-4">
       <div className="flex items-center gap-3">
         <span className="flex h-12 w-12 items-center justify-center rounded border border-secondary/40 bg-secondary/10"><Icon name="play_circle" className="text-[28px] text-secondary" filled /></span>
-        <div><h2 className="font-display-lg text-display-lg tracking-tight text-primary">{reportMode ? 'MIL-SIMULATOR 3D REPORT' : mapMode === '3d' ? 'MIL-SIMULATOR 3D' : 'MIL-SIMULATOR FINAL'}</h2><p className="mt-1 text-sm text-on-surface-variant">{reportMode ? '연동 오류를 기록하고 실행 가능한 행동은 Google 3D 전술 지도에서 계속 재생합니다.' : <>AI Planning 팀의 계획과 유닛 배치 파일을 {mapMode === '3d' ? 'Google 3D 전술 지도에서' : '하나의 시뮬레이션으로'} 실행합니다.</>}</p></div>
+        <div><h2 className="font-display-lg text-display-lg tracking-tight text-primary">{liveEditMode ? 'MIL-SIMULATOR 3D + EDIT' : demoMode ? 'MIL-SIMULATOR 3D 데모' : reportMode ? 'MIL-SIMULATOR 3D REPORT' : mapMode === '3d' ? 'MIL-SIMULATOR 3D' : 'MIL-SIMULATOR FINAL'}</h2><p className="mt-1 text-sm text-on-surface-variant">{liveEditMode ? 'Google 3D 시뮬레이션을 재생하면서 팔레트에서 유닛을 골라 지도에 추가합니다.' : demoMode ? '공격·수비 계획과 유닛 배치를 28개 3D 전용 액션 시각화로 실행합니다.' : reportMode ? '연동 오류를 기록하고 실행 가능한 행동은 Google 3D 전술 지도에서 계속 재생합니다.' : <>AI Planning 팀의 계획과 유닛 배치 파일을 {mapMode === '3d' ? 'Google 3D 전술 지도에서' : '하나의 시뮬레이션으로'} 실행합니다.</>}</p></div>
       </div>
     </header>
 
     <section className="rounded border border-outline-variant bg-surface-container p-5">
       <div className="mb-5 flex items-start justify-between gap-6">
         <div><p className="font-label-caps text-xs uppercase tracking-widest text-secondary">INPUT PACKAGE</p><h3 className="mt-1 text-lg font-semibold text-on-surface">AI Planning 결과 파일</h3></div>
-        <div className="rounded border border-outline-variant bg-surface px-3 py-2 font-data-mono text-xs text-on-surface-variant">{mapMode === '3d' ? 'Blue Force + Red Force + 배치 필수' : 'Blue Force + Red Force + 배치 필수 · 후퇴 선택'}</div>
+        <div className="flex flex-wrap justify-end gap-2">
+          {demoMode && <button type="button" onClick={() => { setError(''); setFiles({ blueForce: demoFile('offensive.json', demoOffensive), redForce: demoFile('defensive.json', demoDefensive), deployment: demoFile('unit.json', demoDeployment) }); }} className="rounded border border-primary px-3 py-2 text-xs font-semibold text-primary transition-colors hover:bg-primary/10">제공된 VER1 세트 불러오기</button>}
+          <div className="rounded border border-outline-variant bg-surface px-3 py-2 font-data-mono text-xs text-on-surface-variant">{demoMode ? 'offensive + defensive + unit 필수' : mapMode === '3d' ? 'Blue Force + Red Force + 배치 필수' : 'Blue Force + Red Force + 배치 필수 · 후퇴 선택'}</div>
+        </div>
       </div>
       <div className={`grid gap-4 ${mapMode === '3d' ? 'lg:grid-cols-3' : 'lg:grid-cols-2'}`}>
         {visibleFields.map(field => <label key={field.key} className={`group relative flex cursor-pointer flex-col justify-between rounded border p-4 transition-colors ${mapMode === '3d' ? 'min-h-[316px]' : 'min-h-[150px]'} ${files[field.key] ? 'border-primary bg-primary/5' : 'border-outline-variant bg-surface-container-low hover:border-secondary/70'}`}>
@@ -77,7 +92,7 @@ export function SimulationFinalPage({ mapMode = '2d', reportMode = false }: { ma
     </section>
 
     <section className="flex items-center justify-between gap-6 rounded border border-outline-variant bg-surface-container-low p-5">
-      <div><p className="text-sm font-semibold text-on-surface">{ready ? '실행 준비 완료' : '필수 파일을 선택해 주세요.'}</p><p className="mt-1 text-xs text-on-surface-variant">{reportMode ? 'Start를 누르면 오류를 수집하고, 연결 가능한 행동은 보정하여 재생하며 별도 Report 창에 처리 결과를 표시합니다.' : <>Start를 누르면 파일을 검증하고 Blue Force와 Red Force의 행동을 같은 시간축의 {mapMode === '3d' ? '3D 지도에서' : '지도에서'} 재생합니다.</>}</p></div>
+      <div><p className="text-sm font-semibold text-on-surface">{ready ? '실행 준비 완료' : '필수 파일을 선택해 주세요.'}</p><p className="mt-1 text-xs text-on-surface-variant">{demoMode ? 'Start를 누르면 파일을 검증하고 공격·수비 행동을 3D 전용 액션 디자인으로 재생합니다.' : reportMode ? 'Start를 누르면 오류를 수집하고, 연결 가능한 행동은 보정하여 재생하며 별도 Report 창에 처리 결과를 표시합니다.' : <>Start를 누르면 파일을 검증하고 Blue Force와 Red Force의 행동을 같은 시간축의 {mapMode === '3d' ? '3D 지도에서' : '지도에서'} 재생합니다.</>}</p></div>
       <button disabled={!ready || loading} onClick={start} className="flex min-w-[190px] items-center justify-center gap-2 rounded bg-secondary px-7 py-3 font-label-caps text-sm font-bold text-on-secondary transition-colors enabled:hover:bg-secondary-container disabled:cursor-not-allowed disabled:opacity-35"><Icon name={loading ? 'hourglass_top' : 'play_arrow'} filled />{loading ? 'PROCESSING' : 'START SIMULATION'}</button>
     </section>
   </div>;

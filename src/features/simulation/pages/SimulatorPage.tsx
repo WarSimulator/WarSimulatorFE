@@ -1,6 +1,8 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { createInitialRuntimeState, SIMULATION_PLAYBACK_RATE } from '../lib/runtime';
+import { createGeoPosition } from '../lib/position';
+import { loadLiveEditUnits, saveLiveEditUnits } from '../lib/liveEditUnits';
 import { getDeploymentById } from '../lib/deploymentStorage';
 import { clampResultTime, isUnitEliminated } from '../lib/playback';
 import { getSimulationResult, getSimulationResultDeployment, getSimulationResultUnit, getSimulationResultUnits } from '../lib/simulationResultService';
@@ -16,7 +18,7 @@ import { Google3DTacticalMap } from '../components/Google3DTacticalMap';
 import { UnitDetailPanel } from '../components/UnitDetailPanel';
 import { UnitListPanel } from '../components/UnitListPanel';
 import { SimulationCompatibilityReport } from '../components/SimulationCompatibilityReport';
-import type { SimulationRuntimeState } from '../../../types';
+import type { DeploymentEditorMode, DeploymentPaletteItem, DeploymentSetup, DeploymentUnit, SimulationRuntimeState } from '../../../types';
 
 export function SimulatorPage() {
   const { simulationId } = useParams();
@@ -24,6 +26,8 @@ export function SimulatorPage() {
   const [searchParams] = useSearchParams();
   const viewMode = searchParams.get('view') === 'analysis' ? 'analysis' : 'tactical';
   const mapMode = searchParams.get('map') === '3d' ? '3d' : '2d';
+  const atomicActionVisuals = searchParams.get('visualization') === 'atomic3d';
+  const liveEditMode = mapMode === '3d' && searchParams.get('edit') === 'live';
   const isAnalysisView = viewMode === 'analysis';
   const simulationResult = useMemo(() => getSimulationResult(simulationId), [simulationId]);
   const compatibilityReport = useMemo(() => getFinalSimulationReport(simulationId), [simulationId]);
@@ -51,11 +55,35 @@ export function SimulatorPage() {
     activeTab: isAnalysisView ? 'analysis' : 'map',
   }));
   const [exitDialogOpen, setExitDialogOpen] = useState(false);
+  const [liveUnits, setLiveUnits] = useState<DeploymentUnit[]>(() => liveEditMode ? loadLiveEditUnits(simulationId) : []);
+  const [liveEditorMode, setLiveEditorMode] = useState<DeploymentEditorMode>({ type: 'select' });
+  const [livePaletteOpen, setLivePaletteOpen] = useState(false);
+  const [selectedLiveUnitId, setSelectedLiveUnitId] = useState<string>();
   const lastFrameTimeRef = useRef<number | undefined>(undefined);
   const runtimeRef = useRef(runtime);
   const publishTimeRef = useRef(0);
   const syncChannelRef = useRef<BroadcastChannel | null>(null);
   const syncSourceRef = useRef(crypto.randomUUID());
+  useEffect(() => {
+    if (liveEditMode) saveLiveEditUnits(simulationId, liveUnits);
+  }, [liveEditMode, liveUnits, simulationId]);
+
+  const placeLiveUnit = useCallback((item: Extract<DeploymentPaletteItem, { kind: 'unit' }>, location: { lng: number; lat: number }) => {
+    const id = `unit-${crypto.randomUUID()}`;
+    setLiveUnits(current => {
+      const existing = [...(deployment?.units ?? []), ...current];
+      const count = existing.filter(unit => unit.affiliation === item.affiliation && unit.unitType === item.unitType).length + 1;
+      const designation = `${item.affiliation === 'friendly' ? 'Friendly' : 'Enemy'} ${item.label.split(' / ').at(-1)} ${count}`;
+      return [...current, {
+        id, designation, affiliation: item.affiliation, unitType: item.unitType, echelon: item.echelon,
+        sidc: item.sidc, symbolStandard: item.symbolStandard ?? '2525', position: createGeoPosition(location.lng, location.lat),
+      }];
+    });
+    setSelectedLiveUnitId(id);
+    setLiveEditorMode({ type: 'select' });
+  }, [deployment]);
+
+  const changeLiveDeployment = useCallback((next: DeploymentSetup) => setLiveUnits(next.units), []);
   const publishRuntime = useCallback((next: typeof runtime) => {
     syncChannelRef.current?.postMessage({ type: 'state', source: syncSourceRef.current, runtime: next });
   }, []);
@@ -268,6 +296,21 @@ export function SimulatorPage() {
               result={simulationResult}
               deployment={deployment}
               onSelectUnit={selectUnit}
+              atomicActionVisuals={atomicActionVisuals}
+              liveEdit={liveEditMode ? {
+                units: liveUnits,
+                mode: liveEditorMode,
+                paletteOpen: livePaletteOpen,
+                selectedUnitId: selectedLiveUnitId,
+                onModeChange: setLiveEditorMode,
+                onTogglePalette: () => setLivePaletteOpen(open => {
+                  if (open) setLiveEditorMode({ type: 'select' });
+                  return !open;
+                }),
+                onPlaceUnit: placeLiveUnit,
+                onSelectUnit: setSelectedLiveUnitId,
+                onChangeDeployment: changeLiveDeployment,
+              } : undefined}
             /> : <TacticalMap
               runtime={runtime}
               playbackRef={runtimeRef}

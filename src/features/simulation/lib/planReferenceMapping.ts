@@ -47,6 +47,12 @@ export function resolvePlanReference(deployment: DeploymentSetup | undefined, re
   const latitude = unit?.position.latitude ?? unit?.position.lat;
   if (typeof longitude === 'number' && typeof latitude === 'number') return { longitude, latitude };
   if (deployment) {
+    const objective = deployment.objectives.find((candidate) => candidate.id === reference || candidate.name === reference);
+    const objectiveLongitude = objective?.position.longitude ?? objective?.position.lon;
+    const objectiveLatitude = objective?.position.latitude ?? objective?.position.lat;
+    if (typeof objectiveLongitude === 'number' && typeof objectiveLatitude === 'number') {
+      return { longitude: objectiveLongitude, latitude: objectiveLatitude };
+    }
     const graphicCenter = centerOfGraphic(deployment, reference);
     if (graphicCenter) return graphicCenter;
   }

@@ -13,6 +13,7 @@ type SymbolPaletteProps = {
   onToggle: () => void;
   mode: DeploymentEditorMode;
   onModeChange: (mode: DeploymentEditorMode) => void;
+  unitsOnly?: boolean;
 };
 const PAGE_SIZE = 24;
 const drawTools: Array<{ type: Exclude<TacticalGraphicType, 'mil-task'>; label: string }> = [
@@ -23,7 +24,7 @@ const drawTools: Array<{ type: Exclude<TacticalGraphicType, 'mil-task'>; label: 
 const inputClass = 'min-w-0 w-full rounded border border-outline-variant bg-surface px-2 py-2 font-data-mono text-[13px] text-on-surface outline-none focus:border-secondary';
 const buttonClass = 'rounded border border-outline-variant bg-surface px-2 py-2 font-data-mono text-[13px] text-on-surface hover:border-secondary disabled:opacity-40';
 
-export function SymbolPalette({ mode, onModeChange, isOpen, onToggle }: SymbolPaletteProps) {
+export function SymbolPalette({ mode, onModeChange, isOpen, onToggle, unitsOnly = false }: SymbolPaletteProps) {
   const openButtonRef = useRef<HTMLButtonElement>(null);
   const closeButtonRef = useRef<HTMLButtonElement>(null);
   const previousOpen = useRef(isOpen);
@@ -64,14 +65,15 @@ export function SymbolPalette({ mode, onModeChange, isOpen, onToggle }: SymbolPa
     <>
     {!isOpen && <button ref={openButtonRef} type="button" aria-label="군대부호 사이드바 열기" title="군대부호 사이드바 열기"
       aria-expanded={false} aria-controls="symbol-palette-sidebar" onClick={onToggle}
-      className="absolute left-4 top-4 z-30 flex h-11 w-11 items-center justify-center rounded border border-secondary bg-surface-container text-secondary shadow-lg hover:bg-surface-variant focus-visible:outline focus-visible:outline-2 focus-visible:outline-secondary">
+      className="absolute left-4 top-4 z-30 flex h-11 items-center justify-center gap-2 rounded border border-secondary bg-surface-container px-3 text-secondary shadow-lg hover:bg-surface-variant focus-visible:outline focus-visible:outline-2 focus-visible:outline-secondary">
       <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="2" /><path d="M9 4v16m4-11 3 3-3 3" /></svg>
+      {unitsOnly && <span className="text-xs font-semibold">유닛 추가</span>}
     </button>}
     <aside id="symbol-palette-sidebar" style={{ display: isOpen ? 'flex' : 'none' }}
-      className="absolute bottom-4 left-4 top-4 z-30 w-[var(--palette-width)] flex-col overflow-hidden rounded-lg border border-outline-variant bg-surface-container shadow-xl" aria-label="Symbol palette">
+      className="absolute bottom-4 left-4 top-4 z-30 w-[var(--palette-width)] flex-col overflow-hidden rounded-lg border border-outline-variant bg-surface-container shadow-xl" aria-label={unitsOnly ? '유닛 팔레트' : 'Symbol palette'}>
       <div className="shrink-0 space-y-2 border-b border-outline-variant bg-surface-container-high p-4">
         <div className="flex items-center justify-between">
-          <div><p className="font-label-caps text-sm text-on-surface">SYMBOL PALETTE</p><p className="mt-0.5 text-xs text-on-surface-variant">군대부호 · {symbolCatalog.length.toLocaleString()}개</p></div>
+          <div><p className="font-label-caps text-sm text-on-surface">{unitsOnly ? 'UNIT PALETTE' : 'SYMBOL PALETTE'}</p><p className="mt-0.5 text-xs text-on-surface-variant">군대부호 · {symbolCatalog.length.toLocaleString()}개</p></div>
           <div className="flex items-center gap-3">
           <button className={`${buttonClass} ${mode.type === 'select' ? 'border-secondary text-secondary' : ''}`} onClick={() => onModeChange({ type: 'select' })}>Select / Edit</button>
           <button ref={closeButtonRef} type="button" aria-label="군대부호 사이드바 접기" title="군대부호 사이드바 접기"
@@ -106,12 +108,12 @@ export function SymbolPalette({ mode, onModeChange, isOpen, onToggle }: SymbolPa
         </label>
         </div>
         </div>
-        <div className="grid grid-cols-2 gap-2" role="group" aria-label="팔레트 종류">
+        {!unitsOnly && <div className="grid grid-cols-2 gap-2" role="group" aria-label="팔레트 종류">
           {([{ id: 'symbols', label: '심볼' }, { id: 'draw', label: 'DRAW + 전술 과업' }] as const).map(tab => <button key={tab.id} type="button" aria-pressed={paletteTab === tab.id}
             className={`${buttonClass} ${paletteTab === tab.id ? 'border-secondary bg-secondary/10 text-secondary' : ''}`}
             onClick={() => { setPaletteTab(tab.id); onModeChange({ type: 'select' }); }}>{tab.label}</button>)}
-        </div>
-        <p className="font-data-mono text-[10px] text-on-surface-variant">{paletteTab === 'symbols' ? 'Drag to map, or select then click map.' : '도형 카드를 선택한 뒤 지도에 그리세요. 전술 과업은 번호 순서대로 클릭하세요.'}</p>
+        </div>}
+        <p className="font-data-mono text-[10px] text-on-surface-variant">{unitsOnly ? '유닛을 선택한 뒤 3D 지도의 배치할 지점을 클릭하세요.' : paletteTab === 'symbols' ? 'Drag to map, or select then click map.' : '도형 카드를 선택한 뒤 지도에 그리세요. 전술 과업은 번호 순서대로 클릭하세요.'}</p>
       </div>
       <div hidden={paletteTab !== 'symbols'} className="min-h-0 flex-1 space-y-3 overflow-y-auto overscroll-contain p-4" aria-label="심볼 목록">
         <p role="status" className="font-data-mono text-[10px] text-outline">{filtered.length.toLocaleString()} symbols · Page {currentPage + 1}/{pageCount}</p>
@@ -123,7 +125,7 @@ export function SymbolPalette({ mode, onModeChange, isOpen, onToggle }: SymbolPa
             const selected = mode.type === 'place' && mode.item.kind === 'unit' && mode.item.unitType === item.unitType;
             const parts = definition.label.split(' / ');
             return (
-              <button key={definition.id} draggable aria-pressed={selected} title={`${definition.label}\n${getSymbolCategoryLabel(definition.category)}\n${item.sidc}`} className={`flex w-full min-w-0 cursor-grab items-center gap-3 rounded border bg-surface p-3 text-left hover:border-secondary active:cursor-grabbing ${selected ? 'border-secondary bg-secondary/10' : 'border-outline-variant'}`} onClick={() => onModeChange({ type: 'place', item })} onDragStart={event => dragSymbol(event, definition)}>
+              <button key={definition.id} draggable={!unitsOnly} aria-pressed={selected} title={`${definition.label}\n${getSymbolCategoryLabel(definition.category)}\n${item.sidc}`} className={`flex w-full min-w-0 items-center gap-3 rounded border bg-surface p-3 text-left hover:border-secondary ${unitsOnly ? 'cursor-pointer' : 'cursor-grab active:cursor-grabbing'} ${selected ? 'border-secondary bg-secondary/10' : 'border-outline-variant'}`} onClick={() => onModeChange({ type: 'place', item })} onDragStart={unitsOnly ? undefined : event => dragSymbol(event, definition)}>
                 <span className="flex h-14 w-14 shrink-0 items-center justify-center rounded bg-slate-100 p-1 [&>span]:max-w-full [&_svg]:h-auto [&_svg]:max-h-12 [&_svg]:max-w-full"><MilitarySymbol sidc={item.sidc} size={34} standard={item.symbolStandard} /></span>
                 <span className="min-w-0">
                   <span className="block break-words font-data-mono text-[13px] text-on-surface">{parts.at(-1)}</span>
@@ -138,10 +140,10 @@ export function SymbolPalette({ mode, onModeChange, isOpen, onToggle }: SymbolPa
           <button className={buttonClass} disabled={currentPage === 0} onClick={() => setPage(currentPage - 1)}>Previous</button>
           <button className={buttonClass} disabled={currentPage + 1 >= pageCount} onClick={() => setPage(currentPage + 1)}>Next</button>
         </div>
-        <section className="space-y-2 border-t border-outline-variant pt-3">
+        {!unitsOnly && <section className="space-y-2 border-t border-outline-variant pt-3">
           <h3 className="font-label-caps text-[10px] text-outline">TACTICAL OBJECTS</h3>
           <button draggable className={`${buttonClass} flex w-full items-center gap-2`} onClick={() => onModeChange({ type: 'place', item: { kind: 'objective', label: 'Objective' } })} onDragStart={event => { event.dataTransfer.effectAllowed = 'copy'; event.dataTransfer.setData('application/atlas-palette-item', JSON.stringify({ kind: 'objective', label: 'Objective' })); }}><ObjectiveSymbol size={28} />Objective</button>
-        </section>
+        </section>}
       </div>
       <div hidden={paletteTab !== 'draw'} className="min-h-0 flex-1 space-y-4 overflow-y-auto overscroll-contain p-4" aria-label="DRAW 및 전술 과업 목록">
         {drawCategory !== 'tasks' && <section className="space-y-3">
