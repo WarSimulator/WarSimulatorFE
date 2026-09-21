@@ -381,10 +381,7 @@ export function SimulatorPage() {
                   setRelocatingUnitId(undefined);
                   setLiveEditorMode(mode);
                 },
-                onTogglePalette: () => setLivePaletteOpen(open => {
-                  if (open) setLiveEditorMode({ type: 'select' });
-                  return !open;
-                }),
+                onTogglePalette: () => setLivePaletteOpen(open => !open),
                 onPlaceUnit: placeLiveUnit,
                 onPlaceObjective: placeLiveObjective,
                 onAddGraphic: addLiveGraphic,

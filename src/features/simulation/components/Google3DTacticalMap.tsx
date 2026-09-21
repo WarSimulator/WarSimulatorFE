@@ -453,6 +453,30 @@ function markerText(value?: string) {
   return text ? { label: text, title: text } : {};
 }
 
+function axisArrowCoordinates(points: number[][], scale: number): number[][] | undefined {
+  if (points.length < 2) return undefined;
+  const tip = points[points.length - 1], previous = points[points.length - 2];
+  const cos = Math.cos(tip[1] * Math.PI / 180);
+  const dx = (tip[0] - previous[0]) * cos, dy = tip[1] - previous[1];
+  const length = Math.hypot(dx, dy);
+  if (length === 0 || Math.abs(cos) < 0.0001) return undefined;
+  const size = Math.min(length * 0.3, scale * 0.003 / 111000);
+  const wing = (sign: number) => [tip[0] + (-dx + sign * dy * 0.55) / length * size / cos, tip[1] + (-dy - sign * dx * 0.55) / length * size];
+  return [wing(1), tip, wing(-1)];
+}
+
+function anchoredAxisCoordinates(graphic: TacticalGraphic, editor: LiveEdit | undefined, time: number, result: SimulationResult, deployment?: DeploymentSetup): [number, number][] {
+  if (graphic.geometry.type !== 'LineString') return [];
+  const points = graphic.geometry.coordinates;
+  if (!graphic.sourceUnitId || points.length < 2) return points;
+  const editedUnit = editor?.units.find(unit => unit.id === graphic.sourceUnitId);
+  const source = editedUnit ? getLngLat(editedUnit.position) : (() => {
+    const position = getUnitPositionAtTime(graphic.sourceUnitId!, time, result, deployment);
+    return position ? [position.longitude, position.latitude] as [number, number] : undefined;
+  })();
+  return source ? [source, ...points.slice(1)] : points;
+}
+
 export function Google3DTacticalMap({ runtime, playbackRef, units, result, deployment, onSelectUnit, atomicActionVisuals = false, liveEdit }: Props) {
   const containerRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<Map3DNode | null>(null);
@@ -462,6 +486,8 @@ export function Google3DTacticalMap({ runtime, playbackRef, units, result, deplo
   const liveGraphicsRef = useRef<HTMLElement[]>([]);
   const liveEditRef = useRef(liveEdit);
   const drawPointsRef = useRef<[number, number][]>([]);
+  const axisSourceUnitIdRef = useRef<string | undefined>(undefined);
+  const axisNodesRef = useRef(new Map<string, { line: HTMLElement; arrow: HTMLElement; graphic: TacticalGraphic; start?: [number, number] }>());
   const editingVertexRef = useRef<number | undefined>(undefined);
   const finishDrawingRef = useRef<() => void>(() => {});
   const deleteEditingVertexRef = useRef<() => void>(() => {});
@@ -480,6 +506,7 @@ export function Google3DTacticalMap({ runtime, playbackRef, units, result, deplo
   useEffect(() => { liveEditRef.current = liveEdit; }, [liveEdit]);
   useEffect(() => {
     drawPointsRef.current = [];
+    axisSourceUnitIdRef.current = undefined;
     setDrawPointCount(0);
     editingVertexRef.current = undefined;
     setEditingVertex(undefined);
@@ -496,8 +523,10 @@ export function Google3DTacticalMap({ runtime, playbackRef, units, result, deplo
         const task = getTacticalTask(editor.mode.definitionId);
         if (task && points.length >= task.minPoints && points.length <= task.maxPoints) graphic = createTaskGraphic(task, editor.mode.affiliation, points);
       } else if (editor.mode.type === 'draw' && points.length >= (editor.mode.graphicType === 'area' ? 3 : 2)) {
+        if (editor.mode.graphicType === 'axis' && (!axisSourceUnitIdRef.current || points.length !== 2)) return;
         graphic = {
           id: `graphic-${crypto.randomUUID()}`, type: editor.mode.graphicType, name: LIVE_GRAPHIC_NAMES[editor.mode.graphicType],
+          ...(editor.mode.graphicType === 'axis' ? { sourceUnitId: axisSourceUnitIdRef.current } : {}),
           geometry: editor.mode.graphicType === 'area'
             ? { type: 'Polygon', coordinates: [[...points, points[0]]] }
             : { type: 'LineString', coordinates: points },
@@ -512,6 +541,15 @@ export function Google3DTacticalMap({ runtime, playbackRef, units, result, deplo
     setGraphicError('');
   };
   finishDrawingRef.current = finishDrawing;
+  const selectAxisSource = (unitId: string, position: Position3D) => {
+    const mode = liveEditRef.current?.mode;
+    if (mode?.type !== 'draw' || mode.graphicType !== 'axis' || drawPointsRef.current.length !== 0) return false;
+    if (!Number.isFinite(position.lng) || !Number.isFinite(position.lat)) return false;
+    axisSourceUnitIdRef.current = unitId;
+    drawPointsRef.current = [[position.lng, position.lat]];
+    setDrawPointCount(1);
+    return true;
+  };
   const deleteEditingVertex = () => {
     const editor = liveEditRef.current;
     const mode = editor?.mode;
@@ -540,7 +578,9 @@ export function Google3DTacticalMap({ runtime, playbackRef, units, result, deplo
       if (event.key === 'Enter' && (editor.mode.type === 'draw' || editor.mode.type === 'draw-task')) {
         event.preventDefault(); finishDrawingRef.current();
       } else if (event.key === 'Backspace' && (editor.mode.type === 'draw' || editor.mode.type === 'draw-task')) {
-        event.preventDefault(); drawPointsRef.current = drawPointsRef.current.slice(0, -1); setDrawPointCount(drawPointsRef.current.length);
+        event.preventDefault(); drawPointsRef.current = drawPointsRef.current.slice(0, -1);
+        if (!drawPointsRef.current.length) axisSourceUnitIdRef.current = undefined;
+        setDrawPointCount(drawPointsRef.current.length);
       } else if (event.key === 'Escape') {
         editor.onSelectUnit(undefined); editor.onModeChange({ type: 'select' });
       } else if ((event.key === 'Delete' || event.key === 'Backspace') && editor.mode.type === 'append-geometry' && editingVertexRef.current !== undefined) {
@@ -589,6 +629,19 @@ export function Google3DTacticalMap({ runtime, playbackRef, units, result, deplo
             if (editor.mode.item.kind === 'unit') editor.onPlaceUnit(editor.mode.item, position);
             else editor.onPlaceObjective(position);
           } else if (editor.mode.type === 'draw' || editor.mode.type === 'draw-task') {
+            if (editor.mode.type === 'draw' && editor.mode.graphicType === 'axis') {
+              if (!axisSourceUnitIdRef.current || drawPointsRef.current.length !== 1) return;
+              const [sourceLng, sourceLat] = drawPointsRef.current[0];
+              if (Math.hypot((position.lng - sourceLng) * Math.cos(sourceLat * Math.PI / 180), position.lat - sourceLat) < 0.000001) {
+                setGraphicError('출발 유닛과 다른 도착 지점을 선택하세요.');
+                return;
+              }
+              setGraphicError('');
+              drawPointsRef.current = [drawPointsRef.current[0], [position.lng, position.lat]];
+              setDrawPointCount(2);
+              finishDrawingRef.current();
+              return;
+            }
             drawPointsRef.current = [...drawPointsRef.current, [position.lng, position.lat]];
             setDrawPointCount(drawPointsRef.current.length);
             if (editor.mode.type === 'draw-task') {
@@ -601,6 +654,7 @@ export function Google3DTacticalMap({ runtime, playbackRef, units, result, deplo
             if (!graphic) return;
             const point: [number, number] = [position.lng, position.lat];
             const selectedVertex = editingVertexRef.current;
+            if (graphic.type === 'axis' && graphic.sourceUnitId && selectedVertex !== 1) return;
             if (graphic.geometry.type === 'Polygon') {
               const vertices = graphic.geometry.coordinates[0].slice(0, -1);
               const updated = selectedVertex === undefined ? [...vertices, point] : vertices.map((item, index) => index === selectedVertex ? point : item);
@@ -689,6 +743,7 @@ export function Google3DTacticalMap({ runtime, playbackRef, units, result, deplo
           marker.append(template);
           marker.addEventListener('gmp-click', event => {
             event.stopPropagation();
+            if (selectAxisSource(unit.id, marker.position)) return;
             if (liveEditRef.current) liveEditRef.current.onSelectUnit(unit.id);
             onSelectUnit(unit.id);
           });
@@ -734,9 +789,10 @@ export function Google3DTacticalMap({ runtime, playbackRef, units, result, deplo
       const template = document.createElement('template');
       template.innerHTML = createMilitarySymbolSvg(unit.sidc, get3DUnitSymbolSize(unit.symbolScale) + (selected ? 10 : 0), undefined, unit.symbolStandard);
       marker.append(template);
-      if (liveEdit.relocatingUnitId || liveEdit.mode.type !== 'select') marker.style.pointerEvents = 'none';
+      if (liveEdit.relocatingUnitId || (liveEdit.mode.type !== 'select' && !(liveEdit.mode.type === 'draw' && liveEdit.mode.graphicType === 'axis' && drawPointCount === 0))) marker.style.pointerEvents = 'none';
       marker.addEventListener('gmp-click', event => {
         event.stopPropagation();
+        if (selectAxisSource(unit.id, marker.position)) return;
         liveEditRef.current?.onSelectUnit(unit.id);
       });
       liveMarkersRef.current.set(unit.id, marker);
@@ -746,11 +802,12 @@ export function Google3DTacticalMap({ runtime, playbackRef, units, result, deplo
       liveMarkersRef.current.forEach(marker => marker.remove());
       liveMarkersRef.current.clear();
     };
-  }, [ready, liveEdit?.units, liveEdit?.selectedUnitId, liveEdit?.relocatingUnitId, liveEdit?.mode, runtime.tacticalLayers.labels]);
+  }, [ready, liveEdit?.units, liveEdit?.selectedUnitId, liveEdit?.relocatingUnitId, liveEdit?.mode, runtime.tacticalLayers.labels, drawPointCount]);
 
   useEffect(() => {
     liveGraphicsRef.current.forEach(node => node.remove());
     liveGraphicsRef.current = [];
+    axisNodesRef.current.clear();
     const map = mapRef.current;
     const library = libraryRef.current;
     if (!ready || !map || !library || !liveEdit) return;
@@ -827,20 +884,17 @@ export function Google3DTacticalMap({ runtime, playbackRef, units, result, deplo
           continue;
         }
         const common = { altitudeMode: SURFACE_ALTITUDE_MODE, drawsOccludedSegments: true, strokeColor: color, strokeWidth: selected ? 7 : 4 };
+        const lineCoordinates = graphic.type === 'axis' ? anchoredAxisCoordinates(graphic, liveEdit, runtime.simulationTime, result, deployment) : graphic.geometry.type === 'LineString' ? graphic.geometry.coordinates : [];
         const node = graphic.geometry.type === 'Polygon'
           ? new Polygon({ ...common, path: surfacePath(graphic.geometry.coordinates[0]), fillColor: '#00000000' })
-          : new Line({ ...common, path: surfacePath(graphic.geometry.coordinates), outerColor: '#111827', outerWidth: 0.4 });
+          : new Line({ ...common, path: surfacePath(lineCoordinates), outerColor: '#111827', outerWidth: 0.4 });
         append(node, graphic.id);
-        if (graphic.type === 'axis' && graphic.geometry.type === 'LineString' && graphic.geometry.coordinates.length >= 2) {
-          const points = graphic.geometry.coordinates;
-          const tip = points[points.length - 1], previous = points[points.length - 2];
-          const cos = Math.cos(tip[1] * Math.PI / 180);
-          const dx = (tip[0] - previous[0]) * cos, dy = tip[1] - previous[1];
-          const length = Math.hypot(dx, dy);
-          if (length > 0) {
-            const size = Math.min(length * 0.3, taskScale * 0.003 / 111000);
-            const wing = (sign: number) => [tip[0] + (-dx + sign * dy * 0.55) / length * size / cos, tip[1] + (-dy - sign * dx * 0.55) / length * size];
-            append(new Line({ ...common, path: surfacePath([wing(1), tip, wing(-1)]), outerColor: '#111827', outerWidth: 0.4 }), graphic.id);
+        if (graphic.type === 'axis' && lineCoordinates.length >= 2) {
+          const arrowCoordinates = axisArrowCoordinates(lineCoordinates, taskScale);
+          if (arrowCoordinates) {
+            const arrow = new Line({ ...common, path: surfacePath(arrowCoordinates), outerColor: '#111827', outerWidth: 0.4 });
+            append(arrow, graphic.id);
+            if (graphic.sourceUnitId) axisNodesRef.current.set(graphic.id, { line: node, arrow, graphic, start: lineCoordinates[0] });
           }
         }
       } catch (caught) {
@@ -856,28 +910,31 @@ export function Google3DTacticalMap({ runtime, playbackRef, units, result, deplo
     if (liveEdit.mode.type === 'append-geometry') {
       const graphicId = liveEdit.mode.graphicId;
       const graphic = liveEdit.tacticalGraphics.find(item => item.id === graphicId);
-      const points = graphic?.geometry.type === 'Polygon' ? graphic.geometry.coordinates[0].slice(0, -1) : graphic?.geometry.coordinates ?? [];
+      const points = graphic?.geometry.type === 'Polygon' ? graphic.geometry.coordinates[0].slice(0, -1) : graphic?.type === 'axis' ? anchoredAxisCoordinates(graphic, liveEdit, runtime.simulationTime, result, deployment) : graphic?.geometry.coordinates ?? [];
       points.forEach((point, index) => {
-        const marker = pointMarker(point, String(index + 1), index === editingVertex ? '#ffb95f' : '#ffffff');
-        marker.addEventListener('gmp-click', event => { event.stopPropagation(); editingVertexRef.current = index; setEditingVertex(index); });
+        const anchoredStart = graphic?.type === 'axis' && Boolean(graphic.sourceUnitId) && index === 0;
+        const marker = pointMarker(point, anchoredStart ? 'UNIT' : String(index + 1), index === editingVertex ? '#ffb95f' : '#ffffff');
+        if (anchoredStart) marker.style.pointerEvents = 'none';
+        else marker.addEventListener('gmp-click', event => { event.stopPropagation(); editingVertexRef.current = index; setEditingVertex(index); });
         liveGraphicsRef.current.push(marker);
         map.append(marker);
       });
     }
-    return () => { liveGraphicsRef.current.forEach(node => node.remove()); liveGraphicsRef.current = []; };
-  }, [ready, liveEdit?.objectives, liveEdit?.tacticalGraphics, liveEdit?.selectedUnitId, liveEdit?.mode, drawPointCount, editingVertex, taskScale]);
+    return () => { liveGraphicsRef.current.forEach(node => node.remove()); liveGraphicsRef.current = []; axisNodesRef.current.clear(); };
+  }, [ready, liveEdit?.units, liveEdit?.objectives, liveEdit?.tacticalGraphics, liveEdit?.selectedUnitId, liveEdit?.mode, drawPointCount, editingVertex, taskScale]);
 
   useEffect(() => {
     const replacedIds = new Set(liveEdit?.units.map(unit => unit.id) ?? []);
     const hiddenIds = new Set(liveEdit?.hiddenBaseUnitIds ?? []);
     for (const [id, marker] of markersRef.current) {
       marker.style.display = replacedIds.has(id) || hiddenIds.has(id) ? 'none' : '';
-      marker.style.pointerEvents = liveEdit && (liveEdit.relocatingUnitId || liveEdit.mode.type !== 'select') ? 'none' : '';
+      const axisAwaitingUnit = liveEdit?.mode.type === 'draw' && liveEdit.mode.graphicType === 'axis' && drawPointCount === 0;
+      marker.style.pointerEvents = liveEdit && (liveEdit.relocatingUnitId || (liveEdit.mode.type !== 'select' && !axisAwaitingUnit)) ? 'none' : '';
     }
-  }, [ready, liveEdit?.units, liveEdit?.hiddenBaseUnitIds, liveEdit?.relocatingUnitId, liveEdit?.mode]);
+  }, [ready, liveEdit?.units, liveEdit?.hiddenBaseUnitIds, liveEdit?.relocatingUnitId, liveEdit?.mode, drawPointCount]);
 
   useEffect(() => {
-    if (mapRef.current) mapRef.current.style.cursor = liveEdit?.mode.type === 'place' || liveEdit?.relocatingUnitId ? 'crosshair' : '';
+    if (mapRef.current) mapRef.current.style.cursor = liveEdit?.mode.type === 'place' || liveEdit?.mode.type === 'draw' || liveEdit?.mode.type === 'draw-task' || liveEdit?.relocatingUnitId ? 'crosshair' : '';
   }, [liveEdit?.mode, liveEdit?.relocatingUnitId, ready]);
 
   useEffect(() => {
@@ -926,6 +983,17 @@ export function Google3DTacticalMap({ runtime, playbackRef, units, result, deplo
             previousPositions.set(item.unitId, position);
           }
         }
+        for (const entry of axisNodesRef.current.values()) {
+          const coordinates = anchoredAxisCoordinates(entry.graphic, liveEditRef.current, time, result, deployment);
+          const start = coordinates[0];
+          if (!start || (entry.start?.[0] === start[0] && entry.start?.[1] === start[1])) continue;
+          const surfacePath = (points: number[][]) => toSurfacePath(points.map(([lng, lat]) => ({ lng, lat }))).map(point => ({ ...point, altitude: 3 }));
+          Object.assign(entry.line, { path: surfacePath(coordinates) });
+          const arrow = axisArrowCoordinates(coordinates, taskScale);
+          entry.arrow.style.display = arrow ? '' : 'none';
+          if (arrow) Object.assign(entry.arrow, { path: surfacePath(arrow) });
+          entry.start = start;
+        }
         previousTime = time;
       }
       const jumped = Number.isFinite(lastFrameTime) && (time < lastFrameTime || time - lastFrameTime > 0.25);
@@ -937,7 +1005,7 @@ export function Google3DTacticalMap({ runtime, playbackRef, units, result, deplo
     };
     frame = requestAnimationFrame(tick);
     return () => cancelAnimationFrame(frame);
-  }, [clock, ready, refreshActionOverlays, result, units]);
+  }, [clock, deployment, ready, refreshActionOverlays, result, taskScale, units]);
 
   useEffect(() => {
     for (const [unitId, marker] of markersRef.current) {
@@ -969,8 +1037,8 @@ export function Google3DTacticalMap({ runtime, playbackRef, units, result, deplo
           <button type="button" className="rounded bg-secondary px-3 py-2 text-xs text-on-secondary" onClick={() => liveEdit.onModeChange({ type: 'select' })}>편집 완료</button>
         </div>}
         {(liveEdit.mode.type === 'draw' || liveEdit.mode.type === 'draw-task') && <div className="absolute bottom-5 left-4 z-30 flex gap-2">
-          <span className="rounded border border-outline-variant bg-surface/90 px-3 py-2 font-data-mono text-xs text-on-surface">기준점 {drawPointCount}개</span>
-          <button type="button" disabled={!drawPointCount} className="rounded bg-surface/90 px-3 py-2 text-xs text-on-surface disabled:opacity-40" onClick={() => { drawPointsRef.current = drawPointsRef.current.slice(0, -1); setDrawPointCount(drawPointsRef.current.length); }}>마지막 점 취소</button>
+          <span className="rounded border border-outline-variant bg-surface/90 px-3 py-2 font-data-mono text-xs text-on-surface">{liveEdit.mode.type === 'draw' && liveEdit.mode.graphicType === 'axis' ? drawPointCount === 0 ? 'Axis · 출발 유닛을 클릭하세요' : 'Axis · 도착 지점을 클릭하세요' : `기준점 ${drawPointCount}개`}</span>
+          <button type="button" disabled={!drawPointCount} className="rounded bg-surface/90 px-3 py-2 text-xs text-on-surface disabled:opacity-40" onClick={() => { drawPointsRef.current = drawPointsRef.current.slice(0, -1); if (!drawPointsRef.current.length) axisSourceUnitIdRef.current = undefined; setDrawPointCount(drawPointsRef.current.length); }}>마지막 점 취소</button>
           <button type="button" disabled={drawPointCount < minimumDrawPoints} className="rounded bg-secondary px-3 py-2 text-xs text-on-secondary disabled:opacity-40" onClick={finishDrawing}>그리기 완료</button>
           <button type="button" className="rounded border border-outline-variant bg-surface/90 px-3 py-2 text-xs text-on-surface" onClick={() => liveEdit.onModeChange({ type: 'select' })}>취소</button>
         </div>}

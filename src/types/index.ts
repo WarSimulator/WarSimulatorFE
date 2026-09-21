@@ -384,6 +384,8 @@ export type PolygonGeometry = {
 export type TacticalGraphic = {
   id: string;
   type: TacticalGraphicType;
+  /** In live 3D editing, an Axis can follow its selected departure unit. */
+  sourceUnitId?: string;
   tacticalSymbol?: { definitionId: string; sidc: string; affiliation: DeploymentAffiliation };
   name?: string;
   geometry: LineStringGeometry | PolygonGeometry;
