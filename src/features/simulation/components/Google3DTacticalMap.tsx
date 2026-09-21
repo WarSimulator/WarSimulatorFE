@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties } from 'react';
-import type { AtomicActionEffect, DeploymentEditorMode, DeploymentPaletteItem, DeploymentSetup, DeploymentUnit, ObservationEffect, SimulationResult, SimulationResultPosition, SimulationRuntimeState, SimulationUnit } from '../../../types';
+import type { AtomicActionEffect, DeploymentEditorMode, DeploymentObjective, DeploymentPaletteItem, DeploymentSetup, DeploymentUnit, ObservationEffect, SimulationResult, SimulationResultPosition, SimulationRuntimeState, SimulationUnit, TacticalGraphic, TacticalGraphicType } from '../../../types';
 import { DEFAULT_MAP_CENTER } from '../lib/mapConfig';
 import { graphicColor } from '../lib/graphicColor';
 import { getLngLat } from '../lib/position';
@@ -9,6 +9,8 @@ import { resolvePlanReference } from '../lib/planReferenceMapping';
 import { createMilitarySymbolSvg, get3DUnitSymbolSize } from '../lib/symbolSvg';
 import { createOverlayStore, createOverlaySchedule } from '../lib/google3DOverlayStore';
 import { scannerFillColor, scannerVisualForAffiliation } from '../lib/scannerVisual';
+import { renderTacticalGraphic } from '../lib/renderTacticalGraphic';
+import { createTaskGraphic, getTacticalTask } from '../lib/tacticalTasks';
 import { AtomicActionPlaybackOverlay } from './AtomicActionPlaybackOverlay';
 import { SymbolPalette } from './SymbolPalette';
 import { UnitPropertiesPanel } from './UnitPropertiesPanel';
@@ -16,6 +18,8 @@ type ActionOverlayStore = ReturnType<typeof createOverlayStore>;
 
 type LiveEdit = {
   units: DeploymentUnit[];
+  objectives: DeploymentObjective[];
+  tacticalGraphics: TacticalGraphic[];
   hiddenBaseUnitIds: string[];
   mode: DeploymentEditorMode;
   paletteOpen: boolean;
@@ -24,6 +28,9 @@ type LiveEdit = {
   onModeChange: (mode: DeploymentEditorMode) => void;
   onTogglePalette: () => void;
   onPlaceUnit: (item: Extract<DeploymentPaletteItem, { kind: 'unit' }>, position: Position3D) => void;
+  onPlaceObjective: (position: Position3D) => void;
+  onAddGraphic: (graphic: TacticalGraphic) => void;
+  onUpdateGraphic: (graphic: TacticalGraphic) => void;
   onSelectUnit: (unitId?: string) => void;
   onChangeDeployment: (deployment: DeploymentSetup) => void;
   onSetRelocatingUnit: (unitId?: string) => void;
@@ -78,6 +85,10 @@ const FIRE_ACTIONS = new Set(['Engage', 'Continue to Engage', 'Fight', 'Ambush',
 const AREA_ACTIONS = new Set(['Establish Security', 'Establish Presence', 'Confirm Control', 'Contain', 'Block', 'Clear', 'Seize']);
 const COMBAT_LINK_ALTITUDE_METERS = 600;
 const DEMO_COMBAT_LINK_ALTITUDE_METERS = 80;
+const LIVE_GRAPHIC_NAMES: Record<Exclude<TacticalGraphicType, 'mil-task'>, string> = {
+  route: 'Route Alpha', axis: 'Axis Alpha', 'phase-line': 'PL RED', boundary: 'Boundary Alpha',
+  area: 'Area Alpha', freehand: 'Freehand Alpha',
+};
 const ACTION_COLORS: Record<string, string> = {
   Move: '#ffb95f', Observe: '#66d9ff', Engage: '#ff5d5d', 'Continue to Engage': '#ff7b7b',
   'Establish Security': '#5bd4ff', 'Establish Presence': '#5bd4ff', Confirm: '#b4c5ff',
@@ -448,7 +459,16 @@ export function Google3DTacticalMap({ runtime, playbackRef, units, result, deplo
   const libraryRef = useRef<Maps3DLibrary | null>(null);
   const markersRef = useRef(new Map<string, Marker3DNode>());
   const liveMarkersRef = useRef(new Map<string, Marker3DNode>());
+  const liveGraphicsRef = useRef<HTMLElement[]>([]);
   const liveEditRef = useRef(liveEdit);
+  const drawPointsRef = useRef<[number, number][]>([]);
+  const editingVertexRef = useRef<number | undefined>(undefined);
+  const finishDrawingRef = useRef<() => void>(() => {});
+  const deleteEditingVertexRef = useRef<() => void>(() => {});
+  const [drawPointCount, setDrawPointCount] = useState(0);
+  const [editingVertex, setEditingVertex] = useState<number>();
+  const [graphicError, setGraphicError] = useState('');
+  const [taskScale, setTaskScale] = useState(100000);
   const staticLayersRef = useRef<StaticLayerNodes>({ routes: [], controlLines: [], objectives: [], unitLabels: new Map() });
   const actionOverlaysRef = useRef<ActionOverlayStore | null>(null);
   const fallbackPlaybackRef = useRef(runtime);
@@ -458,6 +478,80 @@ export function Google3DTacticalMap({ runtime, playbackRef, units, result, deplo
   const cameraRange = useMemo(() => getCameraRange(result, center), [center, result]);
   useEffect(() => { fallbackPlaybackRef.current = runtime; }, [runtime]);
   useEffect(() => { liveEditRef.current = liveEdit; }, [liveEdit]);
+  useEffect(() => {
+    drawPointsRef.current = [];
+    setDrawPointCount(0);
+    editingVertexRef.current = undefined;
+    setEditingVertex(undefined);
+    setGraphicError('');
+  }, [liveEdit?.mode.type, liveEdit?.mode.type === 'draw' ? liveEdit.mode.graphicType : liveEdit?.mode.type === 'draw-task' ? liveEdit.mode.definitionId : liveEdit?.mode.type === 'append-geometry' ? liveEdit.mode.graphicId : undefined]);
+
+  const finishDrawing = () => {
+    const editor = liveEditRef.current;
+    const points = drawPointsRef.current;
+    if (!editor) return;
+    let graphic: TacticalGraphic | undefined;
+    try {
+      if (editor.mode.type === 'draw-task') {
+        const task = getTacticalTask(editor.mode.definitionId);
+        if (task && points.length >= task.minPoints && points.length <= task.maxPoints) graphic = createTaskGraphic(task, editor.mode.affiliation, points);
+      } else if (editor.mode.type === 'draw' && points.length >= (editor.mode.graphicType === 'area' ? 3 : 2)) {
+        graphic = {
+          id: `graphic-${crypto.randomUUID()}`, type: editor.mode.graphicType, name: LIVE_GRAPHIC_NAMES[editor.mode.graphicType],
+          geometry: editor.mode.graphicType === 'area'
+            ? { type: 'Polygon', coordinates: [[...points, points[0]]] }
+            : { type: 'LineString', coordinates: points },
+        };
+      }
+    } catch (caught) {
+      setGraphicError(caught instanceof Error ? caught.message : String(caught));
+      return;
+    }
+    if (!graphic) return;
+    editor.onAddGraphic(graphic);
+    setGraphicError('');
+  };
+  finishDrawingRef.current = finishDrawing;
+  const deleteEditingVertex = () => {
+    const editor = liveEditRef.current;
+    const mode = editor?.mode;
+    if (!editor || mode?.type !== 'append-geometry' || editingVertex === undefined) return;
+    const graphic = editor.tacticalGraphics.find(item => item.id === mode.graphicId);
+    if (!graphic) return;
+    const task = getTacticalTask(graphic.tacticalSymbol?.definitionId);
+    const minimum = task?.minPoints ?? (graphic.geometry.type === 'Polygon' ? 3 : 2);
+    if (graphic.geometry.type === 'Polygon') {
+      const points = graphic.geometry.coordinates[0].slice(0, -1);
+      if (points.length <= minimum) return;
+      const next = points.filter((_, index) => index !== editingVertex);
+      editor.onUpdateGraphic({ ...graphic, geometry: { type: 'Polygon', coordinates: [[...next, next[0]]] } });
+    } else {
+      if (graphic.geometry.coordinates.length <= minimum) return;
+      editor.onUpdateGraphic({ ...graphic, geometry: { type: 'LineString', coordinates: graphic.geometry.coordinates.filter((_, index) => index !== editingVertex) } });
+    }
+    editingVertexRef.current = undefined;
+    setEditingVertex(undefined);
+  };
+  deleteEditingVertexRef.current = deleteEditingVertex;
+  useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      const editor = liveEditRef.current;
+      if (!editor || (event.target as HTMLElement)?.closest('input,textarea,select')) return;
+      if (event.key === 'Enter' && (editor.mode.type === 'draw' || editor.mode.type === 'draw-task')) {
+        event.preventDefault(); finishDrawingRef.current();
+      } else if (event.key === 'Backspace' && (editor.mode.type === 'draw' || editor.mode.type === 'draw-task')) {
+        event.preventDefault(); drawPointsRef.current = drawPointsRef.current.slice(0, -1); setDrawPointCount(drawPointsRef.current.length);
+      } else if (event.key === 'Escape') {
+        editor.onSelectUnit(undefined); editor.onModeChange({ type: 'select' });
+      } else if ((event.key === 'Delete' || event.key === 'Backspace') && editor.mode.type === 'append-geometry' && editingVertexRef.current !== undefined) {
+        event.preventDefault(); deleteEditingVertexRef.current();
+      } else if ((event.key === 'Delete' || event.key === 'Backspace') && editor.mode.type === 'select' && editor.selectedUnitId) {
+        event.preventDefault(); editor.onDeleteUnit(editor.selectedUnitId);
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, []);
   const clock = playbackRef ?? fallbackPlaybackRef;
   const refreshActionOverlays = useCallback((time: number) => {
     if (!actionOverlaysRef.current) return;
@@ -478,6 +572,11 @@ export function Google3DTacticalMap({ runtime, playbackRef, units, result, deplo
         const library = await google.maps.importLibrary('maps3d') as Maps3DLibrary;
         if (cancelled || !containerRef.current) return;
         const map = new library.Map3DElement({ center, range: cameraRange, tilt: 62, heading: 0, mode: 'HYBRID' });
+        map.addEventListener('gmp-steadychange', () => {
+          const range = (map as Map3DNode & { range?: number }).range ?? cameraRange;
+          const scale = Math.max(1000, range * 2 * Math.tan(Math.PI / 8) / Math.max(containerRef.current?.clientHeight ?? 600, 1) * (96 / 0.0254));
+          setTaskScale(previous => Math.abs(previous - scale) / previous > 0.1 ? scale : previous);
+        });
         map.style.width = '100%';
         map.style.height = '100%';
         map.addEventListener('gmp-click', event => {
@@ -486,8 +585,33 @@ export function Google3DTacticalMap({ runtime, playbackRef, units, result, deplo
           if (!editor || !position || !Number.isFinite(position.lng) || !Number.isFinite(position.lat)) return;
           if (editor.relocatingUnitId) {
             editor.onMoveUnit(editor.relocatingUnitId, position);
-          } else if (editor.mode.type === 'place' && editor.mode.item.kind === 'unit') {
-            editor.onPlaceUnit(editor.mode.item, position);
+          } else if (editor.mode.type === 'place') {
+            if (editor.mode.item.kind === 'unit') editor.onPlaceUnit(editor.mode.item, position);
+            else editor.onPlaceObjective(position);
+          } else if (editor.mode.type === 'draw' || editor.mode.type === 'draw-task') {
+            drawPointsRef.current = [...drawPointsRef.current, [position.lng, position.lat]];
+            setDrawPointCount(drawPointsRef.current.length);
+            if (editor.mode.type === 'draw-task') {
+              const task = getTacticalTask(editor.mode.definitionId);
+              if (task && drawPointsRef.current.length === task.maxPoints) finishDrawingRef.current();
+            }
+          } else if (editor.mode.type === 'append-geometry') {
+            const graphicId = editor.mode.graphicId;
+            const graphic = editor.tacticalGraphics.find(item => item.id === graphicId);
+            if (!graphic) return;
+            const point: [number, number] = [position.lng, position.lat];
+            const selectedVertex = editingVertexRef.current;
+            if (graphic.geometry.type === 'Polygon') {
+              const vertices = graphic.geometry.coordinates[0].slice(0, -1);
+              const updated = selectedVertex === undefined ? [...vertices, point] : vertices.map((item, index) => index === selectedVertex ? point : item);
+              editor.onUpdateGraphic({ ...graphic, geometry: { type: 'Polygon', coordinates: [[...updated, updated[0]]] } });
+            } else {
+              const points = selectedVertex === undefined ? [...graphic.geometry.coordinates, point] : graphic.geometry.coordinates.map((item, index) => index === selectedVertex ? point : item);
+              const task = getTacticalTask(graphic.tacticalSymbol?.definitionId);
+              if (!task || points.length <= task.maxPoints) editor.onUpdateGraphic({ ...graphic, geometry: { type: 'LineString', coordinates: points } });
+            }
+            editingVertexRef.current = undefined;
+            setEditingVertex(undefined);
           } else if (editor.mode.type === 'select') {
             editor.onSelectUnit(undefined);
           }
@@ -610,7 +734,7 @@ export function Google3DTacticalMap({ runtime, playbackRef, units, result, deplo
       const template = document.createElement('template');
       template.innerHTML = createMilitarySymbolSvg(unit.sidc, get3DUnitSymbolSize(unit.symbolScale) + (selected ? 10 : 0), undefined, unit.symbolStandard);
       marker.append(template);
-      if (liveEdit.relocatingUnitId) marker.style.pointerEvents = 'none';
+      if (liveEdit.relocatingUnitId || liveEdit.mode.type !== 'select') marker.style.pointerEvents = 'none';
       marker.addEventListener('gmp-click', event => {
         event.stopPropagation();
         liveEditRef.current?.onSelectUnit(unit.id);
@@ -622,16 +746,135 @@ export function Google3DTacticalMap({ runtime, playbackRef, units, result, deplo
       liveMarkersRef.current.forEach(marker => marker.remove());
       liveMarkersRef.current.clear();
     };
-  }, [ready, liveEdit?.units, liveEdit?.selectedUnitId, liveEdit?.relocatingUnitId, runtime.tacticalLayers.labels]);
+  }, [ready, liveEdit?.units, liveEdit?.selectedUnitId, liveEdit?.relocatingUnitId, liveEdit?.mode, runtime.tacticalLayers.labels]);
+
+  useEffect(() => {
+    liveGraphicsRef.current.forEach(node => node.remove());
+    liveGraphicsRef.current = [];
+    const map = mapRef.current;
+    const library = libraryRef.current;
+    if (!ready || !map || !library || !liveEdit) return;
+    const append = (node: HTMLElement, id?: string) => {
+      if (id && liveEdit.mode.type === 'select') node.addEventListener('gmp-click', event => {
+        event.stopPropagation();
+        liveEditRef.current?.onSelectUnit(id);
+      });
+      else node.style.pointerEvents = 'none';
+      liveGraphicsRef.current.push(node);
+      map.append(node);
+    };
+    const surfacePath = (coordinates: number[][]) => toSurfacePath(coordinates.map(([lng, lat]) => ({ lng, lat })))
+      .map(point => ({ ...point, altitude: 3 }));
+    const pointMarker = (point: number[], label: string, color = '#ffb95f') => {
+      const marker = new library.Marker3DInteractiveElement({
+        position: { lng: point[0], lat: point[1], altitude: 5 }, altitudeMode: SURFACE_ALTITUDE_MODE,
+        drawsWhenOccluded: true, sizePreserved: true, zIndex: 160,
+      });
+      const template = document.createElement('template');
+      const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+      svg.setAttribute('width', String(Math.max(36, label.length * 15 + 16)));
+      svg.setAttribute('height', '32');
+      const text = document.createElementNS(svg.namespaceURI, 'text');
+      text.setAttribute('x', '50%'); text.setAttribute('y', '23'); text.setAttribute('text-anchor', 'middle');
+      text.setAttribute('font-size', '17'); text.setAttribute('font-weight', 'bold');
+      text.setAttribute('fill', color); text.setAttribute('stroke', '#111827');
+      text.setAttribute('stroke-width', '4'); text.setAttribute('paint-order', 'stroke');
+      text.textContent = label;
+      svg.append(text); template.content.append(svg);
+      marker.append(template);
+      return marker;
+    };
+    for (const objective of liveEdit.objectives) {
+      const [lng, lat] = getLngLat(objective.position);
+      const marker = pointMarker([lng, lat], `OBJ · ${objective.name}`, '#80d8ff');
+      append(marker, objective.id);
+    }
+    for (const graphic of liveEdit.tacticalGraphics) {
+      const selected = graphic.id === liveEdit.selectedUnitId;
+      const color = graphicColor(graphic);
+      const Line = liveEdit.mode.type === 'select' ? library.Polyline3DInteractiveElement : library.Polyline3DElement;
+      const Polygon = liveEdit.mode.type === 'select' ? library.Polygon3DInteractiveElement : library.Polygon3DElement;
+      try {
+        if (graphic.type === 'mil-task') {
+          const task = getTacticalTask(graphic.tacticalSymbol?.definitionId);
+          const taskColor = graphic.tacticalSymbol?.affiliation === 'enemy' ? '#ff7777' : '#80d8ff';
+          if (task?.minPoints === 1 && task.maxPoints === 1 && graphic.geometry.type === 'LineString') {
+            const [lng, lat] = graphic.geometry.coordinates[0];
+            const marker = new library.Marker3DInteractiveElement({ position: { lng, lat, altitude: 5 }, altitudeMode: SURFACE_ALTITUDE_MODE, drawsWhenOccluded: true, sizePreserved: true, zIndex: selected ? 180 : 120 });
+            const template = document.createElement('template');
+            template.innerHTML = createMilitarySymbolSvg(graphic.tacticalSymbol!.sidc, selected ? 58 : 48);
+            marker.append(template);
+            append(marker, graphic.id);
+          } else {
+            for (const feature of renderTacticalGraphic(graphic, taskScale)) {
+              const geometry = feature.geometry;
+              const line = (points: number[][]) => append(new Line({ path: surfacePath(points), altitudeMode: SURFACE_ALTITUDE_MODE, drawsOccludedSegments: true, strokeColor: taskColor, strokeWidth: selected ? 7 : 4, outerColor: '#111827', outerWidth: 0.4 }), graphic.id);
+              if (geometry.type === 'LineString') line(geometry.coordinates);
+              else if (geometry.type === 'MultiLineString') geometry.coordinates.forEach(line);
+              else if (geometry.type === 'Polygon' || geometry.type === 'MultiPolygon') {
+                const polygons = geometry.type === 'Polygon' ? [geometry.coordinates] : geometry.coordinates;
+                for (const rings of polygons) {
+                  append(new Polygon({ path: surfacePath(rings[0]), altitudeMode: SURFACE_ALTITUDE_MODE, drawsOccludedSegments: true, fillColor: `${taskColor}55`, strokeColor: taskColor, strokeWidth: selected ? 7 : 4 }), graphic.id);
+                  rings.forEach(line);
+                }
+              } else if (geometry.type === 'Point' && feature.properties?.label) append(pointMarker(geometry.coordinates, String(feature.properties.label), taskColor), graphic.id);
+            }
+          }
+          continue;
+        }
+        if (graphic.type === 'phase-line' && graphic.geometry.type === 'LineString') {
+          createPhaseLineNodes(library, graphic.geometry.coordinates.map(([lng, lat]) => ({ lng, lat })), graphic.name ?? 'Phase Line', selected ? 7 : 4, { interactive: liveEdit.mode.type === 'select', strokeColor: color }).forEach(node => append(node, graphic.id));
+          continue;
+        }
+        const common = { altitudeMode: SURFACE_ALTITUDE_MODE, drawsOccludedSegments: true, strokeColor: color, strokeWidth: selected ? 7 : 4 };
+        const node = graphic.geometry.type === 'Polygon'
+          ? new Polygon({ ...common, path: surfacePath(graphic.geometry.coordinates[0]), fillColor: '#00000000' })
+          : new Line({ ...common, path: surfacePath(graphic.geometry.coordinates), outerColor: '#111827', outerWidth: 0.4 });
+        append(node, graphic.id);
+        if (graphic.type === 'axis' && graphic.geometry.type === 'LineString' && graphic.geometry.coordinates.length >= 2) {
+          const points = graphic.geometry.coordinates;
+          const tip = points[points.length - 1], previous = points[points.length - 2];
+          const cos = Math.cos(tip[1] * Math.PI / 180);
+          const dx = (tip[0] - previous[0]) * cos, dy = tip[1] - previous[1];
+          const length = Math.hypot(dx, dy);
+          if (length > 0) {
+            const size = Math.min(length * 0.3, taskScale * 0.003 / 111000);
+            const wing = (sign: number) => [tip[0] + (-dx + sign * dy * 0.55) / length * size / cos, tip[1] + (-dy - sign * dx * 0.55) / length * size];
+            append(new Line({ ...common, path: surfacePath([wing(1), tip, wing(-1)]), outerColor: '#111827', outerWidth: 0.4 }), graphic.id);
+          }
+        }
+      } catch (caught) {
+        setGraphicError(caught instanceof Error ? caught.message : String(caught));
+      }
+    }
+    if (liveEdit.mode.type === 'draw' || liveEdit.mode.type === 'draw-task') {
+      const points = drawPointsRef.current;
+      points.forEach((point, index) => append(pointMarker(point, `● ${index + 1}`)));
+      if (points.length >= 2) append(new library.Polyline3DElement({ path: surfacePath(points), altitudeMode: SURFACE_ALTITUDE_MODE, drawsOccludedSegments: true, strokeColor: '#ffb95f', strokeWidth: 5 }));
+      if (liveEdit.mode.type === 'draw' && liveEdit.mode.graphicType === 'area' && points.length >= 3) append(new library.Polygon3DElement({ path: surfacePath([...points, points[0]]), altitudeMode: SURFACE_ALTITUDE_MODE, drawsOccludedSegments: true, fillColor: '#00000000', strokeColor: '#ffb95f', strokeWidth: 4 }));
+    }
+    if (liveEdit.mode.type === 'append-geometry') {
+      const graphicId = liveEdit.mode.graphicId;
+      const graphic = liveEdit.tacticalGraphics.find(item => item.id === graphicId);
+      const points = graphic?.geometry.type === 'Polygon' ? graphic.geometry.coordinates[0].slice(0, -1) : graphic?.geometry.coordinates ?? [];
+      points.forEach((point, index) => {
+        const marker = pointMarker(point, String(index + 1), index === editingVertex ? '#ffb95f' : '#ffffff');
+        marker.addEventListener('gmp-click', event => { event.stopPropagation(); editingVertexRef.current = index; setEditingVertex(index); });
+        liveGraphicsRef.current.push(marker);
+        map.append(marker);
+      });
+    }
+    return () => { liveGraphicsRef.current.forEach(node => node.remove()); liveGraphicsRef.current = []; };
+  }, [ready, liveEdit?.objectives, liveEdit?.tacticalGraphics, liveEdit?.selectedUnitId, liveEdit?.mode, drawPointCount, editingVertex, taskScale]);
 
   useEffect(() => {
     const replacedIds = new Set(liveEdit?.units.map(unit => unit.id) ?? []);
     const hiddenIds = new Set(liveEdit?.hiddenBaseUnitIds ?? []);
     for (const [id, marker] of markersRef.current) {
       marker.style.display = replacedIds.has(id) || hiddenIds.has(id) ? 'none' : '';
-      marker.style.pointerEvents = liveEdit?.relocatingUnitId ? 'none' : '';
+      marker.style.pointerEvents = liveEdit && (liveEdit.relocatingUnitId || liveEdit.mode.type !== 'select') ? 'none' : '';
     }
-  }, [ready, liveEdit?.units, liveEdit?.hiddenBaseUnitIds, liveEdit?.relocatingUnitId]);
+  }, [ready, liveEdit?.units, liveEdit?.hiddenBaseUnitIds, liveEdit?.relocatingUnitId, liveEdit?.mode]);
 
   useEffect(() => {
     if (mapRef.current) mapRef.current.style.cursor = liveEdit?.mode.type === 'place' || liveEdit?.relocatingUnitId ? 'crosshair' : '';
@@ -702,19 +945,37 @@ export function Google3DTacticalMap({ runtime, playbackRef, units, result, deplo
     }
   }, [runtime.selectedUnitId]);
 
+  const editingGraphicId = liveEdit?.mode.type === 'append-geometry' ? liveEdit.mode.graphicId : undefined;
+  const editingGraphic = liveEdit?.tacticalGraphics.find(graphic => graphic.id === editingGraphicId);
+  const editingPointCount = editingGraphic?.geometry.type === 'Polygon' ? editingGraphic.geometry.coordinates[0].length - 1 : editingGraphic?.geometry.coordinates.length ?? 0;
+  const editingMinimumPoints = editingGraphic ? getTacticalTask(editingGraphic.tacticalSymbol?.definitionId)?.minPoints ?? (editingGraphic.geometry.type === 'Polygon' ? 3 : 2) : 0;
+  const minimumDrawPoints = liveEdit?.mode.type === 'draw' ? liveEdit.mode.graphicType === 'area' ? 3 : 2 : liveEdit?.mode.type === 'draw-task' ? getTacticalTask(liveEdit.mode.definitionId)?.minPoints ?? Infinity : Infinity;
+  const selectedMovable = Boolean(liveEdit?.selectedUnitId && (liveEdit.units.some(unit => unit.id === liveEdit.selectedUnitId) || deployment?.units.some(unit => unit.id === liveEdit.selectedUnitId) || liveEdit.objectives.some(objective => objective.id === liveEdit.selectedUnitId)));
   return (
     <section className="relative flex-1 overflow-hidden bg-[#101418]" style={liveEdit ? { '--palette-width': 'min(760px, calc(100vw - 32px))' } as CSSProperties : undefined}>
       <div ref={containerRef} className="absolute inset-0" />
-      <div className={`pointer-events-none absolute z-10 rounded border border-secondary/50 bg-surface/85 px-3 py-2 font-data-mono text-[11px] text-secondary backdrop-blur ${liveEdit ? 'left-4 top-[72px]' : 'left-6 top-6'}`}>GOOGLE 3D · {liveEdit ? 'LIVE UNIT EDIT' : 'ACTION PLAYBACK'}</div>
+      <div className={`pointer-events-none absolute z-10 rounded border border-secondary/50 bg-surface/85 px-3 py-2 font-data-mono text-[11px] text-secondary backdrop-blur ${liveEdit ? 'left-4 top-[72px]' : 'left-6 top-6'}`}>GOOGLE 3D · {liveEdit ? 'LIVE EDIT' : 'ACTION PLAYBACK'}</div>
       {atomicActionVisuals && ready && <AtomicActionPlaybackOverlay result={result} deployment={deployment} simulationTime={runtime.simulationTime} selectedUnitId={runtime.selectedUnitId} onSelectUnit={onSelectUnit} />}
       {liveEdit && <>
-        <SymbolPalette unitsOnly mode={liveEdit.mode} onModeChange={liveEdit.onModeChange} isOpen={liveEdit.paletteOpen} onToggle={liveEdit.onTogglePalette} />
-        {liveEdit.selectedUnitId && <div className="absolute bottom-5 left-4 z-30 flex gap-2">
-          <button type="button" className={`rounded border px-3 py-2 font-data-mono text-xs shadow ${liveEdit.relocatingUnitId ? 'border-secondary bg-secondary text-on-secondary' : 'border-outline-variant bg-surface/90 text-on-surface'}`} onClick={() => liveEdit.onSetRelocatingUnit(liveEdit.relocatingUnitId ? undefined : liveEdit.selectedUnitId)}>{liveEdit.relocatingUnitId ? '이동할 지도 위치 클릭' : '유닛 위치 이동'}</button>
-          <button type="button" className="rounded border border-error/60 bg-surface/90 px-3 py-2 font-data-mono text-xs text-error shadow" onClick={() => liveEdit.onDeleteUnit(liveEdit.selectedUnitId!)}>선택 유닛 삭제</button>
+        <SymbolPalette mode={liveEdit.mode} onModeChange={liveEdit.onModeChange} isOpen={liveEdit.paletteOpen} onToggle={liveEdit.onTogglePalette} />
+        {graphicError && <p role="alert" className="absolute left-4 top-16 z-30 max-w-lg rounded bg-surface/95 p-3 text-sm text-error">{graphicError}</p>}
+        {liveEdit.mode.type === 'select' && liveEdit.selectedUnitId && <div className="absolute bottom-5 left-4 z-30 flex gap-2">
+          {selectedMovable && <button type="button" className={`rounded border px-3 py-2 font-data-mono text-xs shadow ${liveEdit.relocatingUnitId ? 'border-secondary bg-secondary text-on-secondary' : 'border-outline-variant bg-surface/90 text-on-surface'}`} onClick={() => liveEdit.onSetRelocatingUnit(liveEdit.relocatingUnitId ? undefined : liveEdit.selectedUnitId)}>{liveEdit.relocatingUnitId ? '이동할 지도 위치 클릭' : '선택 항목 이동'}</button>}
+          <button type="button" className="rounded border border-error/60 bg-surface/90 px-3 py-2 font-data-mono text-xs text-error shadow" onClick={() => liveEdit.onDeleteUnit(liveEdit.selectedUnitId!)}>선택 항목 삭제</button>
+        </div>}
+        {liveEdit.mode.type === 'append-geometry' && <div className="absolute bottom-5 left-4 z-30 flex gap-2">
+          <span className="rounded border border-outline-variant bg-surface/90 px-3 py-2 font-data-mono text-xs text-on-surface">{editingVertex === undefined ? '점을 누르면 이동 · 빈 지도 클릭은 점 추가' : `${editingVertex + 1}번 점 선택 · 새 위치 클릭`}</span>
+          <button type="button" disabled={editingVertex === undefined || editingPointCount <= editingMinimumPoints} className="rounded border border-error/60 bg-surface/90 px-3 py-2 text-xs text-error disabled:opacity-40" onClick={deleteEditingVertex}>선택 점 삭제</button>
+          <button type="button" className="rounded bg-secondary px-3 py-2 text-xs text-on-secondary" onClick={() => liveEdit.onModeChange({ type: 'select' })}>편집 완료</button>
+        </div>}
+        {(liveEdit.mode.type === 'draw' || liveEdit.mode.type === 'draw-task') && <div className="absolute bottom-5 left-4 z-30 flex gap-2">
+          <span className="rounded border border-outline-variant bg-surface/90 px-3 py-2 font-data-mono text-xs text-on-surface">기준점 {drawPointCount}개</span>
+          <button type="button" disabled={!drawPointCount} className="rounded bg-surface/90 px-3 py-2 text-xs text-on-surface disabled:opacity-40" onClick={() => { drawPointsRef.current = drawPointsRef.current.slice(0, -1); setDrawPointCount(drawPointsRef.current.length); }}>마지막 점 취소</button>
+          <button type="button" disabled={drawPointCount < minimumDrawPoints} className="rounded bg-secondary px-3 py-2 text-xs text-on-secondary disabled:opacity-40" onClick={finishDrawing}>그리기 완료</button>
+          <button type="button" className="rounded border border-outline-variant bg-surface/90 px-3 py-2 text-xs text-on-surface" onClick={() => liveEdit.onModeChange({ type: 'select' })}>취소</button>
         </div>}
         {liveEdit.selectedUnitId && <UnitPropertiesPanel
-          deployment={{ id: deployment?.id ?? 'live-edit', name: deployment?.name ?? 'Live Edit', mettTcDocumentId: deployment?.mettTcDocumentId ?? '', units: [...(deployment?.units ?? []).filter(unit => !liveEdit.hiddenBaseUnitIds.includes(unit.id) && !liveEdit.units.some(edited => edited.id === unit.id)), ...liveEdit.units], objectives: [], tacticalGraphics: [] }}
+          deployment={{ id: deployment?.id ?? 'live-edit', name: deployment?.name ?? 'Live Edit', mettTcDocumentId: deployment?.mettTcDocumentId ?? '', units: [...(deployment?.units ?? []).filter(unit => !liveEdit.hiddenBaseUnitIds.includes(unit.id) && !liveEdit.units.some(edited => edited.id === unit.id)), ...liveEdit.units], objectives: liveEdit.objectives, tacticalGraphics: liveEdit.tacticalGraphics }}
           selectedEntityId={liveEdit.selectedUnitId}
           onChange={liveEdit.onChangeDeployment}
           onModeChange={liveEdit.onModeChange}

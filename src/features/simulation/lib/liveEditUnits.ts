@@ -1,7 +1,8 @@
-import type { DeploymentUnit } from '../../../types';
+import type { DeploymentObjective, DeploymentUnit, TacticalGraphic } from '../../../types';
 
 const KEY_PREFIX = 'atlas-defense.simulation-live-edit.';
 const HIDDEN_KEY_PREFIX = 'atlas-defense.simulation-live-edit-hidden.';
+const OBJECT_KEY_PREFIX = 'atlas-defense.simulation-live-edit-objects.';
 
 export function loadLiveEditUnits(simulationId?: string): DeploymentUnit[] {
   if (!simulationId) return [];
@@ -43,6 +44,30 @@ export function saveHiddenLiveEditUnitIds(simulationId: string | undefined, ids:
   if (!simulationId) return;
   try {
     window.localStorage.setItem(`${HIDDEN_KEY_PREFIX}${simulationId}`, JSON.stringify(ids));
+  } catch {
+    // Keep the current editor usable if browser storage is unavailable.
+  }
+}
+
+export type LiveEditObjects = { objectives: DeploymentObjective[]; tacticalGraphics: TacticalGraphic[] };
+
+export function loadLiveEditObjects(simulationId?: string): LiveEditObjects {
+  if (!simulationId) return { objectives: [], tacticalGraphics: [] };
+  try {
+    const stored = JSON.parse(window.localStorage.getItem(`${OBJECT_KEY_PREFIX}${simulationId}`) ?? '{}') as Partial<LiveEditObjects>;
+    return {
+      objectives: Array.isArray(stored.objectives) ? stored.objectives.filter(item => item && typeof item.id === 'string' && item.position) : [],
+      tacticalGraphics: Array.isArray(stored.tacticalGraphics) ? stored.tacticalGraphics.filter(item => item && typeof item.id === 'string' && item.geometry) : [],
+    };
+  } catch {
+    return { objectives: [], tacticalGraphics: [] };
+  }
+}
+
+export function saveLiveEditObjects(simulationId: string | undefined, objects: LiveEditObjects) {
+  if (!simulationId) return;
+  try {
+    window.localStorage.setItem(`${OBJECT_KEY_PREFIX}${simulationId}`, JSON.stringify(objects));
   } catch {
     // Keep the current editor usable if browser storage is unavailable.
   }

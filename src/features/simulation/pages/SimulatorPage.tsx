@@ -2,7 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { createInitialRuntimeState, SIMULATION_PLAYBACK_RATE } from '../lib/runtime';
 import { createGeoPosition } from '../lib/position';
-import { loadHiddenLiveEditUnitIds, loadLiveEditUnits, saveHiddenLiveEditUnitIds, saveLiveEditUnits } from '../lib/liveEditUnits';
+import { loadHiddenLiveEditUnitIds, loadLiveEditObjects, loadLiveEditUnits, saveHiddenLiveEditUnitIds, saveLiveEditObjects, saveLiveEditUnits } from '../lib/liveEditUnits';
 import { getDeploymentById } from '../lib/deploymentStorage';
 import { clampResultTime, isUnitEliminated } from '../lib/playback';
 import { getSimulationResult, getSimulationResultDeployment, getSimulationResultUnit, getSimulationResultUnits } from '../lib/simulationResultService';
@@ -18,7 +18,7 @@ import { Google3DTacticalMap } from '../components/Google3DTacticalMap';
 import { UnitDetailPanel } from '../components/UnitDetailPanel';
 import { UnitListPanel } from '../components/UnitListPanel';
 import { SimulationCompatibilityReport } from '../components/SimulationCompatibilityReport';
-import type { DeploymentEditorMode, DeploymentPaletteItem, DeploymentSetup, DeploymentUnit, SimulationRuntimeState } from '../../../types';
+import type { DeploymentEditorMode, DeploymentObjective, DeploymentPaletteItem, DeploymentSetup, DeploymentUnit, SimulationRuntimeState, TacticalGraphic } from '../../../types';
 
 export function SimulatorPage() {
   const { simulationId } = useParams();
@@ -57,6 +57,7 @@ export function SimulatorPage() {
   const [exitDialogOpen, setExitDialogOpen] = useState(false);
   const [liveUnits, setLiveUnits] = useState<DeploymentUnit[]>(() => liveEditMode ? loadLiveEditUnits(simulationId) : []);
   const [hiddenBaseUnitIds, setHiddenBaseUnitIds] = useState<string[]>(() => liveEditMode ? loadHiddenLiveEditUnitIds(simulationId) : []);
+  const [liveObjects, setLiveObjects] = useState(() => liveEditMode ? loadLiveEditObjects(simulationId) : { objectives: [] as DeploymentObjective[], tacticalGraphics: [] as TacticalGraphic[] });
   const [liveEditorMode, setLiveEditorMode] = useState<DeploymentEditorMode>({ type: 'select' });
   const [livePaletteOpen, setLivePaletteOpen] = useState(false);
   const [selectedLiveUnitId, setSelectedLiveUnitId] = useState<string>();
@@ -72,6 +73,9 @@ export function SimulatorPage() {
   useEffect(() => {
     if (liveEditMode) saveHiddenLiveEditUnitIds(simulationId, hiddenBaseUnitIds);
   }, [hiddenBaseUnitIds, liveEditMode, simulationId]);
+  useEffect(() => {
+    if (liveEditMode) saveLiveEditObjects(simulationId, liveObjects);
+  }, [liveEditMode, liveObjects, simulationId]);
 
   const placeLiveUnit = useCallback((item: Extract<DeploymentPaletteItem, { kind: 'unit' }>, location: { lng: number; lat: number }) => {
     const id = `unit-${crypto.randomUUID()}`;
@@ -91,6 +95,14 @@ export function SimulatorPage() {
   const changeLiveDeployment = useCallback((next: DeploymentSetup) => {
     const id = selectedLiveUnitId;
     if (!id) return;
+    if (liveObjects.objectives.some(objective => objective.id === id)) {
+      setLiveObjects(current => ({ ...current, objectives: next.objectives.filter(objective => current.objectives.some(item => item.id === objective.id)) }));
+      return;
+    }
+    if (liveObjects.tacticalGraphics.some(graphic => graphic.id === id)) {
+      setLiveObjects(current => ({ ...current, tacticalGraphics: next.tacticalGraphics.filter(graphic => current.tacticalGraphics.some(item => item.id === graphic.id)) }));
+      return;
+    }
     const updated = next.units.find(unit => unit.id === id);
     const isBaseUnit = deployment?.units.some(unit => unit.id === id) ?? false;
     if (updated) {
@@ -100,18 +112,41 @@ export function SimulatorPage() {
       if (isBaseUnit) setHiddenBaseUnitIds(current => current.includes(id) ? current : [...current, id]);
       setRelocatingUnitId(undefined);
     }
-  }, [deployment, selectedLiveUnitId]);
+  }, [deployment, liveObjects, selectedLiveUnitId]);
+
+  const placeLiveObjective = useCallback((location: { lng: number; lat: number }) => {
+    const id = `objective-${crypto.randomUUID()}`;
+    setLiveObjects(current => ({ ...current, objectives: [...current.objectives, { id, name: `Objective ${(deployment?.objectives.length ?? 0) + current.objectives.length + 1}`, position: createGeoPosition(location.lng, location.lat) }] }));
+    setSelectedLiveUnitId(id);
+    setLiveEditorMode({ type: 'select' });
+  }, [deployment]);
+
+  const addLiveGraphic = useCallback((graphic: TacticalGraphic) => {
+    setLiveObjects(current => ({ ...current, tacticalGraphics: [...current.tacticalGraphics, graphic] }));
+    setSelectedLiveUnitId(graphic.id);
+    setLiveEditorMode({ type: 'select' });
+  }, []);
+
+  const updateLiveGraphic = useCallback((graphic: TacticalGraphic) => {
+    setLiveObjects(current => ({ ...current, tacticalGraphics: current.tacticalGraphics.map(item => item.id === graphic.id ? graphic : item) }));
+  }, []);
 
   const moveLiveUnit = useCallback((id: string, location: { lng: number; lat: number }) => {
+    if (liveObjects.objectives.some(objective => objective.id === id)) {
+      setLiveObjects(current => ({ ...current, objectives: current.objectives.map(objective => objective.id === id ? { ...objective, position: createGeoPosition(location.lng, location.lat) } : objective) }));
+      setRelocatingUnitId(undefined);
+      return;
+    }
     setLiveUnits(current => {
       const unit = current.find(item => item.id === id) ?? deployment?.units.find(item => item.id === id);
       if (!unit) return current;
       return [...current.filter(item => item.id !== id), { ...unit, position: createGeoPosition(location.lng, location.lat) }];
     });
     setRelocatingUnitId(undefined);
-  }, [deployment]);
+  }, [deployment, liveObjects.objectives]);
   const deleteLiveUnit = useCallback((id: string) => {
     setLiveUnits(current => current.filter(unit => unit.id !== id));
+    setLiveObjects(current => ({ objectives: current.objectives.filter(objective => objective.id !== id), tacticalGraphics: current.tacticalGraphics.filter(graphic => graphic.id !== id) }));
     if (deployment?.units.some(unit => unit.id === id)) {
       setHiddenBaseUnitIds(current => current.includes(id) ? current : [...current, id]);
     }
@@ -334,17 +369,26 @@ export function SimulatorPage() {
               atomicActionVisuals={atomicActionVisuals}
               liveEdit={liveEditMode ? {
                 units: liveUnits,
+                objectives: liveObjects.objectives,
+                tacticalGraphics: liveObjects.tacticalGraphics,
                 hiddenBaseUnitIds,
                 mode: liveEditorMode,
                 paletteOpen: livePaletteOpen,
                 selectedUnitId: selectedLiveUnitId,
                 relocatingUnitId,
-                onModeChange: setLiveEditorMode,
+                onModeChange: mode => {
+                  if (mode.type === 'place' || mode.type === 'draw' || mode.type === 'draw-task') setSelectedLiveUnitId(undefined);
+                  setRelocatingUnitId(undefined);
+                  setLiveEditorMode(mode);
+                },
                 onTogglePalette: () => setLivePaletteOpen(open => {
                   if (open) setLiveEditorMode({ type: 'select' });
                   return !open;
                 }),
                 onPlaceUnit: placeLiveUnit,
+                onPlaceObjective: placeLiveObjective,
+                onAddGraphic: addLiveGraphic,
+                onUpdateGraphic: updateLiveGraphic,
                 onSelectUnit: id => { setSelectedLiveUnitId(id); setRelocatingUnitId(undefined); },
                 onChangeDeployment: changeLiveDeployment,
                 onSetRelocatingUnit: setRelocatingUnitId,
