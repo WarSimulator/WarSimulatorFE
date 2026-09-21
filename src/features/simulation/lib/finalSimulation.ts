@@ -27,6 +27,7 @@ export type SimulationReportEntry = {
   actionId?: string;
   unit?: string;
   forceSide?: 'BLUE' | 'RED';
+  cause?: string;
   resolution: string;
 };
 
@@ -387,13 +388,39 @@ export async function buildFinalSimulation(inputs: FinalSimulationInputs, option
   const reportEntries: SimulationReportEntry[] = [];
   const fallbackActions = new Set<string>();
   const skippedActions = new Set<string>();
-  const fallbackActorByKey = new Map<string, DeploymentUnit>();
-  const usedFallbackUnitIds = new Set<string>();
   const addReport = (entry: SimulationReportEntry) => reportEntries.push(entry);
+  const actorCause = (step: ImportedStep, actor: string, expectedAffiliation: DeploymentAffiliation, identifierMatches: DeploymentUnit[]) => {
+    const metadata = step.planning;
+    const parsedPlan = metadata?.forceSide === 'RED' ? red : blue;
+    const originalActor = metadata?.actorRef;
+    const originalMatches = originalActor ? deployment.units.filter(unit => unit.id === originalActor || unit.designation === originalActor) : [];
+    if (identifierMatches.length > 0 && identifierMatches.every(unit => unit.affiliation !== expectedAffiliation)) {
+      return `Deployment에는 '${actor}'가 있지만 ${identifierMatches.map(unit => unit.affiliation).join(', ')} 진영으로 등록되어 있습니다. Plan은 ${expectedAffiliation} 진영을 요구합니다.`;
+    }
+    if (identifierMatches.length > 1) {
+      return `Deployment에서 '${actor}'와 같은 ID 또는 designation을 가진 유닛이 ${identifierMatches.length}개 발견되어 하나를 고를 수 없습니다.`;
+    }
+    if (originalActor && originalActor !== actor && originalMatches.length > 0) {
+      return `Plan 시간표의 원본 유닛 '${originalActor}'는 Deployment에 있지만, 실행 역할명 '${actor}'로 변환된 뒤 같은 이름의 Deployment 유닛을 찾지 못했습니다.`;
+    }
+    const role = Object.values(parsedPlan.context.roles).find(value => value && typeof value === 'object' && !Array.isArray(value)
+      && ((value as JsonObject).unit_id === actor || (value as JsonObject).unit_id === originalActor)) as JsonObject | undefined;
+    const detectionId = role && typeof role.source_detection_id === 'string' ? role.source_detection_id.trim() : '';
+    if (role && !detectionId) {
+      return `이 유닛은 Plan의 '${String(role.kind ?? metadata?.lane ?? 'role')}' 역할을 수행하도록 생성됐지만 source_detection_id가 비어 있습니다. 따라서 실제 지도 탐지 유닛(MUSR ID)과 연결할 근거가 없습니다.`;
+    }
+    if (detectionId && !deployment.units.some(unit => unit.id === detectionId || unit.designation === detectionId)) {
+      return `Plan은 이 역할을 탐지 ID '${detectionId}'에 연결했지만 Deployment에 해당 ID 또는 designation이 없습니다.`;
+    }
+    if (/^MUSR/i.test(actor) || (originalActor && /^MUSR/i.test(originalActor))) {
+      return `Plan의 탐지 식별자 '${originalActor ?? actor}'와 일치하는 Deployment의 id/designation이 없습니다.`;
+    }
+    return `Plan에는 '${actor}'라는 실행 주체가 있지만 Deployment의 id와 designation 어디에도 같은 식별자가 없으며, 대체할 MUSR 탐지 ID도 제공되지 않았습니다.`;
+  };
   if (reportMode) {
     for (const planIssue of issues) addReport({
       ...planIssue,
-      severity: planIssue.code === 'INVALID_PLAN' ? 'error' : 'warning',
+      severity: ['INVALID_PLAN', 'INVALID_JSON', 'MISSING_TASK_DEPENDENCY', 'SKIPPED_INVALID_STEP'].includes(planIssue.code) ? 'error' : 'warning',
       resolution: planIssue.code === 'MISSING_TASK_DEPENDENCY'
         ? '누락된 상위 임무 의존성을 무시하고 시간표 순서로 실행했습니다.'
         : '엄격 검증 실패를 기록하고 복구된 시간표를 사용했습니다.',
@@ -403,32 +430,22 @@ export async function buildFinalSimulation(inputs: FinalSimulationInputs, option
     const actor = String(step.actor_unit_id ?? step.unit_id ?? step.actor ?? '').trim();
     const metadata = step.planning;
     // Legacy plans keep exact ID/designation lookup; Planning actors are side-scoped.
-    const matches = deployment.units.filter(unit => (unit.id === actor || unit.designation === actor)
-      && (!metadata || unit.affiliation === (metadata.forceSide === 'BLUE' ? 'friendly' : 'enemy')));
+    const expectedAffiliation: DeploymentAffiliation = metadata?.forceSide === 'RED' || step.planType === 'redForce' ? 'enemy' : 'friendly';
+    const actorIdentifiers = [...new Set([actor, metadata?.actorRef].filter((value): value is string => Boolean(value)))];
+    const identifierMatches = deployment.units.filter(unit => actorIdentifiers.includes(unit.id) || actorIdentifiers.includes(unit.designation));
+    const matches = identifierMatches.filter(unit => !metadata || unit.affiliation === expectedAffiliation);
     const label = metadata ? `${metadata.forceSide}/${metadata.actionId}` : `${step.planType}/${step.sequence}`;
     if (matches.length !== 1) {
       issue(`actor:${metadata?.actorKey ?? actor}`, { code: 'UNRESOLVED_ACTOR', actionId: metadata?.actionId,
         message: `${label}: 부대 '${actor || '(없음)'}'의 배치 연결이 ${matches.length}개입니다. 진영과 ID 또는 배치 이름이 일치해야 합니다.` });
       if (reportMode) {
-        const actorKey = metadata?.actorKey ?? `${step.planType}:${actor}`;
-        const expectedAffiliation = metadata?.forceSide === 'RED' || step.planType === 'redForce' ? 'enemy' : 'friendly';
-        const candidates = deployment.units.filter(unit => unit.affiliation === expectedAffiliation);
-        const fallback = fallbackActorByKey.get(actorKey) ?? candidates.find(unit => !usedFallbackUnitIds.has(unit.id)) ?? candidates[0];
-        if (fallback) {
-          fallbackActorByKey.set(actorKey, fallback);
-          usedFallbackUnitIds.add(fallback.id);
-          boundUnits.set(step, fallback);
-          fallbackActions.add(label);
-          addReport({ code: 'FALLBACK_ACTOR_BINDING', severity: 'warning', actionId: metadata?.actionId,
-            unit: fallback.designation, forceSide: metadata?.forceSide,
-            message: `${label}: '${actor || '(없음)'}'를 배치 유닛에 직접 연결할 수 없습니다.`,
-            resolution: `${expectedAffiliation === 'friendly' ? 'Blue' : 'Red'} 진영의 '${fallback.designation}'에 임시 연결했습니다.` });
-        } else {
-          skippedActions.add(label);
-          addReport({ code: 'SKIPPED_UNRESOLVED_ACTOR', severity: 'error', actionId: metadata?.actionId,
-            unit: actor || undefined, forceSide: metadata?.forceSide,
-            message: `${label}: '${actor || '(없음)'}'의 진영에 사용할 배치 유닛이 없습니다.`, resolution: '이 행동만 제외했습니다.' });
-        }
+        skippedActions.add(label);
+        addReport({ code: 'SKIPPED_UNRESOLVED_ACTOR', severity: 'error', actionId: metadata?.actionId,
+          unit: actor || undefined, forceSide: metadata?.forceSide,
+          message: `${label}: '${actor || '(없음)'}'를 실제 배치 유닛에 연결할 수 없습니다.`,
+          cause: actorCause(step, actor, expectedAffiliation, identifierMatches),
+          resolution: '임의 유닛을 배정하지 않고 이 행동을 실행 대상에서 제외했습니다.' });
+        continue;
       }
     } else boundUnits.set(step, matches[0]);
     if (metadata?.conditional) issue(`condition:${metadata.forceSide}:${metadata.sourceTaskId ?? metadata.actionId}`, {
@@ -450,7 +467,7 @@ export async function buildFinalSimulation(inputs: FinalSimulationInputs, option
         message: `${label}: ${name}의 목적지/관측 위치 '${String(requiredReference ?? '(미해석)')}'를 배치 좌표에 연결해야 합니다.` });
       if (reportMode) {
         fallbackActions.add(label);
-        addReport({ code: 'FALLBACK_REFERENCE', severity: 'warning', actionId: metadata?.actionId,
+        addReport({ code: 'FALLBACK_REFERENCE', severity: 'error', actionId: metadata?.actionId,
           unit: boundUnits.get(step)?.designation ?? actor, forceSide: metadata?.forceSide,
           message: `${label}: ${name}의 위치 '${String(requiredReference ?? '(미해석)')}'를 찾을 수 없습니다.`,
           resolution: name === 'Move' || name === 'Withdraw' ? '지도 범위 안에 Report용 임시 목적지를 생성했습니다.' : '지도 범위 안에 Report용 임시 표적 위치를 생성했습니다.' });

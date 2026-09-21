@@ -44,7 +44,7 @@ export function SimulationCompatibilityReport({ report }: { report: Report }) {
       <header className="rounded border border-outline-variant bg-surface-container p-5">
         <p className="font-label-caps text-xs uppercase tracking-widest text-secondary">BEST-EFFORT EXECUTION REPORT</p>
         <div className="mt-2 flex flex-wrap items-end justify-between gap-4">
-          <div><h2 className="text-2xl font-bold text-primary">Plan 연동 진단 결과</h2><p className="mt-1 text-sm text-on-surface-variant">오류와 보정 결과를 카테고리 또는 관련 유닛 기준으로 확인할 수 있습니다.</p></div>
+          <div><h2 className="text-2xl font-bold text-primary">Plan 연동 진단 결과</h2><p className="mt-1 text-sm text-on-surface-variant">오류는 원본 Plan과 Deployment의 계약 불일치를 뜻하며, Report 모드에서 보정되어 실행됐더라도 오류 건수에 포함됩니다.</p></div>
           <time className="font-data-mono text-xs text-on-surface-variant">{new Date(report.generatedAt).toLocaleString('ko-KR')}</time>
         </div>
       </header>
@@ -85,7 +85,9 @@ export function SimulationCompatibilityReport({ report }: { report: Report }) {
                 <span className={`flex h-9 w-9 shrink-0 items-center justify-center rounded border ${style.className}`}><Icon name={style.icon} className="text-[20px]" filled /></span>
                 <div className="min-w-0 flex-1">
                   <div className="flex flex-wrap items-center gap-2"><strong className="font-data-mono text-sm">{entry.code}</strong>{entry.forceSide && <span className={`rounded px-2 py-0.5 font-data-mono text-[10px] font-bold ${entry.forceSide === 'BLUE' ? 'bg-blue-400/15 text-blue-300' : 'bg-red-400/15 text-red-300'}`}>{entry.forceSide}</span>}{entry.unit && <span className="rounded bg-primary/10 px-2 py-0.5 text-[11px] text-primary">{entry.unit}</span>}{entry.actionId && <span className="rounded bg-surface px-2 py-0.5 font-data-mono text-[11px] text-on-surface-variant">{entry.actionId}</span>}</div>
-                  <p className="mt-2 text-sm text-on-surface">{entry.message}</p><p className="mt-2 text-xs text-on-surface-variant"><span className="font-semibold text-primary">처리:</span> {entry.resolution}</p>
+                  <p className="mt-2 text-sm text-on-surface">{entry.message}</p>
+                  {entry.cause && <div className="mt-2 rounded border border-outline-variant bg-surface px-3 py-2 text-xs leading-relaxed text-on-surface-variant"><span className="font-semibold text-secondary">원인:</span> {entry.cause}</div>}
+                  <p className="mt-2 text-xs text-on-surface-variant"><span className="font-semibold text-primary">처리:</span> {entry.resolution}</p>
                 </div>
               </div>
             </article>;
