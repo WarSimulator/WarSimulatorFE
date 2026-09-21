@@ -4,6 +4,7 @@ import { createInitialRuntimeState, SIMULATION_PLAYBACK_RATE } from '../lib/runt
 import { getDeploymentById } from '../lib/deploymentStorage';
 import { clampResultTime, isUnitEliminated } from '../lib/playback';
 import { getSimulationResult, getSimulationResultDeployment, getSimulationResultUnit, getSimulationResultUnits } from '../lib/simulationResultService';
+import { getFinalSimulationReport } from '../lib/finalSimulation';
 import { getCommanderReports } from '../lib/unitAgent';
 import { CommanderInbox } from '../components/CommanderInbox';
 import { createUnitAgentRuntime } from '../lib/unitAgentRuntime';
@@ -14,6 +15,7 @@ import { TacticalMap } from '../components/TacticalMap';
 import { Google3DTacticalMap } from '../components/Google3DTacticalMap';
 import { UnitDetailPanel } from '../components/UnitDetailPanel';
 import { UnitListPanel } from '../components/UnitListPanel';
+import { SimulationCompatibilityReport } from '../components/SimulationCompatibilityReport';
 import type { SimulationRuntimeState } from '../../../types';
 
 export function SimulatorPage() {
@@ -24,6 +26,7 @@ export function SimulatorPage() {
   const mapMode = searchParams.get('map') === '3d' ? '3d' : '2d';
   const isAnalysisView = viewMode === 'analysis';
   const simulationResult = useMemo(() => getSimulationResult(simulationId), [simulationId]);
+  const compatibilityReport = useMemo(() => getFinalSimulationReport(simulationId), [simulationId]);
   const deployment = useMemo(
     // Paired result fixtures must win over an older browser copy with the same
     // deployment ID; otherwise normalized enemy designations can disappear.
@@ -227,9 +230,12 @@ export function SimulatorPage() {
         onTabChange={(activeTab) => updateRuntime({ activeTab })}
         onWorldClockCountryChange={(worldClockCountryCode) => updateRuntime({ worldClockCountryCode })}
         viewMode={viewMode}
+        reportMode={isAnalysisView && Boolean(compatibilityReport)}
       />
 
-      {isAnalysisView ? (
+      {isAnalysisView && compatibilityReport ? (
+        <SimulationCompatibilityReport report={compatibilityReport} />
+      ) : isAnalysisView ? (
         <div className="flex min-h-0 flex-1">
           <UnitListPanel
             units={visibleRosterUnits}

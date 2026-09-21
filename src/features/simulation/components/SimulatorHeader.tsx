@@ -9,6 +9,7 @@ type SimulatorHeaderProps = {
   onWorldClockCountryChange: (countryCode: string) => void;
   onExit: () => void;
   viewMode?: 'tactical' | 'analysis';
+  reportMode?: boolean;
 };
 
 const tabs: Array<{ id: SimulationRuntimeState['activeTab']; label: string }> = [
@@ -17,7 +18,7 @@ const tabs: Array<{ id: SimulationRuntimeState['activeTab']; label: string }> = 
   { id: 'analysis', label: '분석 결과' },
 ];
 
-export function SimulatorHeader({ runtime, onTabChange, onWorldClockCountryChange, onExit, viewMode = 'tactical' }: SimulatorHeaderProps) {
+export function SimulatorHeader({ runtime, onTabChange, onWorldClockCountryChange, onExit, viewMode = 'tactical', reportMode = false }: SimulatorHeaderProps) {
   const [isClockMenuOpen, setIsClockMenuOpen] = useState(false);
   const [countrySearch, setCountrySearch] = useState('');
   const [now, setNow] = useState(() => new Date());
@@ -50,7 +51,7 @@ export function SimulatorHeader({ runtime, onTabChange, onWorldClockCountryChang
           EXIT SIMULATOR
         </button>
         <div className="h-5 w-px bg-outline-variant" />
-        <h1 className="font-headline-md text-[18px] font-bold text-primary">{viewMode === 'analysis' ? 'ATLAS UNIT STATE ANALYSIS' : 'ATLAS COA SIMULATION'}</h1>
+        <h1 className="font-headline-md text-[18px] font-bold text-primary">{reportMode ? 'ATLAS PLAN INTEGRATION REPORT' : viewMode === 'analysis' ? 'ATLAS UNIT STATE ANALYSIS' : 'ATLAS COA SIMULATION'}</h1>
         {viewMode === 'tactical' && <nav className="flex h-full items-center gap-1">
           {tabs.filter(tab => tab.id !== 'analysis').map((tab) => (
             <button

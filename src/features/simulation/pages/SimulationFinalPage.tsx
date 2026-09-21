@@ -13,11 +13,14 @@ const fields: { key: FileKey; title: string; description: string; icon: string; 
   { key: 'deployment', title: '유닛 배치 데이터', description: '유닛 SIDC·좌표와 목표·통제선 geometry JSON', icon: 'map' },
 ];
 
-async function readJson(file: File) {
-  try { return JSON.parse(await file.text()) as unknown; } catch { throw new Error(`${file.name} 파일이 올바른 JSON이 아닙니다.`); }
+async function readJson(file: File, tolerateInvalid = false) {
+  try { return JSON.parse(await file.text()) as unknown; } catch {
+    if (tolerateInvalid) return { report_input_error: `${file.name} 파일이 올바른 JSON이 아닙니다.` };
+    throw new Error(`${file.name} 파일이 올바른 JSON이 아닙니다.`);
+  }
 }
 
-export function SimulationFinalPage({ mapMode = '2d' }: { mapMode?: '2d' | '3d' }) {
+export function SimulationFinalPage({ mapMode = '2d', reportMode = false }: { mapMode?: '2d' | '3d'; reportMode?: boolean }) {
   const navigate = useNavigate();
   const [files, setFiles] = useState<SelectedFiles>({});
   const [error, setError] = useState('');
@@ -37,9 +40,9 @@ export function SimulationFinalPage({ mapMode = '2d' }: { mapMode?: '2d' | '3d' 
     setLoading(true); setError('');
     try {
       const [blueForce, redForce, withdrawal, deployment] = await Promise.all([
-        readJson(files.blueForce), readJson(files.redForce), files.withdrawal ? readJson(files.withdrawal) : undefined, readJson(files.deployment),
+        readJson(files.blueForce, reportMode), readJson(files.redForce, reportMode), files.withdrawal ? readJson(files.withdrawal, reportMode) : undefined, readJson(files.deployment),
       ]);
-      const build = await buildFinalSimulation({ blueForce, redForce, withdrawal, deployment });
+      const build = await buildFinalSimulation({ blueForce, redForce, withdrawal, deployment }, { mode: reportMode ? 'report' : 'strict' });
       saveFinalSimulation(build);
       analysisWindow.location.href = new URL(`/simulations/${build.simulationId}/run?view=analysis`, window.location.origin).href;
       navigate(`/simulations/${build.simulationId}/run?view=tactical${mapMode === '3d' ? '&map=3d' : ''}`);
@@ -54,7 +57,7 @@ export function SimulationFinalPage({ mapMode = '2d' }: { mapMode?: '2d' | '3d' 
     <header className="border-b border-outline-variant pb-4">
       <div className="flex items-center gap-3">
         <span className="flex h-12 w-12 items-center justify-center rounded border border-secondary/40 bg-secondary/10"><Icon name="play_circle" className="text-[28px] text-secondary" filled /></span>
-        <div><h2 className="font-display-lg text-display-lg tracking-tight text-primary">{mapMode === '3d' ? 'MIL-SIMULATOR 3D' : 'MIL-SIMULATOR FINAL'}</h2><p className="mt-1 text-sm text-on-surface-variant">AI Planning 팀의 계획과 유닛 배치 파일을 {mapMode === '3d' ? 'Google 3D 전술 지도에서' : '하나의 시뮬레이션으로'} 실행합니다.</p></div>
+        <div><h2 className="font-display-lg text-display-lg tracking-tight text-primary">{reportMode ? 'MIL-SIMULATOR 3D REPORT' : mapMode === '3d' ? 'MIL-SIMULATOR 3D' : 'MIL-SIMULATOR FINAL'}</h2><p className="mt-1 text-sm text-on-surface-variant">{reportMode ? '연동 오류를 기록하고 실행 가능한 행동은 Google 3D 전술 지도에서 계속 재생합니다.' : <>AI Planning 팀의 계획과 유닛 배치 파일을 {mapMode === '3d' ? 'Google 3D 전술 지도에서' : '하나의 시뮬레이션으로'} 실행합니다.</>}</p></div>
       </div>
     </header>
 
@@ -74,7 +77,7 @@ export function SimulationFinalPage({ mapMode = '2d' }: { mapMode?: '2d' | '3d' 
     </section>
 
     <section className="flex items-center justify-between gap-6 rounded border border-outline-variant bg-surface-container-low p-5">
-      <div><p className="text-sm font-semibold text-on-surface">{ready ? '실행 준비 완료' : '필수 파일을 선택해 주세요.'}</p><p className="mt-1 text-xs text-on-surface-variant">Start를 누르면 파일을 검증하고 Blue Force와 Red Force의 행동을 같은 시간축의 {mapMode === '3d' ? '3D 지도에서' : '지도에서'} 재생합니다.</p></div>
+      <div><p className="text-sm font-semibold text-on-surface">{ready ? '실행 준비 완료' : '필수 파일을 선택해 주세요.'}</p><p className="mt-1 text-xs text-on-surface-variant">{reportMode ? 'Start를 누르면 오류를 수집하고, 연결 가능한 행동은 보정하여 재생하며 별도 Report 창에 처리 결과를 표시합니다.' : <>Start를 누르면 파일을 검증하고 Blue Force와 Red Force의 행동을 같은 시간축의 {mapMode === '3d' ? '3D 지도에서' : '지도에서'} 재생합니다.</>}</p></div>
       <button disabled={!ready || loading} onClick={start} className="flex min-w-[190px] items-center justify-center gap-2 rounded bg-secondary px-7 py-3 font-label-caps text-sm font-bold text-on-secondary transition-colors enabled:hover:bg-secondary-container disabled:cursor-not-allowed disabled:opacity-35"><Icon name={loading ? 'hourglass_top' : 'play_arrow'} filled />{loading ? 'PROCESSING' : 'START SIMULATION'}</button>
     </section>
   </div>;

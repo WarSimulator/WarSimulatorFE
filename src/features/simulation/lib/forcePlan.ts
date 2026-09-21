@@ -99,6 +99,25 @@ export function normalizeActionKey(value: string) {
   return ({ continue_engage: 'continue_to_engage', reorient: 're_orient' } as Record<string, string>)[key] ?? key;
 }
 
+function taskParameters(actionKey: string, taskTuple: unknown, sourceTask?: JsonObject) {
+  if (!Array.isArray(taskTuple)) return {};
+  const values = taskTuple.slice(1).filter((value): value is string => typeof value === 'string' && Boolean(value.trim()));
+  if (!values.length) return {};
+  if (actionKey === 'move' || actionKey === 'withdraw') {
+    const source = values.length >= 2 ? values[0] : undefined;
+    const destination = typeof sourceTask?.location === 'string'
+      && values.length >= 3
+      && values.at(-1) === sourceTask.purpose
+      ? sourceTask.location
+      : values.at(-1);
+    return { ...(source ? { source } : {}), destination };
+  }
+  if (actionKey === 'observe' || actionKey === 'destroy') {
+    return { target: values.length >= 2 ? values[1] : values[0] };
+  }
+  return {};
+}
+
 function checkSide(value: unknown, side: ForceSide, label: string) {
   if (value === undefined || value === null || value === '') return;
   if (typeof value !== 'string' || value.toUpperCase() !== side) fail(`${label}: ${side} 입력에 '${String(value)}' 진영이 지정되어 있습니다.`);
@@ -188,7 +207,11 @@ export function parseForcePlan(payload: unknown, side: ForceSide): ParsedForcePl
     const condition = typeof task?.condition === 'string' ? task.condition : typeof action.condition === 'string' ? action.condition : undefined;
     // Structured arguments are copied only when provided. Preserve task tuples verbatim;
     // location/target/purpose and source/destination tuples must not be conflated.
-    const parameters = { ...optionalObject(action.parameters), ...optionalObject(step.parameters) };
+    const parameters = {
+      ...taskParameters(key, action.task, task),
+      ...optionalObject(action.parameters),
+      ...optionalObject(step.parameters),
+    };
     return {
       sequence: typeof step.sequence === 'number' ? step.sequence : undefined,
       start, duration, end, pddl_action: id, action_key: key, actor_unit_id: executionActor, parameters,
@@ -202,4 +225,58 @@ export function parseForcePlan(payload: unknown, side: ForceSide): ParsedForcePl
     };
   });
   return { forceSide: side, format: 'planning', steps, issues, context };
+}
+
+/** Recover timeline rows for the report simulator after strict import fails. */
+export function parseForcePlanForReport(payload: unknown, side: ForceSide): ParsedForcePlan {
+  try {
+    return parseForcePlan(payload, side);
+  } catch (error) {
+    const issues: PlanIssue[] = error instanceof ForcePlanError
+      ? [...error.issues]
+      : [{ code: 'INVALID_PLAN', message: error instanceof Error ? error.message : `${side}-Force Plan을 해석할 수 없습니다.` }];
+    const root = payload && typeof payload === 'object' && !Array.isArray(payload) ? payload as JsonObject : {};
+    if (typeof root.report_input_error === 'string') {
+      issues.unshift({ code: 'INVALID_JSON', message: `${side}-Force Plan: ${root.report_input_error}` });
+    }
+    const temporal = root.temporal_plan && typeof root.temporal_plan === 'object' && !Array.isArray(root.temporal_plan) ? root.temporal_plan as JsonObject : {};
+    const timeline = temporal.timeline && typeof temporal.timeline === 'object' && !Array.isArray(temporal.timeline) ? temporal.timeline as JsonObject : {};
+    const decomposition = root.generated_decomposition && typeof root.generated_decomposition === 'object' && !Array.isArray(root.generated_decomposition) ? root.generated_decomposition as JsonObject : {};
+    const actionRows = Array.isArray(decomposition.actions) ? decomposition.actions.filter(value => value && typeof value === 'object' && !Array.isArray(value)) as JsonObject[] : [];
+    const actionById = new Map(actionRows.flatMap(action => typeof action.action_id === 'string' ? [[action.action_id, action] as const] : []));
+    const rawSteps = Array.isArray(timeline.steps) ? timeline.steps : Array.isArray(temporal.steps) ? temporal.steps : Array.isArray(root.actions) ? root.actions : Array.isArray(root.steps) ? root.steps : [];
+    const steps = rawSteps.flatMap((value, index): ImportedStep[] => {
+      if (!value || typeof value !== 'object' || Array.isArray(value)) {
+        issues.push({ code: 'SKIPPED_INVALID_STEP', message: `${side}-Force Plan: ${index + 1}번 단계가 객체가 아니어서 제외했습니다.` });
+        return [];
+      }
+      const row = value as JsonObject;
+      const actionId = typeof row.pddl_action === 'string' ? row.pddl_action : typeof row.action_id === 'string' ? row.action_id : `${side.toLowerCase()}-recovered-${index + 1}`;
+      const definition = actionById.get(actionId) ?? row;
+      const rawKey = definition.canonical_action_key ?? definition.action_key ?? row.atomic_action ?? row.action ?? 'report';
+      const actor = row.unit ?? definition.unit ?? row.actor_unit_id ?? row.unit_id ?? row.actor;
+      const start = typeof row.start === 'number' && Number.isFinite(row.start) ? row.start : index;
+      const duration = typeof row.duration === 'number' && Number.isFinite(row.duration) && row.duration > 0 ? row.duration : 1;
+      const end = typeof row.end === 'number' && Number.isFinite(row.end) && row.end >= start ? row.end : start + duration;
+      return [{
+        sequence: typeof row.sequence === 'number' ? row.sequence : index + 1,
+        start, duration, end, pddl_action: actionId,
+        action_key: normalizeActionKey(String(rawKey)), actor_unit_id: typeof actor === 'string' ? actor : '',
+        parameters: {
+          ...taskParameters(normalizeActionKey(String(rawKey)), definition.task),
+          ...(definition.parameters && typeof definition.parameters === 'object' && !Array.isArray(definition.parameters) ? definition.parameters as JsonObject : {}),
+          ...(row.parameters && typeof row.parameters === 'object' && !Array.isArray(row.parameters) ? row.parameters as JsonObject : {}),
+        },
+        planning: {
+          actionId, actionKey: `${side}:${actionId}`, actorRef: typeof actor === 'string' ? actor : '', actorKey: `${side}:${String(actor ?? '')}`,
+          forceSide: side, lane: typeof row.lane === 'string' ? row.lane : '', task: definition.task, timelineTask: row.task,
+          dependsOn: [], conditional: definition.conditional === true,
+          condition: typeof definition.condition === 'string' ? definition.condition : undefined,
+          mapPreconditions: row.map_preconditions, goalEffects: row.goal_effects,
+        },
+      }];
+    });
+    issues.push({ code: 'LENIENT_IMPORT', message: `${side}-Force Plan: 엄격 검증 대신 실행 가능한 시간표 ${steps.length}개를 복구했습니다.` });
+    return { forceSide: side, format: 'planning', steps, issues, context: { roleBindings: [], identityCatalog: {}, roles: {} } };
+  }
 }

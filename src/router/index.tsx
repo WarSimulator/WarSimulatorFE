@@ -24,6 +24,7 @@ export const router = createBrowserRouter([
       { path: '/simulations/library', element: <SimulationLibraryPage /> },
       { path: '/simulations/final', element: <SimulationFinalPage /> },
       { path: '/simulations/3d', element: <SimulationFinalPage mapMode="3d" /> },
+      { path: '/simulations/3d/report', element: <SimulationFinalPage mapMode="3d" reportMode /> },
       { path: '/simulations/3d/edit', element: <SimulationSetupPage editorMapMode="3d" /> },
       { path: '/simulations/:simulationId', element: <SimulationDetailPage /> },
     ],
