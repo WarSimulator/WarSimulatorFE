@@ -11,6 +11,7 @@
     "generate:symbol-dataset": "node scripts/generate-combined-symbol-dataset.mjs",
     "generate:us-symbol-dataset": "node scripts/generate-us-symbol-dataset.mjs",
     "generate:tactical-task-dataset": "node scripts/generate-tactical-task-dataset.mjs && cd artifacts && zip -qr tactical-task-symbol-recognition.zip tactical-task-symbol-recognition",
+    "generate:vfx": "/Applications/Blender.app/Contents/MacOS/Blender --background --factory-startup --python-exit-code 1 --python scripts/blender/generate-tactical-vfx.py -- --output public/vfx --frames /tmp/atlas-tactical-vfx-frames && python3 scripts/pack-vfx-sprites.py --frames /tmp/atlas-tactical-vfx-frames --output public/vfx",
     "test:symbols": "node scripts/test-symbol-catalog.mjs",
     "generate:tasks": "node scripts/generate-tactical-tasks.mjs",
     "test:tasks": "node scripts/test-tactical-tasks.mjs",

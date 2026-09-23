@@ -8,6 +8,7 @@ import { buildObservationSector, getActiveObservationEffects } from '../lib/obse
 import { resolvePlanReference } from '../lib/planReferenceMapping';
 import { createMilitarySymbolSvg, get3DUnitSymbolSize } from '../lib/symbolSvg';
 import { createOverlayStore, createOverlaySchedule } from '../lib/google3DOverlayStore';
+import { createGoogle3DTacticalVfxStore } from '../lib/google3DTacticalVfx';
 import { scannerFillColor, scannerVisualForAffiliation } from '../lib/scannerVisual';
 import { renderTacticalGraphic } from '../lib/renderTacticalGraphic';
 import { createTaskGraphic, getTacticalTask } from '../lib/tacticalTasks';
@@ -62,6 +63,7 @@ type StaticLayerNodes = {
 export type Maps3DLibrary = {
   Map3DElement: new (options: Record<string, unknown>) => Map3DNode;
   Marker3DInteractiveElement: new (options: Record<string, unknown>) => Marker3DNode;
+  Model3DElement: new (options: Record<string, unknown>) => HTMLElement & { position: Position3D };
   Polyline3DElement: new (options: Record<string, unknown>) => HTMLElement;
   Polyline3DInteractiveElement: new (options: Record<string, unknown>) => HTMLElement;
   Polygon3DElement: new (options: Record<string, unknown>) => HTMLElement;
@@ -497,6 +499,7 @@ export function Google3DTacticalMap({ runtime, playbackRef, units, result, deplo
   const [taskScale, setTaskScale] = useState(100000);
   const staticLayersRef = useRef<StaticLayerNodes>({ routes: [], controlLines: [], objectives: [], unitLabels: new Map() });
   const actionOverlaysRef = useRef<ActionOverlayStore | null>(null);
+  const tacticalVfxRef = useRef<ReturnType<typeof createGoogle3DTacticalVfxStore> | null>(null);
   const fallbackPlaybackRef = useRef(runtime);
   const [error, setError] = useState('');
   const [ready, setReady] = useState(false);
@@ -679,6 +682,7 @@ export function Google3DTacticalMap({ runtime, playbackRef, units, result, deplo
           node => map.append(node as HTMLElement),
           toSurfacePath,
         );
+        tacticalVfxRef.current = createGoogle3DTacticalVfxStore(library, map, result, deployment);
         staticLayersRef.current = { routes: [], controlLines: [], objectives: [], unitLabels: new Map() };
 
         for (const track of result.unitTracks) {
@@ -752,6 +756,7 @@ export function Google3DTacticalMap({ runtime, playbackRef, units, result, deplo
           map.append(marker);
         }
         refreshActionOverlays(clock.current.simulationTime);
+        tacticalVfxRef.current.update(clock.current.simulationTime);
         setReady(true);
       } catch (caught) {
         setError(caught instanceof Error ? caught.message : 'Google 3D 지도를 초기화하지 못했습니다.');
@@ -767,6 +772,8 @@ export function Google3DTacticalMap({ runtime, playbackRef, units, result, deplo
       staticLayersRef.current = { routes: [], controlLines: [], objectives: [], unitLabels: new Map() };
       actionOverlaysRef.current?.clear();
       actionOverlaysRef.current = null;
+      tacticalVfxRef.current?.clear();
+      tacticalVfxRef.current = null;
       mapRef.current?.remove();
       mapRef.current = null;
     };
@@ -999,6 +1006,7 @@ export function Google3DTacticalMap({ runtime, playbackRef, units, result, deplo
       const jumped = Number.isFinite(lastFrameTime) && (time < lastFrameTime || time - lastFrameTime > 0.25);
       if (shouldUpdate(timestamp, time, clock.current.isPlaying, jumped)) {
         refreshActionOverlays(time);
+        tacticalVfxRef.current?.update(time);
       }
       lastFrameTime = time;
       frame = requestAnimationFrame(tick);

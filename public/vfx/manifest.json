@@ -1,0 +1,26 @@
+{
+  "explosion": {
+    "src": "/vfx/sprites/explosion.webp",
+    "frameBase": "/vfx/frames/explosion",
+    "frames": 32,
+    "columns": 8,
+    "rows": 4,
+    "frameWidth": 256,
+    "frameHeight": 256,
+    "durationSeconds": 1.4
+  },
+  "smoke": {
+    "src": "/vfx/sprites/smoke.webp",
+    "frameBase": "/vfx/frames/smoke",
+    "frames": 32,
+    "columns": 8,
+    "rows": 4,
+    "frameWidth": 256,
+    "frameHeight": 256,
+    "durationSeconds": 2.4
+  },
+  "models": {
+    "debris": "/vfx/models/debris-01.glb",
+    "crater": "/vfx/models/crater-01.glb"
+  }
+}
