@@ -27,6 +27,8 @@ export const router = createBrowserRouter([
       { path: '/simulations/3d/live-edit', element: <SimulationFinalPage mapMode="3d" liveEditMode /> },
       { path: '/simulations/3d/report', element: <SimulationFinalPage mapMode="3d" reportMode /> },
       { path: '/simulations/3d-demo', element: <SimulationFinalPage mapMode="3d" demoMode /> },
+      { path: '/simulations/3d-demo-cesium', element: <SimulationFinalPage mapMode="cesium" demoMode /> },
+      { path: '/simulations/3d-demo-vworld', element: <SimulationFinalPage mapMode="vworld" demoMode /> },
       { path: '/simulations/3d/edit', element: <SimulationSetupPage editorMapMode="3d" /> },
       { path: '/simulations/:simulationId', element: <SimulationDetailPage /> },
     ],

@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { lazy, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { createInitialRuntimeState, SIMULATION_PLAYBACK_RATE } from '../lib/runtime';
 import { createGeoPosition } from '../lib/position';
@@ -20,12 +20,16 @@ import { UnitListPanel } from '../components/UnitListPanel';
 import { SimulationCompatibilityReport } from '../components/SimulationCompatibilityReport';
 import type { DeploymentEditorMode, DeploymentObjective, DeploymentPaletteItem, DeploymentSetup, DeploymentUnit, SimulationRuntimeState, TacticalGraphic } from '../../../types';
 
+const Cesium3DTacticalMap = lazy(() => import('../components/Cesium3DTacticalMap').then(module => ({ default: module.Cesium3DTacticalMap })));
+const VWorld3DTacticalMap = lazy(() => import('../components/VWorld3DTacticalMap').then(module => ({ default: module.VWorld3DTacticalMap })));
+
 export function SimulatorPage() {
   const { simulationId } = useParams();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const viewMode = searchParams.get('view') === 'analysis' ? 'analysis' : 'tactical';
-  const mapMode = searchParams.get('map') === '3d' ? '3d' : '2d';
+  const requestedMap = searchParams.get('map');
+  const mapMode = requestedMap === 'vworld' ? 'vworld' : requestedMap === 'cesium' ? 'cesium' : requestedMap === '3d' ? '3d' : '2d';
   const atomicActionVisuals = searchParams.get('visualization') === 'atomic3d';
   const liveEditMode = mapMode === '3d' && searchParams.get('edit') === 'live';
   const isAnalysisView = viewMode === 'analysis';
@@ -349,7 +353,7 @@ export function SimulatorPage() {
         </div>
       ) : (
         <div className="flex min-h-0 flex-1">
-          {mapMode !== '3d' && <UnitListPanel
+          {mapMode === '2d' && <UnitListPanel
             units={visibleRosterUnits}
             selectedUnitId={runtime.selectedUnitId}
             tacticalLayers={runtime.tacticalLayers}
@@ -392,6 +396,22 @@ export function SimulatorPage() {
                 onMoveUnit: moveLiveUnit,
                 onDeleteUnit: deleteLiveUnit,
               } : undefined}
+            /> : mapMode === 'cesium' ? <Cesium3DTacticalMap
+              runtime={runtime}
+              playbackRef={runtimeRef}
+              units={rosterUnits}
+              result={simulationResult}
+              deployment={deployment}
+              onSelectUnit={selectUnit}
+              atomicActionVisuals={atomicActionVisuals}
+            /> : mapMode === 'vworld' ? <VWorld3DTacticalMap
+              runtime={runtime}
+              playbackRef={runtimeRef}
+              units={rosterUnits}
+              result={simulationResult}
+              deployment={deployment}
+              onSelectUnit={selectUnit}
+              atomicActionVisuals={atomicActionVisuals}
             /> : <TacticalMap
               runtime={runtime}
               playbackRef={runtimeRef}
