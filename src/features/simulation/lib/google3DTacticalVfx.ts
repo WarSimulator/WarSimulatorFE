@@ -123,7 +123,9 @@ function createSprite(
   map.append(node);
   return {
     kind: 'sprite', node, definition, size, frame: -1,
-    filter: className === 'smoke' ? 'drop-shadow(0 3px 5px rgba(0,0,0,.7))' : 'saturate(1.8) contrast(1.15) drop-shadow(0 0 8px rgba(255,94,0,.85))',
+    filter: className === 'smoke'
+      ? 'drop-shadow(0 3px 5px rgba(0,0,0,.7))'
+      : 'saturate(1.25) contrast(1.05) brightness(1.08) drop-shadow(0 0 9px rgba(255,132,0,.88))',
   } satisfies SpriteNode;
 }
 

@@ -53,6 +53,48 @@ def material(name: str, color: tuple[float, float, float, float], emission: floa
     return value
 
 
+def textured_material(
+    name: str,
+    stops: list[tuple[float, tuple[float, float, float, float]]],
+    emission: float = 0.0,
+    noise_scale: float = 3.2,
+):
+    """Create a turbulent material that remains compatible with glTF-free sprite rendering."""
+    value = bpy.data.materials.new(name)
+    value.use_nodes = True
+    nodes = value.node_tree.nodes
+    links = value.node_tree.links
+    nodes.clear()
+    output = nodes.new("ShaderNodeOutputMaterial")
+    noise = nodes.new("ShaderNodeTexNoise")
+    ramp = nodes.new("ShaderNodeValToRGB")
+    noise.inputs["Scale"].default_value = noise_scale
+    noise.inputs["Detail"].default_value = 7.0
+    noise.inputs["Roughness"].default_value = 0.78
+    color_ramp = ramp.color_ramp
+    color_ramp.elements.remove(color_ramp.elements[1])
+    first_position, first_color = stops[0]
+    color_ramp.elements[0].position = first_position
+    color_ramp.elements[0].color = first_color
+    for position, color in stops[1:]:
+        element = color_ramp.elements.new(position)
+        element.color = color
+    links.new(noise.outputs["Fac"], ramp.inputs["Fac"])
+    if emission > 0:
+        # A pure emission surface keeps fire yellow/orange instead of allowing the
+        # key light and Principled highlights to wash it into a pale pink blob.
+        shader = nodes.new("ShaderNodeEmission")
+        shader.inputs["Strength"].default_value = emission
+        links.new(ramp.outputs["Color"], shader.inputs["Color"])
+        links.new(shader.outputs["Emission"], output.inputs["Surface"])
+    else:
+        shader = nodes.new("ShaderNodeBsdfPrincipled")
+        shader.inputs["Roughness"].default_value = 0.9
+        links.new(ramp.outputs["Color"], shader.inputs["Base Color"])
+        links.new(shader.outputs["BSDF"], output.inputs["Surface"])
+    return value
+
+
 def point_camera(camera: bpy.types.Object, target: tuple[float, float, float]) -> None:
     camera.rotation_euler = (Vector(target) - camera.location).to_track_quat("-Z", "Y").to_euler()
 
@@ -66,8 +108,13 @@ def configure_render() -> None:
     scene.render.image_settings.file_format = "PNG"
     scene.render.image_settings.color_mode = "RGBA"
     scene.render.film_transparent = True
+    # Sprite colors need to survive exactly as authored. AgX is excellent for
+    # photographed scenes but compresses the small orange fire range too much.
+    scene.view_settings.view_transform = "Standard"
+    scene.view_settings.look = "Medium High Contrast"
     scene.render.image_settings.color_depth = "8"
     scene.render.resolution_percentage = 100
+    scene.render.image_settings.color_mode = "RGBA"
     camera_data = bpy.data.cameras.new("VFX Camera")
     camera_data.type = "ORTHO"
     camera_data.ortho_scale = 7.2
@@ -87,11 +134,23 @@ def configure_render() -> None:
     point_camera(key_object, (0.0, 0.0, 1.2))
 
 
-def add_ico(name: str, location: tuple[float, float, float], radius: float, value: bpy.types.Material):
-    bpy.ops.mesh.primitive_ico_sphere_add(subdivisions=2, radius=radius, location=location)
+def add_ico(name: str, location: tuple[float, float, float], radius: float, value: bpy.types.Material, detail: int = 2, roughness: float = 0.0):
+    bpy.ops.mesh.primitive_ico_sphere_add(subdivisions=detail, radius=radius, location=location)
     item = bpy.context.object
     item.name = name
     item.data.materials.append(value)
+    for polygon in item.data.polygons:
+        polygon.use_smooth = True
+    if roughness:
+        for vertex in item.data.vertices:
+            direction = vertex.co.normalized()
+            turbulence = (
+                math.sin(vertex.co.x * 9.1 + vertex.co.y * 3.7)
+                + math.sin(vertex.co.y * 7.3 + vertex.co.z * 5.9)
+                + math.sin(vertex.co.z * 8.7 + vertex.co.x * 4.1)
+            ) / 3
+            vertex.co += direction * radius * roughness * turbulence
+        item.data.update()
     return item
 
 
@@ -99,34 +158,121 @@ def render_explosion() -> None:
     clear_scene()
     configure_render()
     rng = random.Random(7102)
-    colors = [
-        material("White Hot", (1.0, 0.78, 0.24, 1.0), 7.0),
-        material("Fire", (1.0, 0.17, 0.015, 1.0), 4.0),
-        material("Deep Fire", (0.35, 0.015, 0.005, 1.0), 2.0),
-        material("Soot", (0.045, 0.035, 0.03, 1.0), 0.05),
+    white_hot = textured_material("White Hot", [
+        (0.0, (1.0, 0.24, 0.003, 1.0)),
+        (0.3, (1.0, 0.65, 0.025, 1.0)),
+        (0.65, (1.0, 1.0, 0.42, 1.0)),
+        (1.0, (1.0, 1.0, 0.92, 1.0)),
+    ], 1.15, 4.8)
+    yellow_fire = textured_material("Yellow Fire", [
+        (0.0, (0.42, 0.018, 0.0, 1.0)),
+        (0.3, (1.0, 0.18, 0.002, 1.0)),
+        (0.63, (1.0, 0.62, 0.018, 1.0)),
+        (1.0, (1.0, 0.98, 0.22, 1.0)),
+    ], 0.92, 4.1)
+    orange_fire = textured_material("Orange Fire", [
+        (0.0, (0.045, 0.004, 0.0, 1.0)),
+        (0.38, (0.38, 0.035, 0.0, 1.0)),
+        (0.7, (1.0, 0.22, 0.002, 1.0)),
+        (1.0, (1.0, 0.68, 0.025, 1.0)),
+    ], 0.76, 3.7)
+    smoke = textured_material("Blast Smoke", [
+        (0.0, (0.018, 0.012, 0.009, 1.0)),
+        (0.45, (0.09, 0.045, 0.022, 1.0)),
+        (0.72, (0.26, 0.12, 0.052, 1.0)),
+        (1.0, (0.55, 0.28, 0.10, 1.0)),
+    ], 0.18, 4.8)
+    soot = textured_material("Blast Soot", [
+        (0.0, (0.012, 0.01, 0.009, 1.0)),
+        (0.55, (0.055, 0.034, 0.022, 1.0)),
+        (1.0, (0.2, 0.105, 0.048, 1.0)),
+    ], 0.0, 5.5)
+    spark_materials = [
+        material("Spark White", (1.0, 0.9, 0.42, 1.0), 12.0),
+        material("Spark Orange", (1.0, 0.12, 0.002, 1.0), 8.0),
     ]
-    lobes = []
-    for index in range(24):
+
+    core_lobes = []
+    for index in range(18):
         angle = rng.random() * math.tau
-        radial = rng.random() ** 0.55
-        base = Vector((math.cos(angle) * radial, math.sin(angle) * radial, rng.uniform(-0.15, 1.0)))
-        item = add_ico(f"Fireball {index:02d}", tuple(base), rng.uniform(0.25, 0.62), colors[index % len(colors)])
+        radial = rng.random() ** 0.75 * 0.62
+        base = Vector((math.cos(angle) * radial, math.sin(angle) * radial - 0.42, rng.uniform(0.0, 0.95)))
+        item = add_ico(f"Core {index:02d}", tuple(base), rng.uniform(0.26, 0.6), white_hot if index < 6 else yellow_fire, 3, 0.2)
         item.rotation_euler = (rng.random(), rng.random(), rng.random())
-        lobes.append((item, base, rng.uniform(0.75, 1.3), rng.uniform(0.85, 1.25)))
+        core_lobes.append((item, base, rng.uniform(0.65, 1.15), rng.uniform(0.8, 1.25)))
+
+    outer_lobes = []
+    for index in range(36):
+        angle = rng.random() * math.tau
+        radial = rng.uniform(0.45, 1.35)
+        base = Vector((math.cos(angle) * radial, math.sin(angle) * radial * 0.75, rng.uniform(-0.2, 1.35)))
+        initial_material = yellow_fire if index % 6 == 0 else orange_fire
+        item = add_ico(f"Outer Fire {index:02d}", tuple(base), rng.uniform(0.18, 0.5), initial_material, 2, 0.34)
+        item.rotation_euler = (rng.random(), rng.random(), rng.random())
+        outer_lobes.append((item, base, rng.uniform(0.85, 1.5), rng.uniform(0.75, 1.35)))
+
+    smoke_lobes = []
+    for index in range(18):
+        angle = rng.random() * math.tau
+        radial = rng.uniform(0.55, 1.4)
+        base = Vector((math.cos(angle) * radial, math.sin(angle) * radial * 0.7, rng.uniform(0.05, 1.55)))
+        item = add_ico(f"Smoke Lobe {index:02d}", tuple(base), rng.uniform(0.28, 0.68), smoke if index % 4 else soot, 3, 0.28)
+        item.rotation_euler = (rng.random(), rng.random(), rng.random())
+        smoke_lobes.append((item, base, rng.uniform(0.8, 1.4), rng.uniform(0.75, 1.35)))
+
+    ground_lobes = []
+    for index in range(20):
+        angle = index / 20 * math.tau + rng.uniform(-0.13, 0.13)
+        base = Vector((math.cos(angle) * rng.uniform(1.0, 1.8), math.sin(angle) * rng.uniform(0.65, 1.2), rng.uniform(-0.35, 0.0)))
+        item = add_ico(f"Ground Blast {index:02d}", tuple(base), rng.uniform(0.18, 0.48), orange_fire if index % 3 else smoke, 2, 0.25)
+        ground_lobes.append((item, base, rng.uniform(1.15, 1.9), rng.uniform(0.65, 1.15)))
+
+    sparks = []
+    for index in range(90):
+        angle = rng.random() * math.tau
+        upward = rng.uniform(-0.2, 1.5)
+        velocity = Vector((math.cos(angle) * rng.uniform(1.3, 3.9), math.sin(angle) * rng.uniform(0.8, 2.8), upward))
+        origin = Vector((rng.uniform(-0.35, 0.35), rng.uniform(-0.25, 0.25), rng.uniform(0.05, 1.0)))
+        bpy.ops.mesh.primitive_cone_add(vertices=4, radius1=rng.uniform(0.014, 0.035), radius2=0.0, depth=rng.uniform(0.09, 0.28), location=origin)
+        item = bpy.context.object
+        item.name = f"Spark {index:02d}"
+        item.data.materials.append(spark_materials[index % 2])
+        item.rotation_mode = "QUATERNION"
+        item.rotation_quaternion = velocity.normalized().to_track_quat("Z", "Y")
+        sparks.append((item, origin, velocity, rng.uniform(0.5, 1.0)))
 
     for frame in range(FRAME_COUNT):
         t = frame / (FRAME_COUNT - 1)
-        expansion = math.sin(min(1.0, t * 1.45) * math.pi / 2)
-        collapse = max(0.0, 1.0 - max(0.0, t - 0.62) / 0.38)
-        for index, (item, base, speed, size) in enumerate(lobes):
-            plume = Vector((base.x * (1.2 + expansion), base.y * (1.2 + expansion), base.z + t * (0.8 + index % 5 * 0.09)))
-            item.location = plume * (0.35 + expansion * speed)
-            scale = size * (0.12 + expansion * 1.1) * (0.35 + 0.65 * collapse)
-            item.scale = (scale, scale, scale * (1.0 + t * 0.35))
-            # Hot core early, smoke-dominant edge late.
-            material_index = min(3, int(t * 3.6 + (index % 5 == 0)))
-            item.data.materials.clear()
-            item.data.materials.append(colors[material_index])
+        expansion = math.sin(min(1.0, t / 0.48) * math.pi / 2)
+        fire_decay = max(0.18, 1.0 - max(0.0, t - 0.58) / 0.42)
+        for index, (item, base, speed, size) in enumerate(core_lobes):
+            item.location = base * (0.22 + expansion * speed) + Vector((0, 0, t * (0.35 + index % 4 * 0.07)))
+            scale = size * (0.08 + expansion * 1.25) * fire_decay
+            item.scale = (scale, scale * 0.92, scale * (1.08 + t * 0.52))
+            next_material = white_hot if t < 0.4 and index < 6 else yellow_fire if t < 0.68 else orange_fire
+            item.data.materials.clear(); item.data.materials.append(next_material)
+        for index, (item, base, speed, size) in enumerate(outer_lobes):
+            item.location = base * (0.18 + expansion * speed) + Vector((0, 0, t * (0.55 + index % 6 * 0.08)))
+            scale = size * (0.08 + expansion * 1.18) * (0.62 + fire_decay * 0.38)
+            flame_stretch = 1.15 + t * 0.8 + (index % 5) * 0.08
+            item.scale = (scale * 0.9, scale, scale * flame_stretch)
+            next_material = yellow_fire if t < 0.34 and index % 6 == 0 else orange_fire if t < 0.62 else smoke
+            item.data.materials.clear(); item.data.materials.append(next_material)
+        for index, (item, base, speed, size) in enumerate(smoke_lobes):
+            visibility = min(1.0, max(0.0, (t - 0.18) / 0.3))
+            item.location = base * (0.25 + expansion * speed) + Vector((0, 0, t * (0.9 + index % 5 * 0.13)))
+            scale = size * visibility * (0.18 + expansion * 1.12)
+            item.scale = (scale, scale, scale * (1.0 + t * 0.65))
+            item.data.materials.clear(); item.data.materials.append(smoke if index % 4 else soot)
+        for item, base, speed, size in ground_lobes:
+            item.location = base * (0.14 + expansion * speed)
+            scale = size * (0.05 + expansion * 1.15) * (0.8 + fire_decay * 0.2)
+            item.scale = (scale * 1.3, scale, scale * 0.72)
+        for item, origin, velocity, delay in sparks:
+            age = max(0.0, t * 1.45 - (1.0 - delay) * 0.24)
+            item.location = origin + velocity * age + Vector((0, 0, -2.2 * age * age))
+            visible = 1.0 if 0.0 < age < 0.82 else 0.0
+            item.scale = (visible, visible, visible * (1.0 + velocity.length * 0.18))
         path = FRAMES / "explosion" / f"frame-{frame:02d}.png"
         path.parent.mkdir(parents=True, exist_ok=True)
         bpy.context.scene.render.filepath = str(path)
