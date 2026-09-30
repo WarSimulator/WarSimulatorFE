@@ -43,13 +43,13 @@ export function SimulationFinalPage({ mapMode = '2d', reportMode = false, demoMo
 
   const start = async () => {
     if (!files.blueForce || !files.redForce || !files.deployment) return;
-    const analysisWindow = window.open('about:blank', '_blank', 'popup=yes,width=1400,height=900');
-    if (!analysisWindow) {
-      setError('상태 분석 화면을 열 수 없습니다. 이 사이트의 팝업을 허용한 뒤 다시 실행해 주세요.');
+    const simulationWindow = window.open('about:blank', '_blank', 'popup=yes,width=1400,height=900');
+    if (!simulationWindow) {
+      setError('시뮬레이터 화면을 열 수 없습니다. 이 사이트의 팝업을 허용한 뒤 다시 실행해 주세요.');
       return;
     }
-    analysisWindow.document.title = 'ATLAS 상태 분석 준비 중';
-    analysisWindow.document.body.innerHTML = '<p style="font:16px sans-serif;padding:24px">시뮬레이션 상태 분석 화면을 준비하고 있습니다…</p>';
+    simulationWindow.document.title = 'ATLAS 시뮬레이션 준비 중';
+    simulationWindow.document.body.innerHTML = '<p style="font:16px sans-serif;padding:24px">시뮬레이션 화면을 준비하고 있습니다…</p>';
     setLoading(true); setError('');
     try {
       const [blueForce, redForce, withdrawal, deployment] = await Promise.all([
@@ -57,10 +57,11 @@ export function SimulationFinalPage({ mapMode = '2d', reportMode = false, demoMo
       ]);
       const build = await buildFinalSimulation({ blueForce, redForce, withdrawal, deployment }, { mode: reportMode ? 'report' : 'strict' });
       saveFinalSimulation(build);
-      analysisWindow.location.href = new URL(`/simulations/${build.simulationId}/run?view=analysis${demoMode ? '&visualization=atomic3d' : ''}`, window.location.origin).href;
-      navigate(`/simulations/${build.simulationId}/run?view=tactical${is3D ? `&map=${mapMode}` : ''}${demoMode ? '&visualization=atomic3d' : ''}${liveEditMode ? '&edit=live' : ''}`);
+      navigate(`/simulations/${build.simulationId}/run?view=analysis${demoMode ? '&visualization=atomic3d' : ''}`);
+      simulationWindow.location.href = new URL(`/simulations/${build.simulationId}/run?view=tactical&window=simulation${is3D ? `&map=${mapMode}` : ''}${demoMode ? '&visualization=atomic3d' : ''}${liveEditMode ? '&edit=live' : ''}`, window.location.origin).href;
+      simulationWindow.focus();
     } catch (caught) {
-      analysisWindow.close();
+      simulationWindow.close();
       setError(caught instanceof Error ? caught.message : '파일을 처리하지 못했습니다.');
       setLoading(false);
     }

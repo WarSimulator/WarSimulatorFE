@@ -4,17 +4,19 @@ import { DEFAULT_MAP_CENTER } from '../lib/mapConfig';
 import { graphicColor } from '../lib/graphicColor';
 import { getLngLat } from '../lib/position';
 import { getTrackPositionsAtTime, getUnitPositionAtTime, isUnitEliminated } from '../lib/playback';
-import { buildObservationSector, getActiveObservationEffects } from '../lib/observation';
+import { buildObservationSector, FIXED_OBSERVATION_RANGE_METERS, getActiveObservationEffects } from '../lib/observation';
 import { resolvePlanReference } from '../lib/planReferenceMapping';
 import { createMilitarySymbolSvg, get3DUnitSymbolSize } from '../lib/symbolSvg';
 import { createOverlayStore, createOverlaySchedule } from '../lib/google3DOverlayStore';
 import { createGoogle3DTacticalVfxStore } from '../lib/google3DTacticalVfx';
+import { EngagementVisual, type ActiveEngagement } from '../lib/engagementVisual';
 import { scannerFillColor, scannerVisualForAffiliation } from '../lib/scannerVisual';
 import { renderTacticalGraphic } from '../lib/renderTacticalGraphic';
 import { createTaskGraphic, getTacticalTask } from '../lib/tacticalTasks';
 import { AtomicActionPlaybackOverlay } from './AtomicActionPlaybackOverlay';
 import { SymbolPalette } from './SymbolPalette';
 import { UnitPropertiesPanel } from './UnitPropertiesPanel';
+import { buildSecurityVisual } from '../lib/securityVisual';
 type ActionOverlayStore = ReturnType<typeof createOverlayStore>;
 
 type LiveEdit = {
@@ -82,7 +84,6 @@ const PHASE_LINE_DASH_METERS = 100;
 const PHASE_LINE_GAP_METERS = 50;
 const PHASE_LINE_DRAWS_OCCLUDED_SEGMENTS = true;
 const ACTION_OVERLAY_INTERVAL_MS = 75;
-const MAX_ROAD_SNAP_METERS = 500;
 const FIRE_ACTIONS = new Set(['Engage', 'Continue to Engage', 'Fight', 'Ambush', 'Disrupt', 'Destroy']);
 const AREA_ACTIONS = new Set(['Establish Security', 'Establish Presence', 'Confirm Control', 'Contain', 'Block', 'Clear', 'Seize']);
 const COMBAT_LINK_ALTITUDE_METERS = 600;
@@ -266,19 +267,11 @@ function position3D(position: SimulationResultPosition): Position3D {
   return { lat: position.latitude, lng: position.longitude };
 }
 
-function distanceMeters(first: SimulationResultPosition, second: SimulationResultPosition) {
-  const latitudeMeters = (second.latitude - first.latitude) * 111_000;
-  const longitudeMeters = (second.longitude - first.longitude) * 111_000
-    * Math.cos(((first.latitude + second.latitude) / 2) * Math.PI / 180);
-  return Math.hypot(latitudeMeters, longitudeMeters);
-}
-
 function visibleRoutePositions(segment: SimulationResult['unitTracks'][number]['segments'][number]) {
-  const positions = segment.keyframes.map(frame => frame.position);
-  if (positions.length < 3 || segment.routing?.generatedBy !== 'Road routing') return positions;
-  const startsTooFarFromRoad = distanceMeters(positions[0], positions[1]) > MAX_ROAD_SNAP_METERS;
-  const endsTooFarFromRoad = distanceMeters(positions.at(-2)!, positions.at(-1)!) > MAX_ROAD_SNAP_METERS;
-  return startsTooFarFromRoad || endsTooFarFromRoad ? [positions[0], positions.at(-1)!] : positions;
+  // Road-snap validity is decided while compiling the route. Keyframes may be
+  // downsampled for playback, so the distance between adjacent frames is not a
+  // valid snap test and must not collapse a routed path into a straight line.
+  return segment.keyframes.map(frame => frame.position);
 }
 
 function circlePath(center: Position3D, radiusMeters: number, points = 28): Position3D[] {
@@ -304,6 +297,32 @@ function actionTarget(effect: Pick<AtomicActionEffect, 'parameters'>, result: Si
   const reference = [parameters.target, parameters.destination, parameters.recipient, parameters.effectArea, parameters.result]
     .find((value): value is string => typeof value === 'string' && value.trim().length > 0);
   return reference ? getUnitPositionAtTime(reference, time, result, deployment) ?? resolvePlanReference(deployment, reference) : undefined;
+}
+
+function activeEngagements(result: SimulationResult, deployment: DeploymentSetup | undefined, time: number): ActiveEngagement[] {
+  const engagements: ActiveEngagement[] = [];
+  const seen = new Set<string>();
+  for (const effect of result.actionEffects ?? []) {
+    if (!FIRE_ACTIONS.has(effect.action) || effect.startTime > time || time >= effect.endTime) continue;
+    const targetId = effect.parameters.target;
+    if (typeof targetId !== 'string' || targetId === effect.unitId || targetId === effect.actor) continue;
+    const origin = getUnitPositionAtTime(effect.unitId, time, result, deployment)
+      ?? getUnitPositionAtTime(effect.actor, time, result, deployment);
+    const target = getUnitPositionAtTime(targetId, time, result, deployment);
+    if (!origin || !target) continue;
+    const identity = `${effect.actor}:${targetId}:${effect.actionSequence}`;
+    seen.add(identity);
+    engagements.push({ key: `combat:${identity}`, origin: position3D(origin), target: position3D(target) });
+  }
+  for (const effect of result.engagementEffects ?? []) {
+    if (effect.startTime > time || time >= effect.endTime || effect.actor === effect.target) continue;
+    const identity = `${effect.actor}:${effect.target}:${effect.actionSequence}`;
+    if (seen.has(identity)) continue;
+    const origin = getUnitPositionAtTime(effect.actor, time, result, deployment);
+    const target = getUnitPositionAtTime(effect.target, time, result, deployment);
+    if (origin && target) engagements.push({ key: `combat:${identity}`, origin: position3D(origin), target: position3D(target) });
+  }
+  return engagements;
 }
 
 function actionAreaPath(effect: AtomicActionEffect, deployment?: DeploymentSetup): Position3D[] | undefined {
@@ -351,6 +370,32 @@ function addDirectedAction(
   addPulse(nodes, key, pulseCenter, color, actionPulseRadius(action, progress));
 }
 
+function addSecurityAction(
+  nodes: ActionOverlayStore,
+  key: string,
+  origin: SimulationResultPosition,
+  elapsedSeconds: number,
+  progress: number,
+) {
+  const color = actionColor('Establish Security');
+  const visual = buildSecurityVisual(origin, elapsedSeconds, progress);
+  visual.sectors.forEach((path, index) => nodes.put(`${key}:sector:${index}`, 'polygon', {
+    path: path.map(([lng, lat]) => ({ lat, lng })),
+    fillColor: `${color}2b`, strokeColor: `${color}80`, strokeWidth: 1.5,
+    altitudeMode: SURFACE_ALTITUDE_MODE, drawsOccludedSegments: SURFACE_DRAWS_OCCLUDED_SEGMENTS, zIndex: 28,
+  }));
+  nodes.put(`${key}:boundary`, 'line', {
+    path: visual.boundaryPath.map(([lng, lat]) => ({ lat, lng })),
+    strokeColor: color, outerColor: '#111827', outerWidth: 0.18, strokeWidth: 3,
+    altitudeMode: SURFACE_ALTITUDE_MODE, drawsOccludedSegments: SURFACE_DRAWS_OCCLUDED_SEGMENTS, zIndex: 29,
+  });
+  nodes.put(`${key}:pulse`, 'line', {
+    path: visual.pulsePath.map(([lng, lat]) => ({ lat, lng })),
+    strokeColor: `rgba(91, 212, 255, ${visual.pulseOpacity.toFixed(3)})`, strokeWidth: 4,
+    altitudeMode: SURFACE_ALTITUDE_MODE, drawsOccludedSegments: SURFACE_DRAWS_OCCLUDED_SEGMENTS, zIndex: 30,
+  });
+}
+
 function addObservationAction(
   nodes: ActionOverlayStore,
   key: string,
@@ -365,6 +410,9 @@ function addObservationAction(
   const liveEffect = {
     ...effect,
     origin,
+    rangeMeters: FIXED_OBSERVATION_RANGE_METERS,
+    displayRangeMeters: FIXED_OBSERVATION_RANGE_METERS,
+    targetInRange: effect.targetDistanceMeters <= FIXED_OBSERVATION_RANGE_METERS,
     direction: effect.direction + Math.sin((time - effect.startTime) * Math.PI / 2) * effect.fovDegrees * 0.1,
   };
   const sector = buildObservationSector(liveEffect, visual.fillOpacity)
@@ -392,14 +440,28 @@ function updateActionOverlays(
 
   for (const effect of result.actionEffects ?? []) {
     if (effect.startTime > time || time >= effect.endTime || (effect.action === 'Observe' && observationSequences.has(effect.actionSequence))) continue;
-    // Move and Withdraw use their timed route geometry; Observe uses its sensor sector.
-    if (atomicActionVisuals && (effect.action === 'Move' || effect.action === 'Withdraw' || effect.action === 'Observe')) continue;
+    // Movement is already rendered from the active track segment, including its
+    // road-routed keyframes. Do not add a second straight origin-to-destination
+    // action link over that route.
+    if (effect.action === 'Move' || effect.action === 'Withdraw') continue;
+    // Atomic playback renders observation through its dedicated sensor sector.
+    if (atomicActionVisuals && effect.action === 'Observe') continue;
     const origin = getUnitPositionAtTime(effect.unitId, time, result, deployment)
       ?? getUnitPositionAtTime(effect.actor, time, result, deployment)
       ?? effect.origin;
-    const target = actionTarget(effect, result, deployment, time);
     const progress = Math.max(0, Math.min(1, (time - effect.startTime) / Math.max(0.01, effect.endTime - effect.startTime)));
     const key = `action:${effect.unitId}:${effect.actionSequence}`;
+    if (!atomicActionVisuals && effect.action === 'Establish Security') {
+      addSecurityAction(nodes, key, origin, time - effect.startTime, progress);
+      continue;
+    }
+    const target = actionTarget(effect, result, deployment, time);
+    // Unit-to-unit fire is animated in its own frame loop; area actions keep
+    // their existing marker/area rendering here.
+    if (FIRE_ACTIONS.has(effect.action) && typeof effect.parameters.target === 'string'
+      && effect.parameters.target !== effect.unitId && effect.parameters.target !== effect.actor
+      && getUnitPositionAtTime(effect.parameters.target, time, result, deployment)
+      && (getUnitPositionAtTime(effect.unitId, time, result, deployment) || getUnitPositionAtTime(effect.actor, time, result, deployment))) continue;
     const areaPath = atomicActionVisuals && AREA_ACTIONS.has(effect.action) ? actionAreaPath(effect, deployment) : undefined;
     if (areaPath) {
       const color = actionColor(effect.action);
@@ -423,7 +485,9 @@ function updateActionOverlays(
   for (const effect of result.engagementEffects ?? []) {
     if (effect.startTime > time || time >= effect.endTime) continue;
     const origin = getUnitPositionAtTime(effect.actor, time, result, deployment);
-    const target = getUnitPositionAtTime(effect.target, time, result, deployment) ?? resolvePlanReference(deployment, effect.target);
+    const targetUnit = getUnitPositionAtTime(effect.target, time, result, deployment);
+    if (origin && targetUnit && effect.actor !== effect.target) continue;
+    const target = targetUnit ?? resolvePlanReference(deployment, effect.target);
     if (origin) addDirectedAction(nodes, `engage:${effect.actor}:${effect.actionSequence}`, effect.action, position3D(origin), target ? position3D(target) : undefined, (time - effect.startTime) / Math.max(0.01, effect.endTime - effect.startTime));
   }
 
@@ -500,6 +564,8 @@ export function Google3DTacticalMap({ runtime, playbackRef, units, result, deplo
   const staticLayersRef = useRef<StaticLayerNodes>({ routes: [], controlLines: [], objectives: [], unitLabels: new Map() });
   const actionOverlaysRef = useRef<ActionOverlayStore | null>(null);
   const tacticalVfxRef = useRef<ReturnType<typeof createGoogle3DTacticalVfxStore> | null>(null);
+  const combatOverlaysRef = useRef<ActionOverlayStore | null>(null);
+  const engagementVisualRef = useRef(new EngagementVisual());
   const fallbackPlaybackRef = useRef(runtime);
   const [error, setError] = useState('');
   const [ready, setReady] = useState(false);
@@ -600,6 +666,13 @@ export function Google3DTacticalMap({ runtime, playbackRef, units, result, deplo
     if (!actionOverlaysRef.current) return;
     updateActionOverlays(actionOverlaysRef.current, result, deployment, time, atomicActionVisuals);
   }, [atomicActionVisuals, deployment, result]);
+  const refreshCombatOverlays = useCallback((time: number, deltaTime: number) => {
+    if (!combatOverlaysRef.current) return;
+    engagementVisualRef.current.update(
+      deltaTime, activeEngagements(result, deployment, time), combatOverlaysRef.current,
+      atomicActionVisuals ? DEMO_COMBAT_LINK_ALTITUDE_METERS : COMBAT_LINK_ALTITUDE_METERS,
+    );
+  }, [atomicActionVisuals, deployment, result]);
 
   useEffect(() => {
     setReady(false);
@@ -683,6 +756,11 @@ export function Google3DTacticalMap({ runtime, playbackRef, units, result, deplo
           toSurfacePath,
         );
         tacticalVfxRef.current = createGoogle3DTacticalVfxStore(library, map, result, deployment);
+        combatOverlaysRef.current = createOverlayStore(
+          (_kind, options) => new library.Polyline3DElement(options),
+          node => map.append(node as HTMLElement),
+          toSurfacePath,
+        );
         staticLayersRef.current = { routes: [], controlLines: [], objectives: [], unitLabels: new Map() };
 
         for (const track of result.unitTracks) {
@@ -757,6 +835,8 @@ export function Google3DTacticalMap({ runtime, playbackRef, units, result, deplo
         }
         refreshActionOverlays(clock.current.simulationTime);
         tacticalVfxRef.current.update(clock.current.simulationTime);
+        refreshCombatOverlays(clock.current.simulationTime, 0);
+        tacticalVfxRef.current.update(clock.current.simulationTime);
         setReady(true);
       } catch (caught) {
         setError(caught instanceof Error ? caught.message : 'Google 3D 지도를 초기화하지 못했습니다.');
@@ -774,10 +854,12 @@ export function Google3DTacticalMap({ runtime, playbackRef, units, result, deplo
       actionOverlaysRef.current = null;
       tacticalVfxRef.current?.clear();
       tacticalVfxRef.current = null;
+      combatOverlaysRef.current?.clear();
+      combatOverlaysRef.current = null;
       mapRef.current?.remove();
       mapRef.current = null;
     };
-  }, [cameraRange, center, clock, deployment, onSelectUnit, refreshActionOverlays, result, units]);
+  }, [cameraRange, center, clock, deployment, onSelectUnit, refreshActionOverlays, refreshCombatOverlays, result, units]);
 
   useEffect(() => {
     liveMarkersRef.current.forEach(marker => marker.remove());
@@ -967,6 +1049,8 @@ export function Google3DTacticalMap({ runtime, playbackRef, units, result, deplo
     const tick = (timestamp: number) => {
       const time = clock.current.simulationTime;
       if (time !== previousTime) {
+        // Combat geometry follows both moving units every animation frame.
+        refreshCombatOverlays(time, Number.isFinite(lastFrameTime) ? time - lastFrameTime : 0);
         for (const route of staticLayersRef.current.routes) {
           const active = clock.current.tacticalLayers.routes && route.startTime <= time && time < route.endTime;
           if (active) {
@@ -1013,7 +1097,7 @@ export function Google3DTacticalMap({ runtime, playbackRef, units, result, deplo
     };
     frame = requestAnimationFrame(tick);
     return () => cancelAnimationFrame(frame);
-  }, [clock, deployment, ready, refreshActionOverlays, result, taskScale, units]);
+  }, [clock, deployment, ready, refreshActionOverlays, refreshCombatOverlays, result, taskScale, units]);
 
   useEffect(() => {
     for (const [unitId, marker] of markersRef.current) {

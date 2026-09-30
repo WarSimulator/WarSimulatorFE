@@ -6,6 +6,10 @@ export { destinationPoint } from '@atlas/atomic-actions';
 
 type ObservationSectorProperties = { actionSequence: number; actor: string; target: string; targetInRange: boolean; opacity: number };
 
+// Temporary simulator policy: planner sensor ranges are not yet authoritative.
+// Keep Observe coverage readable and consistent across imported plan versions.
+export const FIXED_OBSERVATION_RANGE_METERS = 4_000;
+
 export function buildObservationSector(effect: ObservationEffect, opacity = 0.1, idSuffix = ''): GeoJSON.Feature<GeoJSON.Polygon, ObservationSectorProperties> {
   return {
     type: 'Feature',
@@ -39,20 +43,12 @@ export function toObservationSectorFeatures(
       const liveEffect = {
         ...effect,
         origin,
+        rangeMeters: FIXED_OBSERVATION_RANGE_METERS,
+        displayRangeMeters: FIXED_OBSERVATION_RANGE_METERS,
+        targetInRange: effect.targetDistanceMeters <= FIXED_OBSERVATION_RANGE_METERS,
         direction: effect.direction + Math.sin(elapsed * Math.PI / 2) * effect.fovDegrees * 0.1,
       };
-      // MapLibre fill layers do not support radial gradients. Overlapping cones
-      // approximate a flashlight beam: the far end is faint and the origin is dense.
-      return [
-        [1, 0.04],
-        [0.76, 0.06],
-        [0.53, 0.1],
-        [0.31, 0.16],
-      ].map(([rangeScale, opacity], index) => buildObservationSector(
-        { ...liveEffect, displayRangeMeters: liveEffect.displayRangeMeters * rangeScale },
-        opacity,
-        `-falloff-${index}`,
-      ));
+      return [buildObservationSector(liveEffect, 0.3)];
     }),
   };
 }

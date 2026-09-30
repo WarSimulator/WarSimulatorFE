@@ -10,6 +10,7 @@ import { getTrackPositionsAtTime, isUnitEliminated } from '../lib/playback';
 import { toObservationSectorFeatures } from '../lib/observation';
 import { toTacticalGraphicAxisArrowFeatures, toTacticalGraphicFeatureCollection } from '../lib/tacticalGraphics';
 import { resolvePlanReference } from '../lib/planReferenceMapping';
+import { buildSecurityVisual } from '../lib/securityVisual';
 import {
   addDeploymentSourcesAndLayers,
   AXIS_ARROW_SOURCE_ID,
@@ -130,7 +131,13 @@ function toObjectiveFeatures(deployment?: DeploymentSetup): GeoJSON.FeatureColle
   }) };
 }
 
-type ActionEffectFeatureProperties = { kind: 'action-line' | 'action-marker'; color: string; radius: number; action: string };
+type ActionEffectFeatureProperties = {
+  kind: 'action-line' | 'action-marker' | 'security-sector' | 'security-boundary' | 'security-pulse';
+  color: string;
+  radius: number;
+  opacity?: number;
+  action: string;
+};
 
 const FIRE_ACTIONS = new Set(['Disrupt', 'Engage', 'Fight', 'Continue to Engage', 'Ambush', 'Contain']);
 
@@ -156,13 +163,35 @@ function toActionEffectFeatures(
     const actionColor = colorByAction[effect.action];
     if (!actionColor) continue;
     const origin = positions.find((position) => position.unitId === effect.unitId || position.actor === effect.actor)?.position ?? effect.origin;
+    if (!origin) continue;
+    if (effect.action === 'Establish Security') {
+      const elapsed = simulationTime - effect.startTime;
+      const progress = elapsed / Math.max(0.01, effect.endTime - effect.startTime);
+      const visual = buildSecurityVisual(origin, elapsed, progress);
+      visual.sectors.forEach((coordinates, index) => features.push({
+        type: 'Feature', id: `security-sector-${effect.actionSequence}-${index}`,
+        properties: { kind: 'security-sector', color: actionColor, radius: 0, action: effect.action },
+        geometry: { type: 'Polygon', coordinates: [[...coordinates, coordinates[0]]] },
+      }));
+      features.push({
+        type: 'Feature', id: `security-boundary-${effect.actionSequence}`,
+        properties: { kind: 'security-boundary', color: actionColor, radius: 0, action: effect.action },
+        geometry: { type: 'LineString', coordinates: visual.boundaryPath },
+      });
+      features.push({
+        type: 'Feature', id: `security-pulse-${effect.actionSequence}`,
+        properties: { kind: 'security-pulse', color: actionColor, radius: 0, opacity: visual.pulseOpacity, action: effect.action },
+        geometry: { type: 'LineString', coordinates: visual.pulsePath },
+      });
+      continue;
+    }
     // Plans target stable unit IDs (for example, "blue-main-tank"), while
     // tracks also carry a human-readable designation. Resolve either form
     // against the live playback position before falling back to map references.
     const targetPosition = target
       ? positions.find((position) => position.unitId === target || position.actor === target)?.position ?? resolvePlanReference(deployment, target)
       : origin;
-    if (!origin || !targetPosition) continue;
+    if (!targetPosition) continue;
     const targetIsUnit = target && positions.some((position) => position.unitId === target || position.actor === target);
     const isFireLine = FIRE_ACTIONS.has(effect.action) && targetIsUnit;
     const color = isFireLine ? '#ff4d4f' : actionColor;

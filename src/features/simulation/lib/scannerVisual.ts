@@ -14,14 +14,14 @@ export type ScannerVisual = {
 export const SCANNER_VISUALS: Record<DeploymentAffiliation, ScannerVisual> = {
   friendly: {
     fillColor: '#58EAD5',
-    fillOpacity: 0.35,
+    fillOpacity: 0.68,
     altitudeOffsetMeters: 300,
     drawsOccludedSegments: true,
     zIndex: 60,
   },
   enemy: {
     fillColor: '#FFB45C',
-    fillOpacity: 0.35,
+    fillOpacity: 0.68,
     altitudeOffsetMeters: 300,
     drawsOccludedSegments: true,
     zIndex: 60,

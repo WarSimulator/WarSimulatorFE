@@ -12,6 +12,7 @@ import type {
   SimulationTrackSegment,
   SimulationUnitTrack,
 } from '../../../types';
+import { FIXED_OBSERVATION_RANGE_METERS } from './observation';
 import { createSidc } from './sidc';
 import { ForcePlanError, parseForcePlan, parseForcePlanForReport, type ImportedStep, type PlanIssue } from './forcePlan';
 
@@ -261,8 +262,6 @@ type RoadRoute = {
   provider: string;
 };
 
-const MAX_ROAD_SNAP_METERS = 500;
-
 function routingServiceUrl() {
   const env = (import.meta as unknown as { env?: { VITE_ROUTING_URL?: string } }).env;
   return (env?.VITE_ROUTING_URL ?? 'https://router.project-osrm.org').replace(/\/$/, '');
@@ -334,14 +333,9 @@ async function requestRoadRoute(
     });
     if (roadCoordinates.length < 2) throw new Error('Invalid route geometry');
 
-    const originSnapDistance = distanceMeters(origin, roadCoordinates[0]);
-    const destinationSnapDistance = distanceMeters(destination, roadCoordinates.at(-1)!);
-    if (originSnapDistance > MAX_ROAD_SNAP_METERS || destinationSnapDistance > MAX_ROAD_SNAP_METERS) {
-      throw new Error(`Road snap too far (${Math.round(originSnapDistance)}m/${Math.round(destinationSnapDistance)}m)`);
-    }
-
-    // Preserve exact scenario start/end points even when the router snaps them
-    // a short distance onto the nearest road segment.
+    // Units may begin or finish away from a routable road. Preserve their exact
+    // scenario positions as short access legs, then retain the road route
+    // returned by the router instead of discarding it because of snap distance.
     if (!samePosition(origin, roadCoordinates[0])) roadCoordinates.unshift(origin);
     if (!samePosition(destination, roadCoordinates.at(-1)!)) roadCoordinates.push(destination);
     return {
@@ -543,7 +537,7 @@ export async function buildFinalSimulation(inputs: FinalSimulationInputs, option
       if (!targetPoint && !reportMode) throw new Error(`Observe 행동의 표적 '${targetRef || '(없음)'}' 좌표를 찾을 수 없습니다.`);
       if (targetPoint) {
       const targetDistanceMeters = distanceMeters(origin, targetPoint);
-      const rangeMeters = Math.max(100, finite(parameters.sensor_range_m ?? parameters.range_m, 1800));
+      const rangeMeters = FIXED_OBSERVATION_RANGE_METERS;
       observation = {
         actionSequence: sequence, action: 'Observe', actor: unit.designation, target: targetRef, startTime: start, endTime: end,
         origin, targetPoint, direction: finite(parameters.observation_bearing_deg ?? parameters.direction, bearingDegrees(origin, targetPoint)),

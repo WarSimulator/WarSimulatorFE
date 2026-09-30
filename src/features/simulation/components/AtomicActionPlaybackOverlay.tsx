@@ -29,7 +29,6 @@ function frameForEffect(effect: AtomicActionEffect, simulationTime: number) {
     progress,
     parameters,
     data: effect.renderData,
-    background: false,
   });
 }
 

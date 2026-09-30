@@ -18,6 +18,7 @@ import { Google3DTacticalMap } from '../components/Google3DTacticalMap';
 import { UnitDetailPanel } from '../components/UnitDetailPanel';
 import { UnitListPanel } from '../components/UnitListPanel';
 import { SimulationCompatibilityReport } from '../components/SimulationCompatibilityReport';
+import { SelectedUnitActionCard } from '../components/SelectedUnitActionCard';
 import type { DeploymentEditorMode, DeploymentObjective, DeploymentPaletteItem, DeploymentSetup, DeploymentUnit, SimulationRuntimeState, TacticalGraphic } from '../../../types';
 
 const Cesium3DTacticalMap = lazy(() => import('../components/Cesium3DTacticalMap').then(module => ({ default: module.Cesium3DTacticalMap })));
@@ -30,6 +31,7 @@ export function SimulatorPage() {
   const viewMode = searchParams.get('view') === 'analysis' ? 'analysis' : 'tactical';
   const requestedMap = searchParams.get('map');
   const mapMode = requestedMap === 'vworld' ? 'vworld' : requestedMap === 'cesium' ? 'cesium' : requestedMap === '3d' ? '3d' : '2d';
+  const isSimulationPopup = searchParams.get('window') === 'simulation';
   const atomicActionVisuals = searchParams.get('visualization') === 'atomic3d';
   const liveEditMode = mapMode === '3d' && searchParams.get('edit') === 'live';
   const isAnalysisView = viewMode === 'analysis';
@@ -66,6 +68,7 @@ export function SimulatorPage() {
   const [livePaletteOpen, setLivePaletteOpen] = useState(false);
   const [selectedLiveUnitId, setSelectedLiveUnitId] = useState<string>();
   const [relocatingUnitId, setRelocatingUnitId] = useState<string>();
+  const [selectedUnitCardOpen, setSelectedUnitCardOpen] = useState(false);
   const lastFrameTimeRef = useRef<number | undefined>(undefined);
   const runtimeRef = useRef(runtime);
   const publishTimeRef = useRef(0);
@@ -200,6 +203,14 @@ export function SimulatorPage() {
     channel.onmessage = (event: MessageEvent<{ type: string; source?: string; runtime?: typeof runtime }>) => {
       const message = event.data;
       if (message.source === syncSourceRef.current) return;
+      if (message.type === 'exit' && isSimulationPopup) {
+        window.close();
+        return;
+      }
+      if (message.type === 'exit' && isAnalysisView) {
+        navigate('/simulations', { replace: true, state: { exitedSimulationId: simulationId } });
+        return;
+      }
       if (message.type === 'request') {
         publishRuntime(runtimeRef.current);
         return;
@@ -219,7 +230,7 @@ export function SimulatorPage() {
       channel.close();
       if (syncChannelRef.current === channel) syncChannelRef.current = null;
     };
-  }, [agentRuntime, isAnalysisView, publishRuntime, simulationId]);
+  }, [agentRuntime, isAnalysisView, isSimulationPopup, navigate, publishRuntime, simulationId]);
 
   const requestExit = () => {
     updateRuntime({ isPlaying: false });
@@ -274,6 +285,7 @@ export function SimulatorPage() {
 
   const selectUnit = useCallback((selectedUnitId: string) => {
     updateRuntime({ selectedUnitId });
+    setSelectedUnitCardOpen(true);
   }, [updateRuntime]);
 
   const setTacticalLayers = useCallback((tacticalLayers: typeof runtime.tacticalLayers) => {
@@ -303,6 +315,7 @@ export function SimulatorPage() {
   }, []);
 
   useEffect(() => {
+    if (isAnalysisView || isSimulationPopup) return;
     const handleBeforeUnload = (event: BeforeUnloadEvent) => {
       event.preventDefault();
       event.returnValue = '';
@@ -310,7 +323,7 @@ export function SimulatorPage() {
 
     window.addEventListener('beforeunload', handleBeforeUnload);
     return () => window.removeEventListener('beforeunload', handleBeforeUnload);
-  }, []);
+  }, [isAnalysisView, isSimulationPopup]);
 
   useEffect(() => {
     window.history.pushState({ simulatorGuard: true }, '');
@@ -363,63 +376,70 @@ export function SimulatorPage() {
           {runtime.activeTab === 'order' ? (
             <CommanderInbox reports={commanderReports} simulationTime={runtime.simulationTime} onSelectUnit={selectUnit} />
           ) : (
-            mapMode === '3d' ? <Google3DTacticalMap
-              runtime={runtime}
-              playbackRef={runtimeRef}
-              units={rosterUnits}
-              result={simulationResult}
-              deployment={deployment}
-              onSelectUnit={selectUnit}
-              atomicActionVisuals={atomicActionVisuals}
-              liveEdit={liveEditMode ? {
-                units: liveUnits,
-                objectives: liveObjects.objectives,
-                tacticalGraphics: liveObjects.tacticalGraphics,
-                hiddenBaseUnitIds,
-                mode: liveEditorMode,
-                paletteOpen: livePaletteOpen,
-                selectedUnitId: selectedLiveUnitId,
-                relocatingUnitId,
-                onModeChange: mode => {
-                  if (mode.type === 'place' || mode.type === 'draw' || mode.type === 'draw-task') setSelectedLiveUnitId(undefined);
-                  setRelocatingUnitId(undefined);
-                  setLiveEditorMode(mode);
-                },
-                onTogglePalette: () => setLivePaletteOpen(open => !open),
-                onPlaceUnit: placeLiveUnit,
-                onPlaceObjective: placeLiveObjective,
-                onAddGraphic: addLiveGraphic,
-                onUpdateGraphic: updateLiveGraphic,
-                onSelectUnit: id => { setSelectedLiveUnitId(id); setRelocatingUnitId(undefined); },
-                onChangeDeployment: changeLiveDeployment,
-                onSetRelocatingUnit: setRelocatingUnitId,
-                onMoveUnit: moveLiveUnit,
-                onDeleteUnit: deleteLiveUnit,
-              } : undefined}
-            /> : mapMode === 'cesium' ? <Cesium3DTacticalMap
-              runtime={runtime}
-              playbackRef={runtimeRef}
-              units={rosterUnits}
-              result={simulationResult}
-              deployment={deployment}
-              onSelectUnit={selectUnit}
-              atomicActionVisuals={atomicActionVisuals}
-            /> : mapMode === 'vworld' ? <VWorld3DTacticalMap
-              runtime={runtime}
-              playbackRef={runtimeRef}
-              units={rosterUnits}
-              result={simulationResult}
-              deployment={deployment}
-              onSelectUnit={selectUnit}
-              atomicActionVisuals={atomicActionVisuals}
-            /> : <TacticalMap
-              runtime={runtime}
-              playbackRef={runtimeRef}
-              units={rosterUnits}
-              result={simulationResult}
-              deployment={deployment}
-              onSelectUnit={selectUnit}
-            />
+            <div className="relative flex min-w-0 flex-1">
+              {mapMode === '3d' ? <Google3DTacticalMap
+                runtime={runtime}
+                playbackRef={runtimeRef}
+                units={rosterUnits}
+                result={simulationResult}
+                deployment={deployment}
+                onSelectUnit={selectUnit}
+                atomicActionVisuals={atomicActionVisuals}
+                liveEdit={liveEditMode ? {
+                  units: liveUnits,
+                  objectives: liveObjects.objectives,
+                  tacticalGraphics: liveObjects.tacticalGraphics,
+                  hiddenBaseUnitIds,
+                  mode: liveEditorMode,
+                  paletteOpen: livePaletteOpen,
+                  selectedUnitId: selectedLiveUnitId,
+                  relocatingUnitId,
+                  onModeChange: mode => {
+                    if (mode.type === 'place' || mode.type === 'draw' || mode.type === 'draw-task') setSelectedLiveUnitId(undefined);
+                    setRelocatingUnitId(undefined);
+                    setLiveEditorMode(mode);
+                  },
+                  onTogglePalette: () => setLivePaletteOpen(open => !open),
+                  onPlaceUnit: placeLiveUnit,
+                  onPlaceObjective: placeLiveObjective,
+                  onAddGraphic: addLiveGraphic,
+                  onUpdateGraphic: updateLiveGraphic,
+                  onSelectUnit: id => { setSelectedLiveUnitId(id); setRelocatingUnitId(undefined); },
+                  onChangeDeployment: changeLiveDeployment,
+                  onSetRelocatingUnit: setRelocatingUnitId,
+                  onMoveUnit: moveLiveUnit,
+                  onDeleteUnit: deleteLiveUnit,
+                } : undefined}
+              /> : mapMode === 'cesium' ? <Cesium3DTacticalMap
+                runtime={runtime}
+                playbackRef={runtimeRef}
+                units={rosterUnits}
+                result={simulationResult}
+                deployment={deployment}
+                onSelectUnit={selectUnit}
+                atomicActionVisuals={atomicActionVisuals}
+              /> : mapMode === 'vworld' ? <VWorld3DTacticalMap
+                runtime={runtime}
+                playbackRef={runtimeRef}
+                units={rosterUnits}
+                result={simulationResult}
+                deployment={deployment}
+                onSelectUnit={selectUnit}
+                atomicActionVisuals={atomicActionVisuals}
+              /> : <TacticalMap
+                runtime={runtime}
+                playbackRef={runtimeRef}
+                units={rosterUnits}
+                result={simulationResult}
+                deployment={deployment}
+                onSelectUnit={selectUnit}
+              />}
+              {selectedUnitCardOpen && selectedUnit && <SelectedUnitActionCard
+                unit={selectedUnit}
+                action={currentActions[selectedUnit.id] ?? '대기'}
+                onClose={() => setSelectedUnitCardOpen(false)}
+              />}
+            </div>
           )}
         </div>
       )}
@@ -439,7 +459,11 @@ export function SimulatorPage() {
       <ExitSimulationDialog
         open={exitDialogOpen}
         onCancel={() => setExitDialogOpen(false)}
-        onExit={() => navigate('/simulations', { replace: true, state: { exitedSimulationId: simulationId } })}
+        onExit={() => {
+          syncChannelRef.current?.postMessage({ type: 'exit', source: syncSourceRef.current });
+          if (isSimulationPopup) window.close();
+          else navigate('/simulations', { replace: true, state: { exitedSimulationId: simulationId } });
+        }}
       />
     </div>
   );

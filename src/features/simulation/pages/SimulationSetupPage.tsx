@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Icon } from '../../../components/layout/Icon';
 import { loadMettDocuments } from '../../../lib/mettStorage';
+import deploymentV5 from '../../../../plan/ver5/Deployment_v5.json';
 import type { DeploymentEditorMode, DeploymentSetup } from '../../../types';
 import { DeploymentEditor } from '../components/DeploymentEditor';
 import { DeploymentSetupPanel } from '../components/DeploymentSetupPanel';
@@ -60,6 +61,18 @@ export function SimulationSetupPage({ editorMapMode = '2d' }: { editorMapMode?: 
   const [selectedEntityId, setSelectedEntityId] = useState<string | undefined>();
   const [undoStack, setUndoStack] = useState<DeploymentSetup[]>([]);
   const [redoStack, setRedoStack] = useState<DeploymentSetup[]>([]);
+
+  useEffect(() => {
+    if (editorMapMode !== '3d') return;
+    const existing = getAllDeployments();
+    const v5 = deploymentV5 as unknown as DeploymentSetup;
+    if (!existing.some((deployment) => deployment.id === v5.id)) {
+      saveDeployment(v5);
+      setDeployments(getAllDeployments());
+    }
+    setSelectedDocumentId(v5.mettTcDocumentId);
+    setSelectedDeploymentId(v5.id);
+  }, [editorMapMode]);
 
   const selectedDocument = documents.find((document) => document.id === selectedDocumentId) ?? documents[0];
   const matchingDeployments = useMemo(

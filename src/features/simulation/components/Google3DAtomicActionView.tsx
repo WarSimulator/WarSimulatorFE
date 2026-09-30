@@ -21,7 +21,7 @@ export function Google3DAtomicActionView() {
   const [error, setError] = useState('');
   const center = useMemo(previewCenter, []);
   const frame = useMemo(
-    () => createActionFrame({ action: choice, progress, parameters, background: false }),
+    () => createActionFrame({ action: choice, progress, parameters }),
     [choice, parameters, progress],
   );
 
