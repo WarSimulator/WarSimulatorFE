@@ -27,7 +27,7 @@ function demoFile(name: string, payload: unknown) {
   return new File([JSON.stringify(payload)], name, { type: 'application/json' });
 }
 
-export function SimulationFinalPage({ mapMode = '2d', reportMode = false, demoMode = false, liveEditMode = false }: { mapMode?: '2d' | '3d' | 'cesium' | 'vworld'; reportMode?: boolean; demoMode?: boolean; liveEditMode?: boolean }) {
+export function SimulationFinalPage({ mapMode = '2d', reportMode = false, demoMode = false, liveEditMode = false }: { mapMode?: '2d' | '3d' | 'cesium' | 'maplibre'; reportMode?: boolean; demoMode?: boolean; liveEditMode?: boolean }) {
   const navigate = useNavigate();
   const [files, setFiles] = useState<SelectedFiles>({});
   const [error, setError] = useState('');
@@ -71,7 +71,7 @@ export function SimulationFinalPage({ mapMode = '2d', reportMode = false, demoMo
     <header className="border-b border-outline-variant pb-4">
       <div className="flex items-center gap-3">
         <span className="flex h-12 w-12 items-center justify-center rounded border border-secondary/40 bg-secondary/10"><Icon name="play_circle" className="text-[28px] text-secondary" filled /></span>
-        <div><h2 className="font-display-lg text-display-lg tracking-tight text-primary">{liveEditMode ? 'MIL-SIMULATOR 3D + EDIT' : demoMode && mapMode === 'vworld' ? 'MIL-SIMULATOR 3D 데모(VWORLD)' : demoMode && mapMode === 'cesium' ? 'MIL-SIMULATOR 3D 데모(CESIUM)' : demoMode ? 'MIL-SIMULATOR 3D 데모' : reportMode ? 'MIL-SIMULATOR 3D REPORT' : mapMode === '3d' ? 'MIL-SIMULATOR 3D' : 'MIL-SIMULATOR FINAL'}</h2><p className="mt-1 text-sm text-on-surface-variant">{liveEditMode ? 'Google 3D 시뮬레이션을 재생하면서 유닛·DRAW 도형·전술과업을 지도에 추가하고 편집합니다.' : demoMode && mapMode === 'vworld' ? '공격·수비 계획과 유닛 배치를 국토교통부 브이월드 WebGL 3D 지도에서 실행합니다.' : demoMode && mapMode === 'cesium' ? '공격·수비 계획과 유닛 배치를 CesiumJS 지구본에서 28개 3D 전용 액션 시각화로 실행합니다.' : demoMode ? '공격·수비 계획과 유닛 배치를 28개 3D 전용 액션 시각화로 실행합니다.' : reportMode ? '연동 오류를 기록하고 실행 가능한 행동은 Google 3D 전술 지도에서 계속 재생합니다.' : <>AI Planning 팀의 계획과 유닛 배치 파일을 {mapMode === '3d' ? 'Google 3D 전술 지도에서' : '하나의 시뮬레이션으로'} 실행합니다.</>}</p></div>
+        <div><h2 className="font-display-lg text-display-lg tracking-tight text-primary">{demoMode && mapMode === 'maplibre' ? 'MIL-SIMULATOR 3D 데모(MAPLIBRE GL)' : demoMode && mapMode === 'cesium' ? 'MIL-SIMULATOR 3D 데모(CESIUM)' : liveEditMode ? 'MIL-SIMULATOR 3D + EDIT' : demoMode ? 'MIL-SIMULATOR 3D 데모' : reportMode ? 'MIL-SIMULATOR 3D REPORT' : mapMode === '3d' ? 'MIL-SIMULATOR 3D' : 'MIL-SIMULATOR FINAL'}</h2><p className="mt-1 text-sm text-on-surface-variant">{demoMode && mapMode === 'maplibre' ? 'MapLibre GL DEM 3D 지형에서 시뮬레이션을 실행하고, REVISION으로 유닛·DRAW·전술과업과 음성 명령을 수정·기록합니다.' : demoMode && mapMode === 'cesium' ? '공격·수비 계획과 유닛 배치를 CesiumJS 지구본에서 실행하고, REVISION에서 유닛·DRAW·전술과업과 음성 명령을 수정·기록합니다.' : liveEditMode ? 'Google 3D 시뮬레이션을 재생하면서 유닛·DRAW 도형·전술과업을 지도에 추가하고 편집합니다.' : demoMode ? '공격·수비 계획과 유닛 배치를 28개 3D 전용 액션 시각화로 실행합니다.' : reportMode ? '연동 오류를 기록하고 실행 가능한 행동은 Google 3D 전술 지도에서 계속 재생합니다.' : <>AI Planning 팀의 계획과 유닛 배치 파일을 {mapMode === '3d' ? 'Google 3D 전술 지도에서' : '하나의 시뮬레이션으로'} 실행합니다.</>}</p></div>
       </div>
     </header>
 

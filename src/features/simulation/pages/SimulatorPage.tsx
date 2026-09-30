@@ -3,7 +3,7 @@ import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { createInitialRuntimeState, SIMULATION_PLAYBACK_RATE } from '../lib/runtime';
 import { createGeoPosition } from '../lib/position';
 import { loadHiddenLiveEditUnitIds, loadLiveEditObjects, loadLiveEditUnits, saveHiddenLiveEditUnitIds, saveLiveEditObjects, saveLiveEditUnits } from '../lib/liveEditUnits';
-import { getDeploymentById } from '../lib/deploymentStorage';
+import { getDeploymentById, saveDeployment } from '../lib/deploymentStorage';
 import { clampResultTime, isUnitEliminated } from '../lib/playback';
 import { getSimulationResult, getSimulationResultDeployment, getSimulationResultUnit, getSimulationResultUnits } from '../lib/simulationResultService';
 import { getFinalSimulationReport } from '../lib/finalSimulation';
@@ -13,6 +13,7 @@ import { createUnitAgentRuntime } from '../lib/unitAgentRuntime';
 import { ExitSimulationDialog } from '../components/ExitSimulationDialog';
 import { PlaybackControls } from '../components/PlaybackControls';
 import { SimulatorHeader } from '../components/SimulatorHeader';
+import { ReplanDialog } from '../components/ReplanDialog';
 import { TacticalMap } from '../components/TacticalMap';
 import { Google3DTacticalMap } from '../components/Google3DTacticalMap';
 import { UnitDetailPanel } from '../components/UnitDetailPanel';
@@ -20,9 +21,11 @@ import { UnitListPanel } from '../components/UnitListPanel';
 import { SimulationCompatibilityReport } from '../components/SimulationCompatibilityReport';
 import { SelectedUnitActionCard } from '../components/SelectedUnitActionCard';
 import type { DeploymentEditorMode, DeploymentObjective, DeploymentPaletteItem, DeploymentSetup, DeploymentUnit, SimulationRuntimeState, TacticalGraphic } from '../../../types';
+import { buildReplanSnapshot, type ReplanSnapshot } from '../lib/replanSnapshot';
+import { useRevisionSpeech } from '../hooks/useRevisionSpeech';
 
 const Cesium3DTacticalMap = lazy(() => import('../components/Cesium3DTacticalMap').then(module => ({ default: module.Cesium3DTacticalMap })));
-const VWorld3DTacticalMap = lazy(() => import('../components/VWorld3DTacticalMap').then(module => ({ default: module.VWorld3DTacticalMap })));
+const MapLibre3DTacticalMap = lazy(() => import('../components/MapLibre3DTacticalMap').then(module => ({ default: module.MapLibre3DTacticalMap })));
 
 export function SimulatorPage() {
   const { simulationId } = useParams();
@@ -30,10 +33,11 @@ export function SimulatorPage() {
   const [searchParams] = useSearchParams();
   const viewMode = searchParams.get('view') === 'analysis' ? 'analysis' : 'tactical';
   const requestedMap = searchParams.get('map');
-  const mapMode = requestedMap === 'vworld' ? 'vworld' : requestedMap === 'cesium' ? 'cesium' : requestedMap === '3d' ? '3d' : '2d';
-  const isSimulationPopup = searchParams.get('window') === 'simulation';
+
+  const mapMode = requestedMap === 'maplibre' ? 'maplibre' : requestedMap === 'cesium' ? 'cesium' : requestedMap === '3d' ? '3d' : '2d';
+
   const atomicActionVisuals = searchParams.get('visualization') === 'atomic3d';
-  const liveEditMode = mapMode === '3d' && searchParams.get('edit') === 'live';
+  const liveEditMode = (mapMode === '3d' || mapMode === 'cesium' || mapMode === 'maplibre') && searchParams.get('edit') === 'live';
   const isAnalysisView = viewMode === 'analysis';
   const simulationResult = useMemo(() => getSimulationResult(simulationId), [simulationId]);
   const compatibilityReport = useMemo(() => getFinalSimulationReport(simulationId), [simulationId]);
@@ -68,12 +72,15 @@ export function SimulatorPage() {
   const [livePaletteOpen, setLivePaletteOpen] = useState(false);
   const [selectedLiveUnitId, setSelectedLiveUnitId] = useState<string>();
   const [relocatingUnitId, setRelocatingUnitId] = useState<string>();
-  const [selectedUnitCardOpen, setSelectedUnitCardOpen] = useState(false);
+
+  const [replanSnapshot, setReplanSnapshot] = useState<ReplanSnapshot>();
+
   const lastFrameTimeRef = useRef<number | undefined>(undefined);
   const runtimeRef = useRef(runtime);
   const publishTimeRef = useRef(0);
   const syncChannelRef = useRef<BroadcastChannel | null>(null);
   const syncSourceRef = useRef(crypto.randomUUID());
+  const revision = useRevisionSpeech(simulationId, () => runtimeRef.current.simulationTime);
   useEffect(() => {
     if (liveEditMode) saveLiveEditUnits(simulationId, liveUnits);
   }, [liveEditMode, liveUnits, simulationId]);
@@ -237,6 +244,26 @@ export function SimulatorPage() {
     setExitDialogOpen(true);
   };
 
+  const createReplan = useCallback(() => {
+    if (!deployment) return;
+    updateRuntime({ isPlaying: false });
+    const voiceTranscript = revision.stopForReplan();
+    const snapshot = buildReplanSnapshot({
+      simulationId,
+      simulationTime: runtimeRef.current.simulationTime,
+      deployment,
+      result: simulationResult,
+      liveUnits,
+      hiddenBaseUnitIds,
+      liveObjectives: liveObjects.objectives,
+      liveTacticalGraphics: liveObjects.tacticalGraphics,
+      getUnitState: (unitId, simulationTime) => agentRuntime.getState(unitId, simulationTime),
+      voiceTranscript,
+    });
+    saveDeployment(snapshot);
+    setReplanSnapshot(snapshot);
+  }, [agentRuntime, deployment, hiddenBaseUnitIds, liveObjects, liveUnits, revision, simulationId, simulationResult, updateRuntime]);
+
   useEffect(() => {
     if (!runtime.isPlaying || isAnalysisView) {
       lastFrameTimeRef.current = undefined;
@@ -342,6 +369,11 @@ export function SimulatorPage() {
       <SimulatorHeader
         runtime={runtime}
         onExit={requestExit}
+        onReplan={liveEditMode && !isAnalysisView ? createReplan : undefined}
+        onRevision={liveEditMode && !isAnalysisView ? revision.toggle : undefined}
+        revisionActive={revision.active}
+        revisionListening={revision.listening}
+        revisionStatus={revision.status}
         onTabChange={(activeTab) => updateRuntime({ activeTab })}
         onWorldClockCountryChange={(worldClockCountryCode) => updateRuntime({ worldClockCountryCode })}
         viewMode={viewMode}
@@ -376,70 +408,116 @@ export function SimulatorPage() {
           {runtime.activeTab === 'order' ? (
             <CommanderInbox reports={commanderReports} simulationTime={runtime.simulationTime} onSelectUnit={selectUnit} />
           ) : (
-            <div className="relative flex min-w-0 flex-1">
-              {mapMode === '3d' ? <Google3DTacticalMap
-                runtime={runtime}
-                playbackRef={runtimeRef}
-                units={rosterUnits}
-                result={simulationResult}
-                deployment={deployment}
-                onSelectUnit={selectUnit}
-                atomicActionVisuals={atomicActionVisuals}
-                liveEdit={liveEditMode ? {
-                  units: liveUnits,
-                  objectives: liveObjects.objectives,
-                  tacticalGraphics: liveObjects.tacticalGraphics,
-                  hiddenBaseUnitIds,
-                  mode: liveEditorMode,
-                  paletteOpen: livePaletteOpen,
-                  selectedUnitId: selectedLiveUnitId,
-                  relocatingUnitId,
-                  onModeChange: mode => {
-                    if (mode.type === 'place' || mode.type === 'draw' || mode.type === 'draw-task') setSelectedLiveUnitId(undefined);
-                    setRelocatingUnitId(undefined);
-                    setLiveEditorMode(mode);
-                  },
-                  onTogglePalette: () => setLivePaletteOpen(open => !open),
-                  onPlaceUnit: placeLiveUnit,
-                  onPlaceObjective: placeLiveObjective,
-                  onAddGraphic: addLiveGraphic,
-                  onUpdateGraphic: updateLiveGraphic,
-                  onSelectUnit: id => { setSelectedLiveUnitId(id); setRelocatingUnitId(undefined); },
-                  onChangeDeployment: changeLiveDeployment,
-                  onSetRelocatingUnit: setRelocatingUnitId,
-                  onMoveUnit: moveLiveUnit,
-                  onDeleteUnit: deleteLiveUnit,
-                } : undefined}
-              /> : mapMode === 'cesium' ? <Cesium3DTacticalMap
-                runtime={runtime}
-                playbackRef={runtimeRef}
-                units={rosterUnits}
-                result={simulationResult}
-                deployment={deployment}
-                onSelectUnit={selectUnit}
-                atomicActionVisuals={atomicActionVisuals}
-              /> : mapMode === 'vworld' ? <VWorld3DTacticalMap
-                runtime={runtime}
-                playbackRef={runtimeRef}
-                units={rosterUnits}
-                result={simulationResult}
-                deployment={deployment}
-                onSelectUnit={selectUnit}
-                atomicActionVisuals={atomicActionVisuals}
-              /> : <TacticalMap
-                runtime={runtime}
-                playbackRef={runtimeRef}
-                units={rosterUnits}
-                result={simulationResult}
-                deployment={deployment}
-                onSelectUnit={selectUnit}
-              />}
-              {selectedUnitCardOpen && selectedUnit && <SelectedUnitActionCard
-                unit={selectedUnit}
-                action={currentActions[selectedUnit.id] ?? '대기'}
-                onClose={() => setSelectedUnitCardOpen(false)}
-              />}
-            </div>
+
+            mapMode === '3d' ? <Google3DTacticalMap
+              runtime={runtime}
+              playbackRef={runtimeRef}
+              units={rosterUnits}
+              result={simulationResult}
+              deployment={deployment}
+              onSelectUnit={selectUnit}
+              atomicActionVisuals={atomicActionVisuals}
+              liveEdit={liveEditMode && revision.active ? {
+                units: liveUnits,
+                objectives: liveObjects.objectives,
+                tacticalGraphics: liveObjects.tacticalGraphics,
+                hiddenBaseUnitIds,
+                mode: liveEditorMode,
+                paletteOpen: livePaletteOpen,
+                selectedUnitId: selectedLiveUnitId,
+                relocatingUnitId,
+                onModeChange: mode => {
+                  if (mode.type === 'place' || mode.type === 'draw' || mode.type === 'draw-task') setSelectedLiveUnitId(undefined);
+                  setRelocatingUnitId(undefined);
+                  setLiveEditorMode(mode);
+                },
+                onTogglePalette: () => setLivePaletteOpen(open => !open),
+                onPlaceUnit: placeLiveUnit,
+                onPlaceObjective: placeLiveObjective,
+                onAddGraphic: addLiveGraphic,
+                onUpdateGraphic: updateLiveGraphic,
+                onSelectUnit: id => { setSelectedLiveUnitId(id); setRelocatingUnitId(undefined); },
+                onChangeDeployment: changeLiveDeployment,
+                onSetRelocatingUnit: setRelocatingUnitId,
+                onMoveUnit: moveLiveUnit,
+                onDeleteUnit: deleteLiveUnit,
+              } : undefined}
+            /> : mapMode === 'cesium' ? <Cesium3DTacticalMap
+              runtime={runtime}
+              playbackRef={runtimeRef}
+              units={rosterUnits}
+              result={simulationResult}
+              deployment={deployment}
+              onSelectUnit={selectUnit}
+              atomicActionVisuals={atomicActionVisuals}
+              liveEdit={liveEditMode ? {
+                editingEnabled: revision.active,
+                units: liveUnits,
+                objectives: liveObjects.objectives,
+                tacticalGraphics: liveObjects.tacticalGraphics,
+                hiddenBaseUnitIds,
+                mode: liveEditorMode,
+                paletteOpen: livePaletteOpen,
+                selectedUnitId: selectedLiveUnitId,
+                relocatingUnitId,
+                onModeChange: mode => {
+                  if (mode.type === 'place' || mode.type === 'draw' || mode.type === 'draw-task') setSelectedLiveUnitId(undefined);
+                  setRelocatingUnitId(undefined);
+                  setLiveEditorMode(mode);
+                },
+                onTogglePalette: () => setLivePaletteOpen(open => !open),
+                onPlaceUnit: placeLiveUnit,
+                onPlaceObjective: placeLiveObjective,
+                onAddGraphic: addLiveGraphic,
+                onUpdateGraphic: updateLiveGraphic,
+                onSelectUnit: id => { setSelectedLiveUnitId(id); setRelocatingUnitId(undefined); },
+                onChangeDeployment: changeLiveDeployment,
+                onSetRelocatingUnit: setRelocatingUnitId,
+                onMoveUnit: moveLiveUnit,
+                onDeleteUnit: deleteLiveUnit,
+              } : undefined}
+            /> : mapMode === 'maplibre' ? <MapLibre3DTacticalMap
+              runtime={runtime}
+              playbackRef={runtimeRef}
+              units={rosterUnits}
+              result={simulationResult}
+              deployment={deployment}
+              onSelectUnit={selectUnit}
+              liveEdit={liveEditMode ? {
+                editingEnabled: revision.active,
+                units: liveUnits,
+                objectives: liveObjects.objectives,
+                tacticalGraphics: liveObjects.tacticalGraphics,
+                hiddenBaseUnitIds,
+                mode: liveEditorMode,
+                paletteOpen: livePaletteOpen,
+                selectedUnitId: selectedLiveUnitId,
+                relocatingUnitId,
+                onModeChange: mode => {
+                  if (mode.type === 'place' || mode.type === 'draw' || mode.type === 'draw-task') setSelectedLiveUnitId(undefined);
+                  setRelocatingUnitId(undefined);
+                  setLiveEditorMode(mode);
+                },
+                onTogglePalette: () => setLivePaletteOpen(open => !open),
+                onPlaceUnit: placeLiveUnit,
+                onPlaceObjective: placeLiveObjective,
+                onAddGraphic: addLiveGraphic,
+                onUpdateGraphic: updateLiveGraphic,
+                onSelectUnit: id => { setSelectedLiveUnitId(id); setRelocatingUnitId(undefined); },
+                onChangeDeployment: changeLiveDeployment,
+                onSetRelocatingUnit: setRelocatingUnitId,
+                onMoveUnit: moveLiveUnit,
+                onDeleteUnit: deleteLiveUnit,
+              } : undefined}
+            /> : <TacticalMap
+              runtime={runtime}
+              playbackRef={runtimeRef}
+              units={rosterUnits}
+              result={simulationResult}
+              deployment={deployment}
+              onSelectUnit={selectUnit}
+            />
+
           )}
         </div>
       )}
@@ -465,6 +543,7 @@ export function SimulatorPage() {
           else navigate('/simulations', { replace: true, state: { exitedSimulationId: simulationId } });
         }}
       />
+      <ReplanDialog snapshot={replanSnapshot} onClose={() => setReplanSnapshot(undefined)} />
     </div>
   );
 }

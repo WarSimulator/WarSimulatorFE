@@ -18,7 +18,7 @@ import type {
   TacticalGraphic,
   TacticalGraphicType,
 } from '../../../types';
-import { createDefaultMapStyle, DEFAULT_MAP_CENTER, DEFAULT_MAP_ZOOM, getMapStyleUrl } from '../lib/mapConfig';
+import { create3DTerrainMapStyle, createDefaultMapStyle, DEFAULT_MAP_CENTER, DEFAULT_MAP_ZOOM, getMapStyleUrl } from '../lib/mapConfig';
 import { createGeoPosition, getLngLat } from '../lib/position';
 import { removeDeploymentEntity } from '../lib/deploymentEditing';
 import { ensureAxisArrowImage, ensureMilitarySymbolImage, ensureObjectiveImage, getMilitarySymbolImageId } from '../lib/militarySymbolRegistry';
@@ -37,6 +37,7 @@ type DeploymentMapProps = {
   onChange: (deployment: DeploymentSetup) => void;
   onSelectEntity: (entityId?: string) => void;
   onModeChange: (mode: DeploymentEditorMode) => void;
+  terrain3D?: boolean;
 };
 
 type DrawFeature = GeoJSON.Feature<GeoJSON.LineString | GeoJSON.Polygon, { id?: string; type?: TacticalGraphicType; name?: string; tacticalSymbol?: TacticalGraphic['tacticalSymbol'] }>;
@@ -160,7 +161,7 @@ function graphicToDrawFeature(graphic: TacticalGraphic): DrawFeature {
   };
 }
 
-export function DeploymentMap({ deployment, selectedEntityId, mode, onChange, onSelectEntity, onModeChange }: DeploymentMapProps) {
+export function DeploymentMap({ deployment, selectedEntityId, mode, onChange, onSelectEntity, onModeChange, terrain3D = false }: DeploymentMapProps) {
   const mapContainerRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<MapLibreMap | null>(null);
   const drawRef = useRef<MapboxDraw | null>(null);
@@ -212,9 +213,13 @@ export function DeploymentMap({ deployment, selectedEntityId, mode, onChange, on
 
     const map = new maplibregl.Map({
       container: mapContainerRef.current,
-      style: getMapStyleUrl() ?? createDefaultMapStyle(),
+      style: terrain3D ? create3DTerrainMapStyle() : getMapStyleUrl() ?? createDefaultMapStyle(),
       center: deployment.mapView?.center ?? DEFAULT_MAP_CENTER,
       zoom: deployment.mapView?.zoom ?? DEFAULT_MAP_ZOOM,
+      pitch: terrain3D ? 60 : 0,
+      bearing: terrain3D ? -12 : 0,
+      maxPitch: terrain3D ? 85 : 60,
+      canvasContextAttributes: terrain3D ? { antialias: true } : undefined,
     });
     const draw = new MapboxDraw({
       displayControlsDefault: false,
@@ -252,7 +257,10 @@ export function DeploymentMap({ deployment, selectedEntityId, mode, onChange, on
 
     mapRef.current = map;
     drawRef.current = draw;
-    map.addControl(new maplibregl.NavigationControl({ showCompass: false }), 'bottom-right');
+    const resizeObserver = new ResizeObserver(() => map.resize());
+    resizeObserver.observe(mapContainerRef.current);
+    map.addControl(new maplibregl.NavigationControl({ showCompass: terrain3D, visualizePitch: terrain3D }), 'bottom-right');
+    if (terrain3D) map.addControl(new maplibregl.TerrainControl({ source: 'terrainSource', exaggeration: 1.2 }), 'bottom-right');
     map.addControl(draw as unknown as maplibregl.IControl, 'top-right');
     map.on('error', () => setMapError(true));
     map.on('load', async () => {
@@ -272,6 +280,7 @@ export function DeploymentMap({ deployment, selectedEntityId, mode, onChange, on
     });
 
     return () => {
+      resizeObserver.disconnect();
       map.remove();
       mapRef.current = null;
       drawRef.current = null;
@@ -632,7 +641,7 @@ export function DeploymentMap({ deployment, selectedEntityId, mode, onChange, on
   }
 
   return (
-    <section className="relative h-full flex-1" onDragOver={(event) => event.preventDefault()} onDrop={handleDrop}>
+    <section className="relative h-full min-w-0 flex-1" onDragOver={(event) => event.preventDefault()} onDrop={handleDrop}>
       <div ref={mapContainerRef} className="h-full w-full bg-surface-container-lowest" />
       {rotationUnit && mapRef.current && <UnitRotationHandle map={mapRef.current} graphic={rotationUnit} onPreview={setUnitRotationPreview} onCommit={unit => {
         const current = deploymentRef.current;

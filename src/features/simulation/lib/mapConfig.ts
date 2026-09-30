@@ -35,3 +35,53 @@ export function createDefaultMapStyle(): StyleSpecification {
     ],
   };
 }
+
+/** MapLibre's official 3D terrain pattern: raster basemap + raster DEM + hillshade. */
+export function create3DTerrainMapStyle(): StyleSpecification {
+  return {
+    version: 8,
+    glyphs: 'https://demotiles.maplibre.org/font/{fontstack}/{range}.pbf',
+    sources: {
+      osm: {
+        type: 'raster',
+        tiles: ['https://tile.openstreetmap.org/{z}/{x}/{y}.png'],
+        tileSize: 256,
+        maxzoom: 19,
+        attribution: '© OpenStreetMap contributors',
+      },
+      terrainSource: {
+        type: 'raster-dem',
+        url: 'https://tiles.mapterhorn.com/tilejson.json',
+      },
+      hillshadeSource: {
+        type: 'raster-dem',
+        url: 'https://tiles.mapterhorn.com/tilejson.json',
+      },
+    },
+    layers: [
+      {
+        id: 'osm',
+        type: 'raster',
+        source: 'osm',
+        paint: {
+          'raster-saturation': -0.55,
+          'raster-contrast': 0.15,
+          'raster-brightness-min': 0.12,
+          'raster-brightness-max': 0.72,
+        },
+      },
+      {
+        id: 'terrain-hillshade',
+        type: 'hillshade',
+        source: 'hillshadeSource',
+        paint: {
+          'hillshade-shadow-color': '#182018',
+          'hillshade-highlight-color': '#c9d2b0',
+          'hillshade-exaggeration': 0.55,
+        },
+      },
+    ],
+    terrain: { source: 'terrainSource', exaggeration: 1.2 },
+    sky: {},
+  };
+}

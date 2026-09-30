@@ -19,7 +19,9 @@ import { UnitPropertiesPanel } from './UnitPropertiesPanel';
 import { buildSecurityVisual } from '../lib/securityVisual';
 type ActionOverlayStore = ReturnType<typeof createOverlayStore>;
 
-type LiveEdit = {
+export type LiveEdit = {
+  /** Keeps revised map data visible while allowing editing controls to be paused. */
+  editingEnabled?: boolean;
   units: DeploymentUnit[];
   objectives: DeploymentObjective[];
   tacticalGraphics: TacticalGraphic[];
@@ -53,7 +55,13 @@ type Props = {
 };
 
 export type Position3D = { lat: number; lng: number; altitude?: number };
-export type Map3DNode = HTMLElement;
+export type Map3DNode = HTMLElement & {
+  center?: Position3D;
+  range?: number;
+  tilt?: number;
+  heading?: number;
+  fov?: number;
+};
 export type Marker3DNode = HTMLElement & { position: Position3D; label?: string; zIndex?: number };
 type MapClickEvent = Event & { position?: Position3D };
 type StaticLayerNodes = {
@@ -84,6 +92,10 @@ const PHASE_LINE_DASH_METERS = 100;
 const PHASE_LINE_GAP_METERS = 50;
 const PHASE_LINE_DRAWS_OCCLUDED_SEGMENTS = true;
 const ACTION_OVERLAY_INTERVAL_MS = 75;
+
+const FREEHAND_SAMPLE_PIXELS = 6;
+const MAX_ROAD_SNAP_METERS = 500;
+
 const FIRE_ACTIONS = new Set(['Engage', 'Continue to Engage', 'Fight', 'Ambush', 'Disrupt', 'Destroy']);
 const AREA_ACTIONS = new Set(['Establish Security', 'Establish Presence', 'Confirm Control', 'Contain', 'Block', 'Clear', 'Seize']);
 const COMBAT_LINK_ALTITUDE_METERS = 600;
@@ -104,6 +116,38 @@ const ACTION_COLORS: Record<string, string> = {
 };
 
 let googleMapsLoad: Promise<GoogleMapsRuntime> | undefined;
+
+/** Projects a screen point onto the local ground plane using the active 3D camera. */
+function freehandScreenPosition(map: Map3DNode, bounds: DOMRect, clientX: number, clientY: number): [number, number] | undefined {
+  const target = map.center;
+  if (!target || !bounds.width || !bounds.height) return undefined;
+  const range = map.range ?? 1000;
+  const tilt = (map.tilt ?? 0) * Math.PI / 180;
+  const heading = (map.heading ?? 0) * Math.PI / 180;
+  const verticalFov = (map.fov ?? 45) * Math.PI / 180;
+  const tanVertical = Math.tan(verticalFov / 2);
+  const tanHorizontal = tanVertical * bounds.width / bounds.height;
+  const screenX = ((clientX - bounds.left) / bounds.width * 2 - 1) * tanHorizontal;
+  const screenY = (1 - (clientY - bounds.top) / bounds.height * 2) * tanVertical;
+  const sinTilt = Math.sin(tilt), cosTilt = Math.cos(tilt);
+  const sinHeading = Math.sin(heading), cosHeading = Math.cos(heading);
+  const forward = { x: sinHeading * sinTilt, y: cosHeading * sinTilt, z: -cosTilt };
+  const right = { x: cosHeading, y: -sinHeading, z: 0 };
+  const up = { x: sinHeading * cosTilt, y: cosHeading * cosTilt, z: sinTilt };
+  const ray = {
+    x: forward.x + screenX * right.x + screenY * up.x,
+    y: forward.y + screenX * right.y + screenY * up.y,
+    z: forward.z + screenY * up.z,
+  };
+  const camera = { x: -forward.x * range, y: -forward.y * range, z: -forward.z * range };
+  if (ray.z >= -0.00001) return undefined;
+  const distance = -camera.z / ray.z;
+  const eastMeters = camera.x + ray.x * distance;
+  const northMeters = camera.y + ray.y * distance;
+  const metersPerDegree = 111_320;
+  const longitudeScale = metersPerDegree * Math.max(0.01, Math.cos(target.lat * Math.PI / 180));
+  return [target.lng + eastMeters / longitudeScale, target.lat + northMeters / metersPerDegree];
+}
 
 export function loadGoogleMaps(apiKey: string) {
   const current = (window as Window & { google?: GoogleMapsRuntime }).google;
@@ -552,6 +596,7 @@ export function Google3DTacticalMap({ runtime, playbackRef, units, result, deplo
   const liveGraphicsRef = useRef<HTMLElement[]>([]);
   const liveEditRef = useRef(liveEdit);
   const drawPointsRef = useRef<[number, number][]>([]);
+  const freehandPointerRef = useRef<{ id: number; x: number; y: number } | undefined>(undefined);
   const axisSourceUnitIdRef = useRef<string | undefined>(undefined);
   const axisNodesRef = useRef(new Map<string, { line: HTMLElement; arrow: HTMLElement; graphic: TacticalGraphic; start?: [number, number] }>());
   const editingVertexRef = useRef<number | undefined>(undefined);
@@ -575,6 +620,7 @@ export function Google3DTacticalMap({ runtime, playbackRef, units, result, deplo
   useEffect(() => { liveEditRef.current = liveEdit; }, [liveEdit]);
   useEffect(() => {
     drawPointsRef.current = [];
+    freehandPointerRef.current = undefined;
     axisSourceUnitIdRef.current = undefined;
     setDrawPointCount(0);
     editingVertexRef.current = undefined;
@@ -610,6 +656,46 @@ export function Google3DTacticalMap({ runtime, playbackRef, units, result, deplo
     setGraphicError('');
   };
   finishDrawingRef.current = finishDrawing;
+  const addFreehandPoint = (element: HTMLElement, clientX: number, clientY: number) => {
+    const map = mapRef.current;
+    if (!map) return;
+    const point = freehandScreenPosition(map, element.getBoundingClientRect(), clientX, clientY);
+    if (!point) return;
+    drawPointsRef.current = [...drawPointsRef.current, point];
+    setDrawPointCount(drawPointsRef.current.length);
+  };
+  const beginFreehand = (event: React.PointerEvent<HTMLDivElement>) => {
+    if (event.button !== 0) return;
+    event.preventDefault();
+    event.stopPropagation();
+    drawPointsRef.current = [];
+    setDrawPointCount(0);
+    freehandPointerRef.current = { id: event.pointerId, x: event.clientX, y: event.clientY };
+    event.currentTarget.setPointerCapture(event.pointerId);
+    addFreehandPoint(event.currentTarget, event.clientX, event.clientY);
+  };
+  const continueFreehand = (event: React.PointerEvent<HTMLDivElement>) => {
+    const active = freehandPointerRef.current;
+    if (!active || active.id !== event.pointerId) return;
+    event.preventDefault();
+    const distance = Math.hypot(event.clientX - active.x, event.clientY - active.y);
+    if (distance < FREEHAND_SAMPLE_PIXELS) return;
+    active.x = event.clientX;
+    active.y = event.clientY;
+    addFreehandPoint(event.currentTarget, event.clientX, event.clientY);
+  };
+  const endFreehand = (event: React.PointerEvent<HTMLDivElement>) => {
+    const active = freehandPointerRef.current;
+    if (!active || active.id !== event.pointerId) return;
+    event.preventDefault();
+    event.stopPropagation();
+    if (Math.hypot(event.clientX - active.x, event.clientY - active.y) >= 1) {
+      addFreehandPoint(event.currentTarget, event.clientX, event.clientY);
+    }
+    freehandPointerRef.current = undefined;
+    if (event.currentTarget.hasPointerCapture(event.pointerId)) event.currentTarget.releasePointerCapture(event.pointerId);
+    finishDrawingRef.current();
+  };
   const selectAxisSource = (unitId: string, position: Position3D) => {
     const mode = liveEditRef.current?.mode;
     if (mode?.type !== 'draw' || mode.graphicType !== 'axis' || drawPointsRef.current.length !== 0) return false;
@@ -992,7 +1078,9 @@ export function Google3DTacticalMap({ runtime, playbackRef, units, result, deplo
     }
     if (liveEdit.mode.type === 'draw' || liveEdit.mode.type === 'draw-task') {
       const points = drawPointsRef.current;
-      points.forEach((point, index) => append(pointMarker(point, `● ${index + 1}`)));
+      if (!(liveEdit.mode.type === 'draw' && liveEdit.mode.graphicType === 'freehand')) {
+        points.forEach((point, index) => append(pointMarker(point, `● ${index + 1}`)));
+      }
       if (points.length >= 2) append(new library.Polyline3DElement({ path: surfacePath(points), altitudeMode: SURFACE_ALTITUDE_MODE, drawsOccludedSegments: true, strokeColor: '#ffb95f', strokeWidth: 5 }));
       if (liveEdit.mode.type === 'draw' && liveEdit.mode.graphicType === 'area' && points.length >= 3) append(new library.Polygon3DElement({ path: surfacePath([...points, points[0]]), altitudeMode: SURFACE_ALTITUDE_MODE, drawsOccludedSegments: true, fillColor: '#00000000', strokeColor: '#ffb95f', strokeWidth: 4 }));
     }
@@ -1110,10 +1198,19 @@ export function Google3DTacticalMap({ runtime, playbackRef, units, result, deplo
   const editingPointCount = editingGraphic?.geometry.type === 'Polygon' ? editingGraphic.geometry.coordinates[0].length - 1 : editingGraphic?.geometry.coordinates.length ?? 0;
   const editingMinimumPoints = editingGraphic ? getTacticalTask(editingGraphic.tacticalSymbol?.definitionId)?.minPoints ?? (editingGraphic.geometry.type === 'Polygon' ? 3 : 2) : 0;
   const minimumDrawPoints = liveEdit?.mode.type === 'draw' ? liveEdit.mode.graphicType === 'area' ? 3 : 2 : liveEdit?.mode.type === 'draw-task' ? getTacticalTask(liveEdit.mode.definitionId)?.minPoints ?? Infinity : Infinity;
+  const isFreehandMode = liveEdit?.mode.type === 'draw' && liveEdit.mode.graphicType === 'freehand';
   const selectedMovable = Boolean(liveEdit?.selectedUnitId && (liveEdit.units.some(unit => unit.id === liveEdit.selectedUnitId) || deployment?.units.some(unit => unit.id === liveEdit.selectedUnitId) || liveEdit.objectives.some(objective => objective.id === liveEdit.selectedUnitId)));
   return (
     <section className="relative flex-1 overflow-hidden bg-[#101418]" style={liveEdit ? { '--palette-width': 'min(760px, calc(100vw - 32px))' } as CSSProperties : undefined}>
       <div ref={containerRef} className="absolute inset-0" />
+      {isFreehandMode && <div
+        className="absolute inset-0 z-[15] cursor-crosshair touch-none"
+        aria-label="자유선 그리기 영역"
+        onPointerDown={beginFreehand}
+        onPointerMove={continueFreehand}
+        onPointerUp={endFreehand}
+        onPointerCancel={endFreehand}
+      />}
       <div className={`pointer-events-none absolute z-10 rounded border border-secondary/50 bg-surface/85 px-3 py-2 font-data-mono text-[11px] text-secondary backdrop-blur ${liveEdit ? 'left-4 top-[72px]' : 'left-6 top-6'}`}>GOOGLE 3D · {liveEdit ? 'LIVE EDIT' : 'ACTION PLAYBACK'}</div>
       {atomicActionVisuals && ready && <AtomicActionPlaybackOverlay result={result} deployment={deployment} simulationTime={runtime.simulationTime} selectedUnitId={runtime.selectedUnitId} onSelectUnit={onSelectUnit} />}
       {liveEdit && <>
@@ -1129,9 +1226,9 @@ export function Google3DTacticalMap({ runtime, playbackRef, units, result, deplo
           <button type="button" className="rounded bg-secondary px-3 py-2 text-xs text-on-secondary" onClick={() => liveEdit.onModeChange({ type: 'select' })}>편집 완료</button>
         </div>}
         {(liveEdit.mode.type === 'draw' || liveEdit.mode.type === 'draw-task') && <div className="absolute bottom-5 left-4 z-30 flex gap-2">
-          <span className="rounded border border-outline-variant bg-surface/90 px-3 py-2 font-data-mono text-xs text-on-surface">{liveEdit.mode.type === 'draw' && liveEdit.mode.graphicType === 'axis' ? drawPointCount === 0 ? 'Axis · 출발 유닛을 클릭하세요' : 'Axis · 도착 지점을 클릭하세요' : `기준점 ${drawPointCount}개`}</span>
-          <button type="button" disabled={!drawPointCount} className="rounded bg-surface/90 px-3 py-2 text-xs text-on-surface disabled:opacity-40" onClick={() => { drawPointsRef.current = drawPointsRef.current.slice(0, -1); if (!drawPointsRef.current.length) axisSourceUnitIdRef.current = undefined; setDrawPointCount(drawPointsRef.current.length); }}>마지막 점 취소</button>
-          <button type="button" disabled={drawPointCount < minimumDrawPoints} className="rounded bg-secondary px-3 py-2 text-xs text-on-secondary disabled:opacity-40" onClick={finishDrawing}>그리기 완료</button>
+          <span className="rounded border border-outline-variant bg-surface/90 px-3 py-2 font-data-mono text-xs text-on-surface">{isFreehandMode ? drawPointCount ? `자유선 그리는 중 · ${drawPointCount}점` : '마우스를 누른 채 드래그하세요' : liveEdit.mode.type === 'draw' && liveEdit.mode.graphicType === 'axis' ? drawPointCount === 0 ? 'Axis · 출발 유닛을 클릭하세요' : 'Axis · 도착 지점을 클릭하세요' : `기준점 ${drawPointCount}개`}</span>
+          {!isFreehandMode && <button type="button" disabled={!drawPointCount} className="rounded bg-surface/90 px-3 py-2 text-xs text-on-surface disabled:opacity-40" onClick={() => { drawPointsRef.current = drawPointsRef.current.slice(0, -1); if (!drawPointsRef.current.length) axisSourceUnitIdRef.current = undefined; setDrawPointCount(drawPointsRef.current.length); }}>마지막 점 취소</button>}
+          {!isFreehandMode && <button type="button" disabled={drawPointCount < minimumDrawPoints} className="rounded bg-secondary px-3 py-2 text-xs text-on-secondary disabled:opacity-40" onClick={finishDrawing}>그리기 완료</button>}
           <button type="button" className="rounded border border-outline-variant bg-surface/90 px-3 py-2 text-xs text-on-surface" onClick={() => liveEdit.onModeChange({ type: 'select' })}>취소</button>
         </div>}
         {liveEdit.selectedUnitId && <UnitPropertiesPanel

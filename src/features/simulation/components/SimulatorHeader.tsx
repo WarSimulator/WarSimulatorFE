@@ -8,6 +8,11 @@ type SimulatorHeaderProps = {
   onTabChange: (tab: SimulationRuntimeState['activeTab']) => void;
   onWorldClockCountryChange: (countryCode: string) => void;
   onExit: () => void;
+  onReplan?: () => void;
+  onRevision?: () => void;
+  revisionActive?: boolean;
+  revisionListening?: boolean;
+  revisionStatus?: string;
   viewMode?: 'tactical' | 'analysis';
   reportMode?: boolean;
 };
@@ -18,7 +23,7 @@ const tabs: Array<{ id: SimulationRuntimeState['activeTab']; label: string }> = 
   { id: 'analysis', label: '분석 결과' },
 ];
 
-export function SimulatorHeader({ runtime, onTabChange, onWorldClockCountryChange, onExit, viewMode = 'tactical', reportMode = false }: SimulatorHeaderProps) {
+export function SimulatorHeader({ runtime, onTabChange, onWorldClockCountryChange, onExit, onReplan, onRevision, revisionActive = false, revisionListening = false, revisionStatus, viewMode = 'tactical', reportMode = false }: SimulatorHeaderProps) {
   const [isClockMenuOpen, setIsClockMenuOpen] = useState(false);
   const [countrySearch, setCountrySearch] = useState('');
   const [now, setNow] = useState(() => new Date());
@@ -69,6 +74,8 @@ export function SimulatorHeader({ runtime, onTabChange, onWorldClockCountryChang
         </nav>}
       </div>
       <div className="flex items-center gap-4">
+        {onReplan && <button type="button" onClick={onReplan} className="flex items-center gap-2 rounded border border-primary bg-primary/10 px-4 py-1.5 font-label-caps text-label-caps font-bold text-primary transition-colors hover:bg-primary/20"><Icon name="restart_alt" className="text-[18px]" />REPLAN</button>}
+        {onRevision && <button type="button" onClick={onRevision} title={revisionStatus} className={`flex items-center gap-2 rounded border px-4 py-1.5 font-label-caps text-label-caps font-bold transition-colors ${revisionActive ? 'border-error bg-error/15 text-error hover:bg-error/25' : 'border-secondary bg-secondary/10 text-secondary hover:bg-secondary/20'}`}><Icon name={revisionListening ? 'mic' : 'edit'} className="text-[18px]" />{revisionActive ? 'REVISION ACTIVE' : 'REVISION'}{revisionListening && <span className="h-2 w-2 animate-pulse rounded-full bg-error" />}</button>}
         <span className="flex items-center gap-2 font-data-mono text-[11px] text-secondary">
           <span className="h-1.5 w-1.5 rounded-full bg-secondary" />
           SIMULATION READY

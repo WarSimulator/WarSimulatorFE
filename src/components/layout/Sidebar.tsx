@@ -8,14 +8,13 @@ const navItems = [
 
 const simulationItems = [
   { to: '/simulations/setup', label: 'Mil-Simulator Setup', icon: 'precision_manufacturing' },
-  { to: '/simulations/library', label: 'Mil-Simulator Library', icon: 'database' },
   { to: '/simulations/final', label: 'Mil-Simulator Final', icon: 'play_circle' },
   { to: '/simulations/3d', label: 'Mil-Simulator 3D', icon: 'view_in_ar' },
   { to: '/simulations/3d/live-edit', label: 'Mil-Simulator 3D + EDIT', icon: 'add_location_alt' },
   { to: '/simulations/3d/report', label: 'Mil-Simulator 3D Report', icon: 'bug_report' },
   { to: '/simulations/3d-demo', label: 'Mil-Simulator 3D 데모', icon: 'animation' },
   { to: '/simulations/3d-demo-cesium', label: 'Mil-Simulator 3D 데모(cesium)', icon: 'public' },
-  { to: '/simulations/3d-demo-vworld', label: 'Mil-Simulator 3D 데모(VWorld)', icon: 'terrain' },
+  { to: '/simulations/3d-demo-maplibre', label: 'Mil-Simulator3D 데모(MapLibre GL)', icon: 'terrain' },
   { to: '/simulations/3d/edit', label: 'Mil-Simulator 3D EDIT', icon: 'edit_location_alt' },
 ];
 
@@ -70,7 +69,7 @@ export function Sidebar() {
               to={item.to}
               end
               className={({ isActive }) =>
-                isActive || (item.to === '/simulations/library' && /^\/simulations\/[^/]+$/.test(location.pathname) && !['/simulations/setup', '/simulations/final', '/simulations/3d', '/simulations/3d/live-edit', '/simulations/3d/report', '/simulations/3d-demo', '/simulations/3d-demo-cesium', '/simulations/3d-demo-vworld', '/simulations/3d/edit', '/simulations/actions'].includes(location.pathname))
+                isActive || (item.to === '/simulations/library' && /^\/simulations\/[^/]+$/.test(location.pathname) && !['/simulations/setup', '/simulations/final', '/simulations/3d', '/simulations/3d/live-edit', '/simulations/3d/report', '/simulations/3d-demo', '/simulations/3d-demo-cesium', '/simulations/3d-demo-maplibre', '/simulations/3d/edit', '/simulations/actions'].includes(location.pathname))
                   ? 'group relative flex items-center border-l-4 border-secondary bg-surface-container-high py-2 pl-8 font-bold text-secondary transition-colors'
                   : 'group relative flex items-center py-2 pl-9 font-medium text-on-surface-variant transition-colors hover:bg-surface-variant'
               }
@@ -80,7 +79,7 @@ export function Sidebar() {
                   isActive ||
                   (item.to === '/simulations/library' &&
                     /^\/simulations\/[^/]+$/.test(location.pathname) &&
-                    !['/simulations/setup', '/simulations/final', '/simulations/3d', '/simulations/3d/live-edit', '/simulations/3d/report', '/simulations/3d-demo', '/simulations/3d-demo-cesium', '/simulations/3d-demo-vworld', '/simulations/3d/edit', '/simulations/actions'].includes(location.pathname));
+                    !['/simulations/setup', '/simulations/final', '/simulations/3d', '/simulations/3d/live-edit', '/simulations/3d/report', '/simulations/3d-demo', '/simulations/3d-demo-cesium', '/simulations/3d-demo-maplibre', '/simulations/3d/edit', '/simulations/actions'].includes(location.pathname));
 
                 return (
                   <>

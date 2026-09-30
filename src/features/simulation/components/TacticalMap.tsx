@@ -3,8 +3,9 @@ import * as maplibregl from 'maplibre-gl';
 import type { GeoJSONSource, Map as MapLibreMap } from 'maplibre-gl';
 import 'maplibre-gl/dist/maplibre-gl.css';
 import { Icon } from '../../../components/layout/Icon';
-import type { DeploymentSetup, SimulationResult, SimulationRuntimeState, SimulationUnit } from '../../../types';
-import { createDefaultMapStyle, DEFAULT_MAP_CENTER, DEFAULT_MAP_ZOOM, getMapStyleUrl } from '../lib/mapConfig';
+import type { DeploymentObjective, DeploymentSetup, DeploymentUnit, SimulationResult, SimulationRuntimeState, SimulationUnit, TacticalGraphic } from '../../../types';
+import { create3DTerrainMapStyle, createDefaultMapStyle, DEFAULT_MAP_CENTER, DEFAULT_MAP_ZOOM, getMapStyleUrl } from '../lib/mapConfig';
+import { getLngLat } from '../lib/position';
 import { ensureAxisArrowImage, ensureMilitarySymbolImage, ensureObjectiveImage, getMilitarySymbolImageId } from '../lib/militarySymbolRegistry';
 import { getTrackPositionsAtTime, isUnitEliminated } from '../lib/playback';
 import { toObservationSectorFeatures } from '../lib/observation';
@@ -28,6 +29,11 @@ type TacticalMapProps = {
   result: SimulationResult;
   deployment?: DeploymentSetup;
   onSelectUnit: (unitId: string) => void;
+  terrain3D?: boolean;
+  revisedUnits?: DeploymentUnit[];
+  revisedObjectives?: DeploymentObjective[];
+  revisedTacticalGraphics?: TacticalGraphic[];
+  hiddenBaseUnitIds?: string[];
 };
 
 function getMapCenter(result: SimulationResult): [number, number] {
@@ -97,6 +103,25 @@ function toUnitFeatures(
       ];
     }),
   };
+}
+
+function toRevisedUnitFeatures(units: DeploymentUnit[]): GeoJSON.Feature<GeoJSON.Point>[] {
+  return units.map(unit => ({
+    type: 'Feature',
+    id: unit.id,
+    properties: {
+      id: unit.id,
+      designation: unit.designation,
+      sidc: unit.sidc,
+      imageId: getMilitarySymbolImageId(unit.sidc, unit.symbolStandard),
+      affiliation: unit.affiliation,
+      unitType: unit.unitType,
+      echelon: unit.echelon,
+      symbolScale: unit.symbolScale ?? 1,
+      symbolRotation: unit.symbolRotation ?? 0,
+    },
+    geometry: { type: 'Point', coordinates: getLngLat(unit.position) },
+  }));
 }
 
 function toRouteFeatures(result: SimulationResult, simulationTime: number): GeoJSON.FeatureCollection<GeoJSON.LineString> {
@@ -204,7 +229,10 @@ function toActionEffectFeatures(
   return { type: 'FeatureCollection', features };
 }
 
-export function TacticalMap({ runtime, playbackRef, units, result, deployment, onSelectUnit }: TacticalMapProps) {
+export function TacticalMap({
+  runtime, playbackRef, units, result, deployment, onSelectUnit, terrain3D = false,
+  revisedUnits = [], revisedObjectives = [], revisedTacticalGraphics = [], hiddenBaseUnitIds = [],
+}: TacticalMapProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<MapLibreMap | null>(null);
   const fallbackPlaybackRef = useRef(runtime);
@@ -214,9 +242,18 @@ export function TacticalMap({ runtime, playbackRef, units, result, deployment, o
   const [mapError, setMapError] = useState(false);
   const mapCenter = useMemo(() => getMapCenter(result), [result]);
   const mapZoom = deployment?.mapView?.zoom ?? DEFAULT_MAP_ZOOM + 1;
-  const tacticalGraphicFeatures = useMemo(() => toTacticalGraphicFeatureCollection(deployment), [deployment]);
-  const axisArrowFeatures = useMemo(() => toTacticalGraphicAxisArrowFeatures(deployment), [deployment]);
-  const objectiveFeatures = useMemo(() => toObjectiveFeatures(deployment), [deployment]);
+  const displayDeployment = useMemo<DeploymentSetup | undefined>(() => deployment ? {
+    ...deployment,
+    units: [
+      ...deployment.units.filter(unit => !hiddenBaseUnitIds.includes(unit.id) && !revisedUnits.some(revised => revised.id === unit.id)),
+      ...revisedUnits,
+    ],
+    objectives: [...deployment.objectives, ...revisedObjectives],
+    tacticalGraphics: [...deployment.tacticalGraphics, ...revisedTacticalGraphics],
+  } : undefined, [deployment, hiddenBaseUnitIds, revisedObjectives, revisedTacticalGraphics, revisedUnits]);
+  const tacticalGraphicFeatures = useMemo(() => toTacticalGraphicFeatureCollection(displayDeployment), [displayDeployment]);
+  const axisArrowFeatures = useMemo(() => toTacticalGraphicAxisArrowFeatures(displayDeployment), [displayDeployment]);
+  const objectiveFeatures = useMemo(() => toObjectiveFeatures(displayDeployment), [displayDeployment]);
 
   useEffect(() => {
     if (!containerRef.current || mapRef.current) {
@@ -226,20 +263,28 @@ export function TacticalMap({ runtime, playbackRef, units, result, deployment, o
     setMapReady(false);
     const map = new maplibregl.Map({
       container: containerRef.current,
-      style: getMapStyleUrl() ?? createDefaultMapStyle(),
+      style: terrain3D ? create3DTerrainMapStyle() : getMapStyleUrl() ?? createDefaultMapStyle(),
       center: mapCenter,
       zoom: mapZoom,
       attributionControl: false,
+      pitch: terrain3D ? 60 : 0,
+      bearing: terrain3D ? -12 : 0,
+      maxPitch: terrain3D ? 85 : 60,
+      canvasContextAttributes: terrain3D ? { antialias: true } : undefined,
     });
 
     mapRef.current = map;
-    map.addControl(new maplibregl.NavigationControl({ showCompass: false }), 'top-right');
+    map.addControl(new maplibregl.NavigationControl({ showCompass: terrain3D, visualizePitch: terrain3D }), 'top-right');
+    if (terrain3D) map.addControl(new maplibregl.TerrainControl({ source: 'terrainSource', exaggeration: 1.2 }), 'top-right');
 
     const handleLoad = async () => {
       try {
         await ensureObjectiveImage(map);
         await ensureAxisArrowImage(map);
-        await Promise.all(units.flatMap((unit) => (unit.sidc ? [ensureMilitarySymbolImage(map, unit.sidc, unit.symbolStandard)] : [])));
+        await Promise.all([
+          ...units.flatMap((unit) => (unit.sidc ? [ensureMilitarySymbolImage(map, unit.sidc, unit.symbolStandard)] : [])),
+          ...revisedUnits.map(unit => ensureMilitarySymbolImage(map, unit.sidc, unit.symbolStandard)),
+        ]);
         addDeploymentSourcesAndLayers(map);
         const geographicPositions = units.flatMap((unit) => unit.geographicPosition ? [[unit.geographicPosition.longitude, unit.geographicPosition.latitude] as [number, number]] : []);
         if (geographicPositions.length > 1) {
@@ -282,7 +327,13 @@ export function TacticalMap({ runtime, playbackRef, units, result, deployment, o
     };
   // Agent state changes every playback frame. Recreating the MapLibre map for
   // those state updates races style loading and crashes on setPaintProperty.
-  }, [mapCenter, mapZoom, onSelectUnit]);
+  }, [mapCenter, mapZoom, onSelectUnit, terrain3D]);
+
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!mapReady || !map) return;
+    void Promise.all(revisedUnits.map(unit => ensureMilitarySymbolImage(map, unit.sidc, unit.symbolStandard)));
+  }, [mapReady, revisedUnits]);
 
   useEffect(() => {
     if (!mapReady || !mapRef.current) return;
@@ -298,9 +349,15 @@ export function TacticalMap({ runtime, playbackRef, units, result, deployment, o
       // submissions to 20 Hz rather than repeatedly rebuilding symbol tile atlases.
       if (simulationTime !== lastTime) {
         pending = [
-          [UNIT_SOURCE_ID, toUnitFeatures(result, units, simulationTime)],
-          [OBSERVATION_SECTOR_SOURCE_ID, toObservationSectorFeatures(result, simulationTime, deployment)],
-          [ACTION_EFFECT_SOURCE_ID, toActionEffectFeatures(result, simulationTime, deployment)],
+          [UNIT_SOURCE_ID, {
+            type: 'FeatureCollection',
+            features: [
+              ...toUnitFeatures(result, units, simulationTime).features.filter(feature => !hiddenBaseUnitIds.includes(String(feature.properties?.id)) && !revisedUnits.some(unit => unit.id === feature.properties?.id)),
+              ...toRevisedUnitFeatures(revisedUnits),
+            ],
+          }],
+          [OBSERVATION_SECTOR_SOURCE_ID, toObservationSectorFeatures(result, simulationTime, displayDeployment)],
+          [ACTION_EFFECT_SOURCE_ID, toActionEffectFeatures(result, simulationTime, displayDeployment)],
           [GRAPHICS_SOURCE_ID, {
             type: 'FeatureCollection',
             features: [
@@ -329,7 +386,7 @@ export function TacticalMap({ runtime, playbackRef, units, result, deployment, o
     };
     frame = requestAnimationFrame(tick);
     return () => cancelAnimationFrame(frame);
-  }, [clock, deployment, mapReady, result, tacticalGraphicFeatures, units]);
+  }, [clock, displayDeployment, hiddenBaseUnitIds, mapReady, result, revisedUnits, tacticalGraphicFeatures, units]);
 
   useEffect(() => {
     if (!mapReady || !mapRef.current) {
@@ -348,11 +405,10 @@ export function TacticalMap({ runtime, playbackRef, units, result, deployment, o
         ...(runtime.tacticalLayers.routes ? toRouteFeatures(result, clock.current.simulationTime).features : []),
       ],
     });
-    // Objectives remain available to plan resolution but are intentionally not rendered as map pins.
-    objectiveSource?.setData({ type: 'FeatureCollection', features: [] });
+    objectiveSource?.setData(terrain3D ? objectiveFeatures : { type: 'FeatureCollection', features: [] });
     axisSource?.setData(runtime.tacticalLayers.controlLines ? axisArrowFeatures : { type: 'FeatureCollection', features: [] });
     map.setLayoutProperty('deployment-units', 'text-field', runtime.tacticalLayers.labels ? ['get', 'designation'] : '');
-  }, [axisArrowFeatures, clock, mapReady, objectiveFeatures, result, runtime.tacticalLayers.controlLines, runtime.tacticalLayers.labels, runtime.tacticalLayers.routes, tacticalGraphicFeatures]);
+  }, [axisArrowFeatures, clock, mapReady, objectiveFeatures, result, runtime.tacticalLayers.controlLines, runtime.tacticalLayers.labels, runtime.tacticalLayers.routes, tacticalGraphicFeatures, terrain3D]);
 
   useEffect(() => {
     if (!mapReady || !mapRef.current?.isStyleLoaded()) {
@@ -387,7 +443,7 @@ export function TacticalMap({ runtime, playbackRef, units, result, deployment, o
         </div>
         <div className="glass-panel rounded px-3 py-2 font-data-mono text-[11px] text-on-surface-variant">
           <span className="mr-2 inline-block h-2 w-2 rounded-full bg-secondary" />
-          RESULT PLAYBACK MAP
+          {terrain3D ? 'MAPLIBRE GL 3D TERRAIN' : 'RESULT PLAYBACK MAP'}
         </div>
       </div>
 
