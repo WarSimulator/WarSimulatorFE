@@ -33,9 +33,8 @@ export function SimulatorPage() {
   const [searchParams] = useSearchParams();
   const viewMode = searchParams.get('view') === 'analysis' ? 'analysis' : 'tactical';
   const requestedMap = searchParams.get('map');
-
+  const isSimulationPopup = searchParams.get('window') === 'simulation';
   const mapMode = requestedMap === 'maplibre' ? 'maplibre' : requestedMap === 'cesium' ? 'cesium' : requestedMap === '3d' ? '3d' : '2d';
-
   const atomicActionVisuals = searchParams.get('visualization') === 'atomic3d';
   const liveEditMode = (mapMode === '3d' || mapMode === 'cesium' || mapMode === 'maplibre') && searchParams.get('edit') === 'live';
   const isAnalysisView = viewMode === 'analysis';
@@ -72,6 +71,7 @@ export function SimulatorPage() {
   const [livePaletteOpen, setLivePaletteOpen] = useState(false);
   const [selectedLiveUnitId, setSelectedLiveUnitId] = useState<string>();
   const [relocatingUnitId, setRelocatingUnitId] = useState<string>();
+  const [selectedUnitCardOpen, setSelectedUnitCardOpen] = useState(false);
 
   const [replanSnapshot, setReplanSnapshot] = useState<ReplanSnapshot>();
 
@@ -408,8 +408,8 @@ export function SimulatorPage() {
           {runtime.activeTab === 'order' ? (
             <CommanderInbox reports={commanderReports} simulationTime={runtime.simulationTime} onSelectUnit={selectUnit} />
           ) : (
-
-            mapMode === '3d' ? <Google3DTacticalMap
+            <div className="relative flex min-w-0 flex-1">
+            {mapMode === '3d' ? <Google3DTacticalMap
               runtime={runtime}
               playbackRef={runtimeRef}
               units={rosterUnits}
@@ -516,8 +516,13 @@ export function SimulatorPage() {
               result={simulationResult}
               deployment={deployment}
               onSelectUnit={selectUnit}
-            />
-
+            />}
+            {selectedUnitCardOpen && selectedUnit && <SelectedUnitActionCard
+              unit={selectedUnit}
+              action={currentActions[selectedUnit.id] ?? '대기'}
+              onClose={() => setSelectedUnitCardOpen(false)}
+            />}
+            </div>
           )}
         </div>
       )}
