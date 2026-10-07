@@ -1,5 +1,5 @@
 import type { Map as MapLibreMap } from 'maplibre-gl';
-import { createMilitarySymbolSvg, createObjectiveSvg } from './symbolSvg';
+import { createMilitarySymbolSvg, createObjectiveSvg, get3DUnitSymbolSize } from './symbolSvg';
 
 const registeredImages = new WeakMap<MapLibreMap, Set<string>>();
 
@@ -29,27 +29,65 @@ function svgToImage(svg: string): Promise<HTMLImageElement> {
   });
 }
 
-export function getMilitarySymbolImageId(sidc: string, standard: '2525' | 'APP6' = '2525') {
-  return `mil-symbol-${standard.toLowerCase()}-${sidc.replace(/[^a-zA-Z0-9]/g, '_')}`;
+async function svgToNormalizedImageData(svg: string) {
+  const image = await svgToImage(svg);
+  const canvas = document.createElement('canvas');
+  canvas.width = 128;
+  canvas.height = 128;
+  const context = canvas.getContext('2d');
+  if (!context) throw new Error('군대부호 캔버스를 만들지 못했습니다.');
+  const scale = Math.min(116 / Math.max(1, image.naturalWidth), 116 / Math.max(1, image.naturalHeight));
+  const width = image.naturalWidth * scale;
+  const height = image.naturalHeight * scale;
+  context.drawImage(image, (128 - width) / 2, (128 - height) / 2, width, height);
+  return context.getImageData(0, 0, 128, 128);
+}
+
+export function getMilitarySymbolImageId(sidc: string, standard: '2525' | 'APP6' = '2525', normalized3D = false) {
+  return `mil-symbol-${normalized3D ? '3d-' : ''}${standard.toLowerCase()}-${sidc.replace(/[^a-zA-Z0-9]/g, '_')}`;
 }
 
 export const OBJECTIVE_IMAGE_ID = 'objective-symbol';
 export const AXIS_ARROW_IMAGE_ID = 'axis-arrow-symbol';
+export const EXPLOSION_FRAME_COUNT = 32;
 
-export async function ensureMilitarySymbolImage(map: MapLibreMap, sidc: string, standard: '2525' | 'APP6' = '2525') {
-  const imageId = getMilitarySymbolImageId(sidc, standard);
+export function getExplosionFrameImageId(frame: number) {
+  return `explosion-frame-${String(frame % EXPLOSION_FRAME_COUNT).padStart(2, '0')}`;
+}
+
+export async function ensureMilitarySymbolImage(map: MapLibreMap, sidc: string, standard: '2525' | 'APP6' = '2525', normalized3D = false) {
+  const imageId = getMilitarySymbolImageId(sidc, standard, normalized3D);
   const registry = getRegistry(map);
 
   if (map.hasImage(imageId) || registry.has(imageId)) {
     return imageId;
   }
 
-  const image = await svgToImage(createMilitarySymbolSvg(sidc, 64, undefined, standard));
+  const image = normalized3D
+    ? await svgToNormalizedImageData(createMilitarySymbolSvg(sidc, get3DUnitSymbolSize(1), undefined, standard))
+    : await svgToImage(createMilitarySymbolSvg(sidc, 64, undefined, standard));
   if (!map.hasImage(imageId)) {
     map.addImage(imageId, image);
   }
   registry.add(imageId);
   return imageId;
+}
+
+export async function ensureExplosionFrameImages(map: MapLibreMap) {
+  const registry = getRegistry(map);
+  await Promise.all(Array.from({ length: EXPLOSION_FRAME_COUNT }, async (_, frame) => {
+    const imageId = getExplosionFrameImageId(frame);
+    if (map.hasImage(imageId) || registry.has(imageId)) return;
+    const response = await map.loadImage(`/vfx/frames/explosion/frame-${String(frame).padStart(2, '0')}.png`);
+    const canvas = document.createElement('canvas');
+    canvas.width = 112;
+    canvas.height = 112;
+    const context = canvas.getContext('2d');
+    if (!context) throw new Error('폭발 효과 캔버스를 만들지 못했습니다.');
+    context.drawImage(response.data, 0, 0, 112, 112);
+    if (!map.hasImage(imageId)) map.addImage(imageId, context.getImageData(0, 0, 112, 112));
+    registry.add(imageId);
+  }));
 }
 
 export async function ensureObjectiveImage(map: MapLibreMap) {

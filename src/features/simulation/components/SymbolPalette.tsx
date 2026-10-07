@@ -14,17 +14,18 @@ type SymbolPaletteProps = {
   mode: DeploymentEditorMode;
   onModeChange: (mode: DeploymentEditorMode) => void;
   unitsOnly?: boolean;
+  compact?: boolean;
 };
 const PAGE_SIZE = 24;
 const drawTools: Array<{ type: Exclude<TacticalGraphicType, 'mil-task'>; label: string }> = [
   { type: 'route', label: 'Route' }, { type: 'axis', label: 'Axis' },
   { type: 'phase-line', label: 'Phase Line' }, { type: 'boundary', label: 'Boundary' },
-  { type: 'area', label: 'Area' }, { type: 'freehand', label: 'Freehand' },
+  { type: 'area', label: 'Area' }, { type: 'freehand', label: 'Freehand Arrow' },
 ];
 const inputClass = 'min-w-0 w-full rounded border border-outline-variant bg-surface px-2 py-2 font-data-mono text-[13px] text-on-surface outline-none focus:border-secondary';
 const buttonClass = 'rounded border border-outline-variant bg-surface px-2 py-2 font-data-mono text-[13px] text-on-surface hover:border-secondary disabled:opacity-40';
 
-export function SymbolPalette({ mode, onModeChange, isOpen, onToggle, unitsOnly = false }: SymbolPaletteProps) {
+export function SymbolPalette({ mode, onModeChange, isOpen, onToggle, unitsOnly = false, compact = false }: SymbolPaletteProps) {
   const openButtonRef = useRef<HTMLButtonElement>(null);
   const closeButtonRef = useRef<HTMLButtonElement>(null);
   const previousOpen = useRef(isOpen);
@@ -71,7 +72,7 @@ export function SymbolPalette({ mode, onModeChange, isOpen, onToggle, unitsOnly 
     </button>}
     <aside id="symbol-palette-sidebar" style={{ display: isOpen ? 'flex' : 'none' }}
       className="absolute bottom-4 left-4 top-4 z-30 w-[var(--palette-width)] flex-col overflow-hidden rounded-lg border border-outline-variant bg-surface-container shadow-xl" aria-label={unitsOnly ? '유닛 팔레트' : 'Symbol palette'}>
-      <div className="shrink-0 space-y-2 border-b border-outline-variant bg-surface-container-high p-4">
+      <div className={`shrink-0 space-y-2 border-b border-outline-variant bg-surface-container-high ${compact ? 'p-3' : 'p-4'}`}>
         <div className="flex items-center justify-between">
           <div><p className="font-label-caps text-sm text-on-surface">{unitsOnly ? 'UNIT PALETTE' : 'SYMBOL PALETTE'}</p><p className="mt-0.5 text-xs text-on-surface-variant">군대부호 · {symbolCatalog.length.toLocaleString()}개</p></div>
           <div className="flex items-center gap-3">
@@ -83,8 +84,8 @@ export function SymbolPalette({ mode, onModeChange, isOpen, onToggle, unitsOnly 
           </button>
           </div>
         </div>
-        <div className="overflow-x-auto pb-1">
-        <div className="grid min-w-[590px] grid-cols-[1fr_1.3fr_0.65fr_1.1fr] items-end gap-2">
+        <div className={compact ? '' : 'overflow-x-auto pb-1'}>
+        <div className={compact ? 'grid grid-cols-2 items-end gap-2' : 'grid min-w-[590px] grid-cols-[1fr_1.3fr_0.65fr_1.1fr] items-end gap-2'}>
         <label className="min-w-0 space-y-1"><span className="text-[10px] text-outline">SEARCH (검색)</span>
         <input aria-label={paletteTab === 'symbols' ? 'Search symbols' : 'Search drawing tools'} className={inputClass} placeholder={paletteTab === 'symbols' ? '이름 / SIDC' : '도형 / 과업 검색'} value={paletteTab === 'symbols' ? query : drawQuery} onChange={event => { if (paletteTab === 'symbols') { setQuery(event.target.value); setPage(0); } else { setDrawQuery(event.target.value); } }} />
         </label>
@@ -115,22 +116,22 @@ export function SymbolPalette({ mode, onModeChange, isOpen, onToggle, unitsOnly 
         </div>}
         <p className="font-data-mono text-[10px] text-on-surface-variant">{unitsOnly ? '유닛을 선택한 뒤 3D 지도의 배치할 지점을 클릭하세요.' : paletteTab === 'symbols' ? 'Drag to map, or select then click map.' : '도형 카드를 선택한 뒤 지도에 그리세요. 전술 과업은 번호 순서대로 클릭하세요.'}</p>
       </div>
-      <div hidden={paletteTab !== 'symbols'} className="min-h-0 flex-1 space-y-3 overflow-y-auto overscroll-contain p-4" aria-label="심볼 목록">
+      <div hidden={paletteTab !== 'symbols'} className={`min-h-0 flex-1 space-y-3 overflow-y-auto overscroll-contain ${compact ? 'p-3' : 'p-4'}`} aria-label="심볼 목록">
         <p role="status" className="font-data-mono text-[10px] text-outline">{filtered.length.toLocaleString()} symbols · Page {currentPage + 1}/{pageCount}</p>
         {visible.length === 0 && <p className="py-4 text-sm text-on-surface-variant">No matching symbols. Try another name or category.</p>}
-        <div className="grid grid-cols-[repeat(auto-fit,minmax(220px,1fr))] gap-2" key={`${category}:${query}:${currentPage}`}>
+        <div className={compact ? 'grid grid-cols-2 gap-2' : 'grid grid-cols-[repeat(auto-fit,minmax(220px,1fr))] gap-2'} key={`${category}:${query}:${currentPage}`}>
           {visible.map(definition => {
             const item = createPaletteItem({ definition, affiliation, echelon });
             if (item.kind !== 'unit') return null;
             const selected = mode.type === 'place' && mode.item.kind === 'unit' && mode.item.unitType === item.unitType;
             const parts = definition.label.split(' / ');
             return (
-              <button key={definition.id} draggable={!unitsOnly} aria-pressed={selected} title={`${definition.label}\n${getSymbolCategoryLabel(definition.category)}\n${item.sidc}`} className={`flex w-full min-w-0 items-center gap-3 rounded border bg-surface p-3 text-left hover:border-secondary ${unitsOnly ? 'cursor-pointer' : 'cursor-grab active:cursor-grabbing'} ${selected ? 'border-secondary bg-secondary/10' : 'border-outline-variant'}`} onClick={() => onModeChange({ type: 'place', item })} onDragStart={unitsOnly ? undefined : event => dragSymbol(event, definition)}>
-                <span className="flex h-14 w-14 shrink-0 items-center justify-center rounded bg-slate-100 p-1 [&>span]:max-w-full [&_svg]:h-auto [&_svg]:max-h-12 [&_svg]:max-w-full"><MilitarySymbol sidc={item.sidc} size={34} standard={item.symbolStandard} /></span>
+              <button key={definition.id} draggable={!unitsOnly} aria-pressed={selected} title={`${definition.label}\n${getSymbolCategoryLabel(definition.category)}\n${item.sidc}`} className={`flex w-full min-w-0 items-center rounded border bg-surface text-left hover:border-secondary ${compact ? 'gap-2 p-2' : 'gap-3 p-3'} ${unitsOnly ? 'cursor-pointer' : 'cursor-grab active:cursor-grabbing'} ${selected ? 'border-secondary bg-secondary/10' : 'border-outline-variant'}`} onClick={() => onModeChange({ type: 'place', item })} onDragStart={unitsOnly ? undefined : event => dragSymbol(event, definition)}>
+                <span className={`flex shrink-0 items-center justify-center rounded bg-slate-100 p-1 [&>span]:max-w-full [&_svg]:h-auto [&_svg]:max-w-full ${compact ? 'h-11 w-11 [&_svg]:max-h-9' : 'h-14 w-14 [&_svg]:max-h-12'}`}><MilitarySymbol sidc={item.sidc} size={compact ? 28 : 34} standard={item.symbolStandard} /></span>
                 <span className="min-w-0">
-                  <span className="block break-words font-data-mono text-[13px] text-on-surface">{parts.at(-1)}</span>
-                  {parts.length > 1 && <span className="block truncate text-[11px] text-on-surface-variant">{parts.slice(0, -1).join(' / ')}</span>}
-                  <span className="block break-words text-[11px] text-secondary">{definition.standardId ?? 'QUICK'} · {getSymbolCategoryLabel(definition.category)}</span>
+                  <span className={`block break-words font-data-mono text-on-surface ${compact ? 'text-[11px] leading-tight' : 'text-[13px]'}`}>{parts.at(-1)}</span>
+                  {parts.length > 1 && <span className={`block truncate text-on-surface-variant ${compact ? 'text-[9px]' : 'text-[11px]'}`}>{parts.slice(0, -1).join(' / ')}</span>}
+                  <span className={`block truncate text-secondary ${compact ? 'text-[9px]' : 'break-words text-[11px]'}`}>{definition.standardId ?? 'QUICK'} · {getSymbolCategoryLabel(definition.category)}</span>
                 </span>
               </button>
             );
@@ -145,16 +146,16 @@ export function SymbolPalette({ mode, onModeChange, isOpen, onToggle, unitsOnly 
           <button draggable className={`${buttonClass} flex w-full items-center gap-2`} onClick={() => onModeChange({ type: 'place', item: { kind: 'objective', label: 'Objective' } })} onDragStart={event => { event.dataTransfer.effectAllowed = 'copy'; event.dataTransfer.setData('application/atlas-palette-item', JSON.stringify({ kind: 'objective', label: 'Objective' })); }}><ObjectiveSymbol size={28} />Objective</button>
         </section>}
       </div>
-      <div hidden={paletteTab !== 'draw'} className="min-h-0 flex-1 space-y-4 overflow-y-auto overscroll-contain p-4" aria-label="DRAW 및 전술 과업 목록">
-        {drawCategory !== 'tasks' && <section className="space-y-3">
+      <div hidden={paletteTab !== 'draw'} className={`min-h-0 flex-1 overflow-y-auto overscroll-contain ${compact ? 'space-y-3 p-3' : 'space-y-4 p-4'}`} aria-label="DRAW 및 전술 과업 목록">
+        {drawCategory !== 'tasks' && <section className={compact ? 'space-y-2' : 'space-y-3'}>
           <h3 className="font-label-caps text-xs text-secondary">DRAW (기본 도형)</h3>
-          <div className="grid grid-cols-[repeat(auto-fit,minmax(220px,1fr))] gap-2">{drawTools.filter(tool => tool.label.toLowerCase().includes(drawQuery.trim().toLowerCase())).map(tool => <button key={tool.type} type="button" aria-label={tool.label} aria-pressed={mode.type === 'draw' && mode.graphicType === tool.type}
-            className={`${buttonClass} min-w-0 space-y-2 p-3 text-left ${mode.type === 'draw' && mode.graphicType === tool.type ? 'border-secondary bg-secondary/10 text-secondary' : ''}`}
+          <div className={compact ? 'grid grid-cols-3 gap-2' : 'grid grid-cols-[repeat(auto-fit,minmax(220px,1fr))] gap-2'}>{drawTools.filter(tool => tool.label.toLowerCase().includes(drawQuery.trim().toLowerCase())).map(tool => <button key={tool.type} type="button" aria-label={tool.label} title={tool.label} aria-pressed={mode.type === 'draw' && mode.graphicType === tool.type}
+            className={`${buttonClass} min-w-0 ${compact ? 'space-y-1 p-2 text-center' : 'space-y-2 p-3 text-left'} ${mode.type === 'draw' && mode.graphicType === tool.type ? 'border-secondary bg-secondary/10 text-secondary' : ''}`}
             onClick={() => onModeChange({ type: 'draw', graphicType: tool.type })}>
-            <DrawToolPreview type={tool.type} label={tool.label} /><span className="block">{tool.label}</span>
+            <DrawToolPreview type={tool.type} label={tool.label} /><span className={`block truncate ${compact ? 'text-[10px]' : ''}`}>{tool.label}</span>
           </button>)}</div>
         </section>}
-        {drawCategory !== 'basic' && <TacticalTaskPicker mode={mode} onModeChange={onModeChange} affiliation={affiliation} query={drawQuery} />}
+        {drawCategory !== 'basic' && <TacticalTaskPicker mode={mode} onModeChange={onModeChange} affiliation={affiliation} query={drawQuery} compact={compact} />}
       </div>
     </aside>
     </>

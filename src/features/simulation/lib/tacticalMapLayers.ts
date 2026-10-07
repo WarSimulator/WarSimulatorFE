@@ -174,4 +174,17 @@ export function addDeploymentSourcesAndLayers(map: MapLibreMap) {
     filter: ['==', ['get', 'id'], ''],
     paint: { 'circle-radius': 30, 'circle-color': '#ffb95f', 'circle-opacity': 0.16, 'circle-stroke-color': '#ffb95f', 'circle-stroke-width': 1 },
   });
+  map.addLayer({
+    id: 'action-effect-explosions',
+    type: 'symbol',
+    source: ACTION_EFFECT_SOURCE_ID,
+    filter: ['==', ['get', 'kind'], 'fire-vfx'],
+    layout: {
+      'icon-image': ['get', 'imageId'],
+      'icon-size': 1,
+      'icon-anchor': 'bottom',
+      'icon-allow-overlap': true,
+      'icon-ignore-placement': true,
+    },
+  });
 }

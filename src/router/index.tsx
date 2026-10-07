@@ -9,6 +9,7 @@ import { SimulatorPage } from '../features/simulation/pages/SimulatorPage';
 import { SimulationLibraryPage } from '../features/simulation/pages/SimulationLibraryPage';
 import { SimulationDetailPage } from '../features/simulation/pages/SimulationDetailPage';
 import { SimulationFinalPage } from '../features/simulation/pages/SimulationFinalPage';
+import { Simulation3DEditVer0Page } from '../features/simulation/pages/Simulation3DEditVer0Page';
 
 export const router = createBrowserRouter([
   {
@@ -30,6 +31,7 @@ export const router = createBrowserRouter([
       { path: '/simulations/3d-demo-cesium', element: <SimulationFinalPage mapMode="cesium" demoMode liveEditMode /> },
       { path: '/simulations/3d-demo-maplibre', element: <SimulationFinalPage mapMode="maplibre" demoMode liveEditMode /> },
       { path: '/simulations/3d/edit', element: <SimulationSetupPage editorMapMode="3d" /> },
+      { path: '/simulations/3d/edit-ver0', element: <Simulation3DEditVer0Page /> },
       { path: '/simulations/:simulationId', element: <SimulationDetailPage /> },
     ],
   },

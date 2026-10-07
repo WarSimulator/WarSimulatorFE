@@ -15,6 +15,7 @@ import type {
   DeploymentSetup,
   DeploymentUnit,
   LineStringGeometry,
+  SimulationResultPosition,
   TacticalGraphic,
   TacticalGraphicType,
 } from '../../../types';
@@ -22,6 +23,7 @@ import { create3DTerrainMapStyle, createDefaultMapStyle, DEFAULT_MAP_CENTER, DEF
 import { createGeoPosition, getLngLat } from '../lib/position';
 import { removeDeploymentEntity } from '../lib/deploymentEditing';
 import { ensureAxisArrowImage, ensureMilitarySymbolImage, ensureObjectiveImage, getMilitarySymbolImageId } from '../lib/militarySymbolRegistry';
+import { get3DUnitSymbolSize } from '../lib/symbolSvg';
 import {
   addDeploymentSourcesAndLayers,
   AXIS_ARROW_SOURCE_ID,
@@ -38,7 +40,15 @@ type DeploymentMapProps = {
   onSelectEntity: (entityId?: string) => void;
   onModeChange: (mode: DeploymentEditorMode) => void;
   terrain3D?: boolean;
+  commandPoints?: {
+    from: SimulationResultPosition;
+    to: SimulationResultPosition;
+    active?: 'from' | 'to';
+    onSelect: (position: SimulationResultPosition) => void;
+  };
 };
+
+const COMMAND_POINT_SOURCE_ID = 'ver0-command-points';
 
 type DrawFeature = GeoJSON.Feature<GeoJSON.LineString | GeoJSON.Polygon, { id?: string; type?: TacticalGraphicType; name?: string; tacticalSymbol?: TacticalGraphic['tacticalSymbol'] }>;
 
@@ -69,7 +79,7 @@ function patchDrawClasses() {
   classes.ATTRIBUTION = 'maplibregl-ctrl-attrib';
 }
 
-function toUnitFeatures(deployment: DeploymentSetup): GeoJSON.FeatureCollection<GeoJSON.Point> {
+function toUnitFeatures(deployment: DeploymentSetup, normalized3D = false): GeoJSON.FeatureCollection<GeoJSON.Point> {
   return {
     type: 'FeatureCollection',
     features: deployment.units.map((unit) => ({
@@ -79,11 +89,11 @@ function toUnitFeatures(deployment: DeploymentSetup): GeoJSON.FeatureCollection<
         id: unit.id,
         designation: unit.designation,
         sidc: unit.sidc,
-        imageId: getMilitarySymbolImageId(unit.sidc, unit.symbolStandard),
+        imageId: getMilitarySymbolImageId(unit.sidc, unit.symbolStandard, normalized3D),
         affiliation: unit.affiliation,
         unitType: unit.unitType,
         echelon: unit.echelon,
-        symbolScale: unit.symbolScale ?? 1,
+        symbolScale: normalized3D ? get3DUnitSymbolSize(unit.symbolScale) * 2.4 / 128 : unit.symbolScale ?? 1,
         symbolRotation: unit.symbolRotation ?? 0,
       },
       geometry: { type: 'Point', coordinates: getLngLat(unit.position) },
@@ -161,7 +171,7 @@ function graphicToDrawFeature(graphic: TacticalGraphic): DrawFeature {
   };
 }
 
-export function DeploymentMap({ deployment, selectedEntityId, mode, onChange, onSelectEntity, onModeChange, terrain3D = false }: DeploymentMapProps) {
+export function DeploymentMap({ deployment, selectedEntityId, mode, onChange, onSelectEntity, onModeChange, terrain3D = false, commandPoints }: DeploymentMapProps) {
   const mapContainerRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<MapLibreMap | null>(null);
   const drawRef = useRef<MapboxDraw | null>(null);
@@ -198,6 +208,7 @@ export function DeploymentMap({ deployment, selectedEntityId, mode, onChange, on
   }, [mode.type, selectedEntityId, rotationId, deployment.tacticalGraphics, deployment.units]);
 
   const modeLabel = useMemo(() => {
+    if (commandPoints?.active) return `MODE: PICK ${commandPoints.active.toUpperCase()} ON MAP`;
     if (mode.type === 'select') return 'MODE: SELECT / EDIT';
     if (mode.type === 'draw-task') return `MODE: ${getTacticalTask(mode.definitionId)?.label ?? 'TACTICAL TASK'}`;
     if (mode.type === 'draw') return `MODE: DRAW ${mode.graphicType.toUpperCase()}`;
@@ -205,7 +216,7 @@ export function DeploymentMap({ deployment, selectedEntityId, mode, onChange, on
     return mode.item.kind === 'unit'
       ? `MODE: PLACE ${mode.item.affiliation.toUpperCase()} ${mode.item.label.toUpperCase()}`
       : 'MODE: PLACE OBJECTIVE';
-  }, [mode]);
+  }, [commandPoints?.active, mode]);
 
   useEffect(() => {
     if (!mapContainerRef.current || mapRef.current) return;
@@ -267,8 +278,29 @@ export function DeploymentMap({ deployment, selectedEntityId, mode, onChange, on
       try {
         await ensureObjectiveImage(map);
         await ensureAxisArrowImage(map);
-        await Promise.all(deployment.units.map((unit) => ensureMilitarySymbolImage(map, unit.sidc, unit.symbolStandard)));
+        await Promise.all(deployment.units.map((unit) => ensureMilitarySymbolImage(map, unit.sidc, unit.symbolStandard, terrain3D)));
         addDeploymentSourcesAndLayers(map);
+        map.addSource(COMMAND_POINT_SOURCE_ID, { type: 'geojson', data: { type: 'FeatureCollection', features: [] } });
+        map.addLayer({
+          id: 'ver0-command-point-line', type: 'line', source: COMMAND_POINT_SOURCE_ID,
+          filter: ['==', ['geometry-type'], 'LineString'],
+          paint: { 'line-color': '#ffb95f', 'line-width': 3, 'line-opacity': 0.85, 'line-dasharray': [2, 2] },
+        });
+        map.addLayer({
+          id: 'ver0-command-point-circles', type: 'circle', source: COMMAND_POINT_SOURCE_ID,
+          filter: ['==', ['geometry-type'], 'Point'],
+          paint: {
+            'circle-radius': 9,
+            'circle-color': ['match', ['get', 'kind'], 'from', '#5bd4ff', '#ffb95f'],
+            'circle-stroke-color': '#121212', 'circle-stroke-width': 3,
+          },
+        });
+        map.addLayer({
+          id: 'ver0-command-point-labels', type: 'symbol', source: COMMAND_POINT_SOURCE_ID,
+          filter: ['==', ['geometry-type'], 'Point'],
+          layout: { 'text-field': ['get', 'label'], 'text-size': 12, 'text-font': ['Noto Sans Regular'], 'text-offset': [0, 1.6], 'text-allow-overlap': true },
+          paint: { 'text-color': '#ffffff', 'text-halo-color': '#121212', 'text-halo-width': 2 },
+        });
         setIsMapReady(true);
       } catch {
         setMapError(true);
@@ -289,13 +321,54 @@ export function DeploymentMap({ deployment, selectedEntityId, mode, onChange, on
 
   useEffect(() => {
     if (!mapRef.current || !isMapReady) return;
-    void Promise.all(deployment.units.map((unit) => ensureMilitarySymbolImage(mapRef.current!, unit.sidc, unit.symbolStandard))).then(() => {
-      (mapRef.current?.getSource(UNIT_SOURCE_ID) as GeoJSONSource | undefined)?.setData(toUnitFeatures(displayDeployment));
+    void Promise.all(deployment.units.map((unit) => ensureMilitarySymbolImage(mapRef.current!, unit.sidc, unit.symbolStandard, terrain3D))).then(() => {
+      (mapRef.current?.getSource(UNIT_SOURCE_ID) as GeoJSONSource | undefined)?.setData(toUnitFeatures(displayDeployment, terrain3D));
     });
     (mapRef.current.getSource(OBJECTIVE_SOURCE_ID) as GeoJSONSource | undefined)?.setData(toObjectiveFeatures(deployment));
     (mapRef.current.getSource(GRAPHICS_SOURCE_ID) as GeoJSONSource | undefined)?.setData(toGraphicFeatureCollection(displayDeployment));
     (mapRef.current.getSource(AXIS_ARROW_SOURCE_ID) as GeoJSONSource | undefined)?.setData(toAxisArrowFeatures(displayDeployment));
-  }, [deployment, displayDeployment, isMapReady]);
+  }, [deployment, displayDeployment, isMapReady, terrain3D]);
+
+  useEffect(() => {
+    if (!mapRef.current || !isMapReady) return;
+    const points = commandPoints ? [
+      { kind: 'from', label: commandPoints.active === 'from' ? 'FROM · 선택 중' : 'FROM', position: commandPoints.from },
+      { kind: 'to', label: commandPoints.active === 'to' ? 'TO · 선택 중' : 'TO', position: commandPoints.to },
+    ] as const : [];
+    (mapRef.current.getSource(COMMAND_POINT_SOURCE_ID) as GeoJSONSource | undefined)?.setData({
+      type: 'FeatureCollection',
+      features: [
+        ...(commandPoints ? [{
+          type: 'Feature' as const,
+          properties: { kind: 'connection', label: '' },
+          geometry: { type: 'LineString' as const, coordinates: [
+            [commandPoints.from.longitude, commandPoints.from.latitude],
+            [commandPoints.to.longitude, commandPoints.to.latitude],
+          ] },
+        }] : []),
+        ...points.map(point => ({
+        type: 'Feature' as const,
+        properties: { kind: point.kind, label: point.label },
+        geometry: { type: 'Point' as const, coordinates: [point.position.longitude, point.position.latitude] },
+        })),
+      ],
+    });
+  }, [commandPoints, isMapReady]);
+
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!map || !isMapReady || !commandPoints?.active) return;
+    const handleCommandPoint = (event: maplibregl.MapMouseEvent) => {
+      event.preventDefault();
+      commandPoints.onSelect({ longitude: event.lngLat.lng, latitude: event.lngLat.lat });
+    };
+    map.getCanvas().style.cursor = 'crosshair';
+    map.on('click', handleCommandPoint);
+    return () => {
+      map.off('click', handleCommandPoint);
+      map.getCanvas().style.cursor = '';
+    };
+  }, [commandPoints, isMapReady]);
 
   useEffect(() => {
     if (!drawRef.current || !isMapReady) return;
@@ -447,7 +520,7 @@ export function DeploymentMap({ deployment, selectedEntityId, mode, onChange, on
         return;
       }
 
-      if (mode.type === 'place' || mode.type === 'draw-task') return;
+      if (mode.type === 'place' || mode.type === 'draw-task' || commandPoints?.active) return;
       const features = map.queryRenderedFeatures(event.point, { layers: ['deployment-units', 'deployment-objectives'] });
       const feature = features[0];
       if (!feature?.properties?.id) return;
@@ -509,7 +582,7 @@ export function DeploymentMap({ deployment, selectedEntityId, mode, onChange, on
       map.off('mouseup', handleMouseUp);
       map.dragPan.enable();
     };
-  }, [deployment, isMapReady, mode, onChange, onSelectEntity]);
+  }, [commandPoints?.active, deployment, isMapReady, mode, onChange, onSelectEntity]);
 
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
@@ -614,7 +687,7 @@ export function DeploymentMap({ deployment, selectedEntityId, mode, onChange, on
       drawRef.current?.changeMode('simple_select', { featureIds: deploymentRef.current.tacticalGraphics.some(item => item.id === id) ? [id] : [] });
     };
     const handleClick = (event: maplibregl.MapMouseEvent) => {
-      if (mode.type === 'select') selectGraphic(event);
+      if (mode.type === 'select' && !commandPoints?.active) selectGraphic(event);
     };
     map.on('click', handleClick);
     map.on('dblclick', selectGraphic);
@@ -622,7 +695,7 @@ export function DeploymentMap({ deployment, selectedEntityId, mode, onChange, on
       map.off('click', handleClick);
       map.off('dblclick', selectGraphic);
     };
-  }, [isMapReady, mode.type, onSelectEntity, onModeChange]);
+  }, [commandPoints?.active, isMapReady, mode.type, onSelectEntity, onModeChange]);
 
   const finishDrawing = () => {
     drawRef.current?.changeMode('simple_select');

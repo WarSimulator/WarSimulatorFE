@@ -116,7 +116,7 @@ export function MettEditorPage() {
   };
 
   return (
-    <div className="mx-auto flex h-full max-w-[1440px] flex-col gap-6 p-container-padding">
+    <div className="mx-auto flex min-h-full max-w-[1440px] flex-col gap-6 p-container-padding pb-16">
       <header className="mb-2 flex items-end justify-between border-b border-outline-variant pb-4">
         <div>
           <h2 className="mb-2 font-display-lg text-display-lg tracking-tight text-on-surface">

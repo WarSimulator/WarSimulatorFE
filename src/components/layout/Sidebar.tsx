@@ -16,6 +16,7 @@ const simulationItems = [
   { to: '/simulations/3d-demo-cesium', label: 'Mil-Simulator 3D 데모(cesium)', icon: 'public' },
   { to: '/simulations/3d-demo-maplibre', label: 'Mil-Simulator3D 데모(MapLibre GL)', icon: 'terrain' },
   { to: '/simulations/3d/edit', label: 'Mil-Simulator 3D EDIT', icon: 'edit_location_alt' },
+  { to: '/simulations/3d/edit-ver0', label: 'Mil-Simulator 3D EDIT (ver0)', icon: 'route' },
 ];
 
 export function Sidebar() {
@@ -69,7 +70,7 @@ export function Sidebar() {
               to={item.to}
               end
               className={({ isActive }) =>
-                isActive || (item.to === '/simulations/library' && /^\/simulations\/[^/]+$/.test(location.pathname) && !['/simulations/setup', '/simulations/final', '/simulations/3d', '/simulations/3d/live-edit', '/simulations/3d/report', '/simulations/3d-demo', '/simulations/3d-demo-cesium', '/simulations/3d-demo-maplibre', '/simulations/3d/edit', '/simulations/actions'].includes(location.pathname))
+                isActive || (item.to === '/simulations/library' && /^\/simulations\/[^/]+$/.test(location.pathname) && !['/simulations/setup', '/simulations/final', '/simulations/3d', '/simulations/3d/live-edit', '/simulations/3d/report', '/simulations/3d-demo', '/simulations/3d-demo-cesium', '/simulations/3d-demo-maplibre', '/simulations/3d/edit', '/simulations/3d/edit-ver0', '/simulations/actions'].includes(location.pathname))
                   ? 'group relative flex items-center border-l-4 border-secondary bg-surface-container-high py-2 pl-8 font-bold text-secondary transition-colors'
                   : 'group relative flex items-center py-2 pl-9 font-medium text-on-surface-variant transition-colors hover:bg-surface-variant'
               }
@@ -79,7 +80,7 @@ export function Sidebar() {
                   isActive ||
                   (item.to === '/simulations/library' &&
                     /^\/simulations\/[^/]+$/.test(location.pathname) &&
-                    !['/simulations/setup', '/simulations/final', '/simulations/3d', '/simulations/3d/live-edit', '/simulations/3d/report', '/simulations/3d-demo', '/simulations/3d-demo-cesium', '/simulations/3d-demo-maplibre', '/simulations/3d/edit', '/simulations/actions'].includes(location.pathname));
+                    !['/simulations/setup', '/simulations/final', '/simulations/3d', '/simulations/3d/live-edit', '/simulations/3d/report', '/simulations/3d-demo', '/simulations/3d-demo-cesium', '/simulations/3d-demo-maplibre', '/simulations/3d/edit', '/simulations/3d/edit-ver0', '/simulations/actions'].includes(location.pathname));
 
                 return (
                   <>
@@ -103,14 +104,6 @@ export function Sidebar() {
             <Icon name="add" className="text-[16px]" filled />
             NEW OPERATION
           </button>
-        </div>
-        <div className="flex cursor-default select-none items-center py-2 pl-5 font-medium text-on-surface-variant">
-          <Icon name="help_outline" className="mr-3 text-[18px]" />
-          <span className="font-label-caps text-label-caps">Help</span>
-        </div>
-        <div className="flex cursor-default select-none items-center py-2 pl-5 font-medium text-on-surface-variant">
-          <Icon name="list_alt" className="mr-3 text-[18px]" />
-          <span className="font-label-caps text-label-caps">Logs</span>
         </div>
       </div>
     </nav>

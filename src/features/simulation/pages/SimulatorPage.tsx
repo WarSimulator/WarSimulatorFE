@@ -417,7 +417,8 @@ export function SimulatorPage() {
               deployment={deployment}
               onSelectUnit={selectUnit}
               atomicActionVisuals={atomicActionVisuals}
-              liveEdit={liveEditMode && revision.active ? {
+              liveEdit={liveEditMode ? {
+                editingEnabled: revision.active,
                 units: liveUnits,
                 objectives: liveObjects.objectives,
                 tacticalGraphics: liveObjects.tacticalGraphics,

@@ -53,10 +53,6 @@ export function create3DTerrainMapStyle(): StyleSpecification {
         type: 'raster-dem',
         url: 'https://tiles.mapterhorn.com/tilejson.json',
       },
-      hillshadeSource: {
-        type: 'raster-dem',
-        url: 'https://tiles.mapterhorn.com/tilejson.json',
-      },
     },
     layers: [
       {
@@ -73,7 +69,7 @@ export function create3DTerrainMapStyle(): StyleSpecification {
       {
         id: 'terrain-hillshade',
         type: 'hillshade',
-        source: 'hillshadeSource',
+        source: 'terrainSource',
         paint: {
           'hillshade-shadow-color': '#182018',
           'hillshade-highlight-color': '#c9d2b0',

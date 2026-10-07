@@ -8,7 +8,7 @@ export function DrawToolPreview({ type, label }: { type: Exclude<TacticalGraphic
       {type === 'phase-line' && <path d="M25 90 70 65 125 65 175 35" />}
       {type === 'boundary' && <path d="M25 90 70 65 125 65 175 35" strokeDasharray="10 7" />}
       {type === 'area' && <path d="m35 90-10-50 80-20 65 30-30 50Z" fill="#80d8ff" fillOpacity="0.3" />}
-      {type === 'freehand' && <path d="M25 85C35 10 75 110 100 60S150 25 175 45" />}
+      {type === 'freehand' && <><path d="M25 85C35 10 75 110 100 60S150 25 175 45" /><path d="m153 32 22 13-21 14" /></>}
     </g>
     {type === 'phase-line' && <text x="98" y="52" textAnchor="middle" fontSize="12" fill="#0f172a">PL</text>}
   </svg>;
