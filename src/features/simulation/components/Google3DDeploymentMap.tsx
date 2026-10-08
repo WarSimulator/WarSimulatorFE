@@ -1,3 +1,4 @@
+import { createUuid } from '../lib/uuid';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import type {
   DeploymentEditorMode,
@@ -151,7 +152,7 @@ export function Google3DDeploymentMap({ deployment, selectedEntityId, mode, onCh
       return;
     }
     if (currentMode.type === 'place') {
-      const id = `${currentMode.item.kind}-${crypto.randomUUID()}`;
+      const id = `${currentMode.item.kind}-${createUuid()}`;
       if (currentMode.item.kind === 'unit') {
         onChange({ ...current, units: [...current.units, {
           id, designation: nextUnitDesignation(current.units, currentMode.item), affiliation: currentMode.item.affiliation,
@@ -210,7 +211,7 @@ export function Google3DDeploymentMap({ deployment, selectedEntityId, mode, onCh
       if (task && points.length >= task.minPoints && points.length <= task.maxPoints) graphic = createTaskGraphic(task, currentMode.affiliation, points);
     } else if (currentMode.type === 'draw' && points.length >= (currentMode.graphicType === 'area' ? 3 : 2)) {
       graphic = {
-        id: `graphic-${crypto.randomUUID()}`, type: currentMode.graphicType, name: GRAPHIC_NAMES[currentMode.graphicType],
+        id: `graphic-${createUuid()}`, type: currentMode.graphicType, name: GRAPHIC_NAMES[currentMode.graphicType],
         geometry: currentMode.graphicType === 'area'
           ? { type: 'Polygon', coordinates: [[...points, points[0]]] }
           : { type: 'LineString', coordinates: points },

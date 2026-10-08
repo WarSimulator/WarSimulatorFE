@@ -1,3 +1,4 @@
+import { createUuid } from '../lib/uuid';
 import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties } from 'react';
 import type { AtomicActionEffect, DeploymentEditorMode, DeploymentObjective, DeploymentPaletteItem, DeploymentSetup, DeploymentUnit, ObservationEffect, SimulationResult, SimulationResultPosition, SimulationRuntimeState, SimulationUnit, TacticalGraphic, TacticalGraphicType } from '../../../types';
 import { DEFAULT_MAP_CENTER } from '../lib/mapConfig';
@@ -645,7 +646,7 @@ export function Google3DTacticalMap({ runtime, playbackRef, units, result, deplo
       } else if (editor.mode.type === 'draw' && points.length >= (editor.mode.graphicType === 'area' ? 3 : 2)) {
         if (editor.mode.graphicType === 'axis' && (!axisSourceUnitIdRef.current || points.length !== 2)) return;
         graphic = {
-          id: `graphic-${crypto.randomUUID()}`, type: editor.mode.graphicType, name: LIVE_GRAPHIC_NAMES[editor.mode.graphicType],
+          id: `graphic-${createUuid()}`, type: editor.mode.graphicType, name: LIVE_GRAPHIC_NAMES[editor.mode.graphicType],
           ...(editor.mode.graphicType === 'axis' ? { sourceUnitId: axisSourceUnitIdRef.current } : {}),
           geometry: editor.mode.graphicType === 'area'
             ? { type: 'Polygon', coordinates: [[...points, points[0]]] }

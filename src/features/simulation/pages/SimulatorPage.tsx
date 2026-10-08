@@ -1,3 +1,4 @@
+import { createUuid } from '../lib/uuid';
 import { lazy, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { createInitialRuntimeState, SIMULATION_PLAYBACK_RATE } from '../lib/runtime';
@@ -79,7 +80,7 @@ export function SimulatorPage() {
   const runtimeRef = useRef(runtime);
   const publishTimeRef = useRef(0);
   const syncChannelRef = useRef<BroadcastChannel | null>(null);
-  const syncSourceRef = useRef(crypto.randomUUID());
+  const syncSourceRef = useRef(createUuid());
   const revision = useRevisionSpeech(simulationId, () => runtimeRef.current.simulationTime);
   useEffect(() => {
     if (liveEditMode) saveLiveEditUnits(simulationId, liveUnits);
@@ -92,7 +93,7 @@ export function SimulatorPage() {
   }, [liveEditMode, liveObjects, simulationId]);
 
   const placeLiveUnit = useCallback((item: Extract<DeploymentPaletteItem, { kind: 'unit' }>, location: { lng: number; lat: number }) => {
-    const id = `unit-${crypto.randomUUID()}`;
+    const id = `unit-${createUuid()}`;
     setLiveUnits(current => {
       const existing = [...(deployment?.units ?? []), ...current];
       const count = existing.filter(unit => unit.affiliation === item.affiliation && unit.unitType === item.unitType).length + 1;
@@ -129,7 +130,7 @@ export function SimulatorPage() {
   }, [deployment, liveObjects, selectedLiveUnitId]);
 
   const placeLiveObjective = useCallback((location: { lng: number; lat: number }) => {
-    const id = `objective-${crypto.randomUUID()}`;
+    const id = `objective-${createUuid()}`;
     setLiveObjects(current => ({ ...current, objectives: [...current.objectives, { id, name: `Objective ${(deployment?.objectives.length ?? 0) + current.objectives.length + 1}`, position: createGeoPosition(location.lng, location.lat) }] }));
     setSelectedLiveUnitId(id);
     setLiveEditorMode({ type: 'select' });

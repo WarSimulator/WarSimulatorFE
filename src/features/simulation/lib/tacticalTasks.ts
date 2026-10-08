@@ -1,3 +1,4 @@
+import { createUuid } from './uuid';
 import data from '../data/tacticalTasks.json';
 import type { DeploymentAffiliation, TacticalGraphic } from '../../../types';
 
@@ -23,7 +24,7 @@ export function validateTaskPoints(task: TacticalTaskDefinition, points: number[
 export function createTaskGraphic(task: TacticalTaskDefinition, affiliation: DeploymentAffiliation, points: [number, number][]): TacticalGraphic {
   validateTaskPoints(task, points);
   return {
-    id: `graphic-${crypto.randomUUID()}`, type: 'mil-task', name: task.label,
+    id: `graphic-${createUuid()}`, type: 'mil-task', name: task.label,
     tacticalSymbol: { definitionId: task.id, sidc: taskSidc(task, affiliation), affiliation },
     geometry: { type: 'LineString', coordinates: points },
   };

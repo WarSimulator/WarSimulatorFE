@@ -1,3 +1,4 @@
+import { loadCoaPlannerAutoStart } from '../features/simulation/lib/coaPlannerAutoStart';
 import { AtomicActionLibraryPage } from '../features/simulation/pages/AtomicActionLibraryPage';
 import { createBrowserRouter, Navigate } from 'react-router-dom';
 import { AppLayout } from '../components/layout/AppLayout';
@@ -11,9 +12,14 @@ import { SimulationDetailPage } from '../features/simulation/pages/SimulationDet
 import { SimulationFinalPage } from '../features/simulation/pages/SimulationFinalPage';
 import { Simulation3DEditVer0Page } from '../features/simulation/pages/Simulation3DEditVer0Page';
 
+const routerBasename = window.location.pathname === '/simulator' || window.location.pathname.startsWith('/simulator/')
+  ? '/simulator'
+  : '/';
+
 export const router = createBrowserRouter([
   {
     element: <AppLayout />,
+    hydrateFallbackElement: <div role="status" className="flex h-screen items-center justify-center bg-surface text-on-surface-variant">지도를 준비하고 있습니다…</div>,
     children: [
       { path: '/', element: <Navigate to="/workspace" replace /> },
       { path: '/workspace', element: <WorkspacePage /> },
@@ -29,11 +35,11 @@ export const router = createBrowserRouter([
       { path: '/simulations/3d/report', element: <SimulationFinalPage mapMode="3d" reportMode /> },
       { path: '/simulations/3d-demo', element: <SimulationFinalPage mapMode="3d" demoMode /> },
       { path: '/simulations/3d-demo-cesium', element: <SimulationFinalPage mapMode="cesium" demoMode liveEditMode /> },
-      { path: '/simulations/3d-demo-maplibre', element: <SimulationFinalPage mapMode="maplibre" demoMode liveEditMode /> },
+      { path: '/simulations/3d-demo-maplibre', loader: ({ request }) => loadCoaPlannerAutoStart(request), element: <SimulationFinalPage mapMode="maplibre" demoMode liveEditMode /> },
       { path: '/simulations/3d/edit', element: <SimulationSetupPage editorMapMode="3d" /> },
       { path: '/simulations/3d/edit-ver0', element: <Simulation3DEditVer0Page /> },
       { path: '/simulations/:simulationId', element: <SimulationDetailPage /> },
     ],
   },
   { path: '/simulations/:simulationId/run', element: <SimulatorPage /> },
-]);
+], { basename: routerBasename });

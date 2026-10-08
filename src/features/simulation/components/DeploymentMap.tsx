@@ -1,3 +1,4 @@
+import { createUuid } from '../lib/uuid';
 import { GraphicRotationHandle, UnitRotationHandle } from './GraphicRotationHandle';
 import { useTaskDrawing } from '../hooks/useTaskDrawing';
 import { getTacticalTask, validateTaskPoints, taskLabel } from '../lib/tacticalTasks';
@@ -154,7 +155,7 @@ function nextUnitDesignation(units: DeploymentUnit[], item: Extract<DeploymentPa
 function drawFeatureToGraphic(feature: DrawFeature): TacticalGraphic {
   const type = feature.properties?.type ?? 'route';
   return {
-    id: String(feature.id ?? feature.properties?.id ?? `graphic-${crypto.randomUUID()}`),
+    id: String(feature.id ?? feature.properties?.id ?? `graphic-${createUuid()}`),
     type,
     tacticalSymbol: feature.properties?.tacticalSymbol,
     name: feature.properties?.name ?? DEFAULT_GRAPHIC_NAME[type],
@@ -454,7 +455,7 @@ export function DeploymentMap({ deployment, selectedEntityId, mode, onChange, on
       const feature = event.features[0];
       const oldId = String(feature.id);
       const type = mode.type === 'draw' ? mode.graphicType : 'route';
-      const id = `graphic-${crypto.randomUUID()}`;
+      const id = `graphic-${createUuid()}`;
       feature.id = id;
       feature.properties = { id, type, name: DEFAULT_GRAPHIC_NAME[type] };
       draw.delete(oldId);
@@ -499,7 +500,7 @@ export function DeploymentMap({ deployment, selectedEntityId, mode, onChange, on
       if (mode.type === 'draw' && mode.graphicType === 'freehand') {
         event.preventDefault();
         map.dragPan.disable();
-        const id = `graphic-${crypto.randomUUID()}`;
+        const id = `graphic-${createUuid()}`;
         const coordinate: [number, number] = [event.lngLat.lng, event.lngLat.lat];
         freehandGraphicIdRef.current = id;
         freehandCoordinatesRef.current = [coordinate];
@@ -600,7 +601,7 @@ export function DeploymentMap({ deployment, selectedEntityId, mode, onChange, on
   const createDroppedEntity = (item: DeploymentPaletteItem, lng: number, lat: number) => {
     if (item.kind === 'unit') {
       const unit: DeploymentUnit = {
-        id: `unit-${crypto.randomUUID()}`,
+        id: `unit-${createUuid()}`,
         designation: nextUnitDesignation(deployment.units, item),
         affiliation: item.affiliation,
         unitType: item.unitType,
@@ -615,7 +616,7 @@ export function DeploymentMap({ deployment, selectedEntityId, mode, onChange, on
       return;
     }
     const objective: DeploymentObjective = {
-      id: `objective-${crypto.randomUUID()}`,
+      id: `objective-${createUuid()}`,
       name: `OBJ-${deployment.objectives.length + 1}`,
       position: createGeoPosition(lng, lat),
     };

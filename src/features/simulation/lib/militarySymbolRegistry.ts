@@ -78,7 +78,7 @@ export async function ensureExplosionFrameImages(map: MapLibreMap) {
   await Promise.all(Array.from({ length: EXPLOSION_FRAME_COUNT }, async (_, frame) => {
     const imageId = getExplosionFrameImageId(frame);
     if (map.hasImage(imageId) || registry.has(imageId)) return;
-    const response = await map.loadImage(`/vfx/frames/explosion/frame-${String(frame).padStart(2, '0')}.png`);
+    const response = await map.loadImage(`${import.meta.env.BASE_URL}vfx/frames/explosion/frame-${String(frame).padStart(2, '0')}.png`);
     const canvas = document.createElement('canvas');
     canvas.width = 112;
     canvas.height = 112;

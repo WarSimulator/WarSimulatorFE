@@ -1,3 +1,4 @@
+import { createUuid } from '../lib/uuid';
 import { useEffect, useMemo, useRef, useState, type CSSProperties, type PointerEvent as ReactPointerEvent } from 'react';
 import {
   BillboardGraphics,
@@ -316,7 +317,7 @@ function updateActions(source: CustomDataSource, result: SimulationResult, deplo
     upsertEntity({ id: `${key}:pulse`, position: Cartesian3.fromDegrees(pulse.longitude, pulse.latitude, 3), ellipse: { semiMajorAxis: radius, semiMinorAxis: radius, material: color.withAlpha(0.18), outline: true, outlineColor: color, heightReference: HeightReference.CLAMP_TO_GROUND } });
     if (fire && target) {
       const frame = Math.floor(progress * 64) % 32;
-      upsertEntity({ id: `${key}:vfx`, position: Cartesian3.fromDegrees(target.longitude, target.latitude, 10), billboard: { image: `/vfx/frames/explosion/frame-${String(frame).padStart(2, '0')}.png`, width: 112, height: 112, verticalOrigin: VerticalOrigin.BOTTOM, disableDepthTestDistance: Number.POSITIVE_INFINITY } });
+      upsertEntity({ id: `${key}:vfx`, position: Cartesian3.fromDegrees(target.longitude, target.latitude, 10), billboard: { image: `${import.meta.env.BASE_URL}vfx/frames/explosion/frame-${String(frame).padStart(2, '0')}.png`, width: 112, height: 112, verticalOrigin: VerticalOrigin.BOTTOM, disableDepthTestDistance: Number.POSITIVE_INFINITY } });
     }
   };
 
@@ -404,7 +405,7 @@ export function Cesium3DTacticalMap({ runtime, playbackRef, units, result, deplo
       } else if (editor.mode.type === 'draw' && points.length >= (editor.mode.graphicType === 'area' ? 3 : 2)) {
         const graphicPoints = editor.mode.graphicType === 'axis' ? [points[0], points.at(-1)!] : points;
         graphic = {
-          id: `graphic-${crypto.randomUUID()}`,
+          id: `graphic-${createUuid()}`,
           type: editor.mode.graphicType,
           name: LIVE_GRAPHIC_NAMES[editor.mode.graphicType],
           ...(editor.mode.graphicType === 'axis' && axisSourceUnitIdRef.current ? { sourceUnitId: axisSourceUnitIdRef.current } : {}),

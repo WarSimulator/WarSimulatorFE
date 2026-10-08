@@ -6,6 +6,7 @@ const cesiumSource = 'node_modules/cesium/Build/Cesium';
 const cesiumBaseUrl = 'cesiumStatic';
 
 export default defineConfig({
+  base: '/simulator/',
   define: { CESIUM_BASE_URL: JSON.stringify(`/${cesiumBaseUrl}/`) },
   plugins: [
     react(),
@@ -18,7 +19,7 @@ export default defineConfig({
       ],
     }),
   ],
-  server: { fs: { allow: ['.', '../AtomicActionVisualizer'] } },
+  server: { port: 5174, strictPort: true, fs: { allow: ['.', '../AtomicActionVisualizer'] } },
   optimizeDeps: {
     include: ['@armyc2.c5isr.renderer/mil-sym-ts-web'],
     exclude: ['maplibre-gl'],

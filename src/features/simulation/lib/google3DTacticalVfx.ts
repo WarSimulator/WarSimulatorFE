@@ -30,8 +30,8 @@ type SpriteNode = {
 type ModelVfxNode = { kind: 'model'; node: ModelNode };
 type VfxNode = SpriteNode | ModelVfxNode;
 
-const EXPLOSION: SpriteDefinition = { src: '/vfx/sprites/explosion.webp', frameBase: '/vfx/frames/explosion', frames: 32, columns: 8, rows: 4 };
-const SMOKE: SpriteDefinition = { src: '/vfx/sprites/smoke.webp', frameBase: '/vfx/frames/smoke', frames: 32, columns: 8, rows: 4 };
+const EXPLOSION: SpriteDefinition = { src: `${import.meta.env.BASE_URL}vfx/sprites/explosion.webp`, frameBase: `${import.meta.env.BASE_URL}vfx/frames/explosion`, frames: 32, columns: 8, rows: 4 };
+const SMOKE: SpriteDefinition = { src: `${import.meta.env.BASE_URL}vfx/sprites/smoke.webp`, frameBase: `${import.meta.env.BASE_URL}vfx/frames/smoke`, frames: 32, columns: 8, rows: 4 };
 const REPEATED_IMPACT_ACTIONS = new Set(['Engage', 'Continue to Engage', 'Fight', 'Ambush', 'Disrupt']);
 const VFX_ACTIONS = new Set([...REPEATED_IMPACT_ACTIONS, 'Destroy', 'Breach']);
 const POST_ACTION_SMOKE_SECONDS = 10;
@@ -206,8 +206,8 @@ export function createGoogle3DTacticalVfxStore(
         if (time >= effect.endTime) {
           const debrisKey = `${prefix}:debris`;
           const craterKey = `${prefix}:crater`;
-          putModel(debrisKey, position, '/vfx/models/debris-01.glb', 3.2, effect.actionSequence * 137 % 360);
-          putModel(craterKey, position, '/vfx/models/crater-01.glb', 3.8, effect.actionSequence * 83 % 360);
+          putModel(debrisKey, position, `${import.meta.env.BASE_URL}vfx/models/debris-01.glb`, 3.2, effect.actionSequence * 137 % 360);
+          putModel(craterKey, position, `${import.meta.env.BASE_URL}vfx/models/crater-01.glb`, 3.8, effect.actionSequence * 83 % 360);
           activeKeys.add(debrisKey);
           activeKeys.add(craterKey);
         }

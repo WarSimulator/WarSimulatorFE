@@ -1,3 +1,4 @@
+import { createUuid } from '../lib/uuid';
 import { useEffect, useMemo, useState } from 'react';
 import type { DeploymentSetup, SimulationResultPosition } from '../../../types';
 import { getTacticalTask, taskLabel } from '../lib/tacticalTasks';
@@ -79,7 +80,7 @@ export function Ver0CommandPanel({
   const addCommand = () => {
     if (!unit || endTime <= startTime || (kind !== 'action' && !graphic)) return;
     onChange([...commands, {
-      id: `command-${crypto.randomUUID()}`, unitId: unit.id, kind,
+      id: `command-${createUuid()}`, unitId: unit.id, kind,
       ...(kind === 'action' ? { actionId } : { graphicId: graphic!.id }),
       startTime, endTime, from, to, note: note.trim(),
     }]);

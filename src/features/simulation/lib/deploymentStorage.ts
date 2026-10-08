@@ -1,3 +1,4 @@
+import { createUuid } from './uuid';
 import type { DeploymentSetup } from '../../../types';
 import alphaDeployment from '../../../fixtures/alphaDeployment.json';
 import deployment2 from '../../../fixtures/deployment2.json';
@@ -102,7 +103,7 @@ export function createEmptyDeployment(mettTcDocumentId: string, name: string): D
   const now = new Date().toISOString();
 
   return {
-    id: `deployment-${Date.now()}-${crypto.randomUUID()}`,
+    id: `deployment-${Date.now()}-${createUuid()}`,
     name,
     mettTcDocumentId,
     units: [],
@@ -123,11 +124,11 @@ export function duplicateDeployment(deployment: DeploymentSetup, name: string): 
 
   return {
     ...clone,
-    id: `deployment-${Date.now()}-${crypto.randomUUID()}`,
+    id: `deployment-${Date.now()}-${createUuid()}`,
     name,
-    units: clone.units.map((unit) => ({ ...unit, id: `unit-${crypto.randomUUID()}` })),
-    objectives: clone.objectives.map((objective) => ({ ...objective, id: `objective-${crypto.randomUUID()}` })),
-    tacticalGraphics: clone.tacticalGraphics.map((graphic) => ({ ...graphic, id: `graphic-${crypto.randomUUID()}` })),
+    units: clone.units.map((unit) => ({ ...unit, id: `unit-${createUuid()}` })),
+    objectives: clone.objectives.map((objective) => ({ ...objective, id: `objective-${createUuid()}` })),
+    tacticalGraphics: clone.tacticalGraphics.map((graphic) => ({ ...graphic, id: `graphic-${createUuid()}` })),
     createdAt: now,
     updatedAt: now,
   };

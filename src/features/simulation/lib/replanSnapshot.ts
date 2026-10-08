@@ -1,3 +1,4 @@
+import { createUuid } from './uuid';
 import type {
   DeploymentObjective,
   DeploymentSetup,
@@ -113,7 +114,7 @@ export function buildReplanSnapshot(options: BuildReplanSnapshotOptions): Replan
 
   return {
     ...deployment,
-    id: `replan-${Date.now()}-${crypto.randomUUID()}`,
+    id: `replan-${Date.now()}-${createUuid()}`,
     name: `${deployment.name} · REPLAN`,
     units,
     objectives: mergeById(deployment.objectives, liveObjectives),

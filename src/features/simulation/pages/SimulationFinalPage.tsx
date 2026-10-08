@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Icon } from '../../../components/layout/Icon';
 import { buildFinalSimulation, saveFinalSimulation } from '../lib/finalSimulation';
@@ -29,7 +29,11 @@ function demoFile(name: string, payload: unknown) {
 
 export function SimulationFinalPage({ mapMode = '2d', reportMode = false, demoMode = false, liveEditMode = false }: { mapMode?: '2d' | '3d' | 'cesium' | 'maplibre'; reportMode?: boolean; demoMode?: boolean; liveEditMode?: boolean }) {
   const navigate = useNavigate();
-  const [files, setFiles] = useState<SelectedFiles>({});
+  const autoStart = new URLSearchParams(window.location.search).get('coaPlannerAutoStart') === '1';
+  const autoStartHandled = useRef(false);
+  const [files, setFiles] = useState<SelectedFiles>(() => autoStart
+    ? { blueForce: demoFile('offensive.json', demoOffensive), redForce: demoFile('defensive.json', demoDefensive), deployment: demoFile('unit.json', demoDeployment) }
+    : {});
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const ready = Boolean(files.blueForce && files.redForce && files.deployment);
@@ -43,13 +47,15 @@ export function SimulationFinalPage({ mapMode = '2d', reportMode = false, demoMo
 
   const start = async () => {
     if (!files.blueForce || !files.redForce || !files.deployment) return;
-    const simulationWindow = window.open('about:blank', '_blank', 'popup=yes,width=1400,height=900');
-    if (!simulationWindow) {
+    const simulationWindow = autoStart ? null : window.open('about:blank', '_blank', 'popup=yes,width=1400,height=900');
+    if (!autoStart && !simulationWindow) {
       setError('시뮬레이터 화면을 열 수 없습니다. 이 사이트의 팝업을 허용한 뒤 다시 실행해 주세요.');
       return;
     }
-    simulationWindow.document.title = 'ATLAS 시뮬레이션 준비 중';
-    simulationWindow.document.body.innerHTML = '<p style="font:16px sans-serif;padding:24px">시뮬레이션 화면을 준비하고 있습니다…</p>';
+    if (simulationWindow) {
+      simulationWindow.document.title = 'ATLAS 시뮬레이션 준비 중';
+      simulationWindow.document.body.innerHTML = '<p style="font:16px sans-serif;padding:24px">시뮬레이션 화면을 준비하고 있습니다…</p>';
+    }
     setLoading(true); setError('');
     try {
       const [blueForce, redForce, withdrawal, deployment] = await Promise.all([
@@ -57,15 +63,27 @@ export function SimulationFinalPage({ mapMode = '2d', reportMode = false, demoMo
       ]);
       const build = await buildFinalSimulation({ blueForce, redForce, withdrawal, deployment }, { mode: reportMode ? 'report' : 'strict' });
       saveFinalSimulation(build);
+      if (autoStart) {
+        navigate(`/simulations/${build.simulationId}/run?view=tactical&window=simulation&map=maplibre&visualization=atomic3d&edit=live`);
+        return;
+      }
       navigate(`/simulations/${build.simulationId}/run?view=analysis${demoMode ? '&visualization=atomic3d' : ''}`);
-      simulationWindow.location.href = new URL(`/simulations/${build.simulationId}/run?view=tactical&window=simulation${is3D ? `&map=${mapMode}` : ''}${demoMode ? '&visualization=atomic3d' : ''}${liveEditMode ? '&edit=live' : ''}`, window.location.origin).href;
-      simulationWindow.focus();
+      if (simulationWindow) {
+        simulationWindow.location.href = new URL(`/simulations/${build.simulationId}/run?view=tactical&window=simulation${is3D ? `&map=${mapMode}` : ''}${demoMode ? '&visualization=atomic3d' : ''}${liveEditMode ? '&edit=live' : ''}`, window.location.origin).href;
+        simulationWindow.focus();
+      }
     } catch (caught) {
-      simulationWindow.close();
+      simulationWindow?.close();
       setError(caught instanceof Error ? caught.message : '파일을 처리하지 못했습니다.');
       setLoading(false);
     }
   };
+
+  useEffect(() => {
+    if (!autoStart || !ready || autoStartHandled.current) return;
+    autoStartHandled.current = true;
+    void start();
+  }, [autoStart, ready]);
 
   return <div className="mx-auto flex h-full max-w-[1440px] flex-col gap-6 overflow-y-auto p-container-padding">
     <header className="border-b border-outline-variant pb-4">
