@@ -44,7 +44,12 @@ export function Simulation3DEditVer0Page() {
   const [runtime, setRuntime] = useState<SimulationRuntimeState>(() => initialRuntime(initial.deployment.units[0]?.id));
   const [mapPickTarget, setMapPickTarget] = useState<'from' | 'to'>();
   const [pickedMapPoint, setPickedMapPoint] = useState<{ target: 'from' | 'to'; position: SimulationResultPosition; revision: number }>();
-  const [commandEndpoints, setCommandEndpoints] = useState<{ from: SimulationResultPosition; to: SimulationResultPosition }>();
+  const [commandEndpoints, setCommandEndpoints] = useState<{
+    from: SimulationResultPosition;
+    to: SimulationResultPosition;
+    kind: 'movement' | 'target';
+    targetLabel?: string;
+  }>();
   const runtimeRef = useRef(runtime);
   const pickRevisionRef = useRef(0);
   const lastFrameRef = useRef<number | undefined>(undefined);
@@ -57,8 +62,12 @@ export function Simulation3DEditVer0Page() {
   useEffect(() => {
     setCommands(current => current.filter(command => deployment.units.some(unit => unit.id === command.unitId)
       && (command.kind === 'action' || deployment.tacticalGraphics.some(graphic => graphic.id === command.graphicId))));
-    if (selectedCommandUnitId && !deployment.units.some(unit => unit.id === selectedCommandUnitId)) {
-      setSelectedCommandUnitId(deployment.units[0]?.id ?? '');
+    if (!deployment.units.some(unit => unit.id === selectedCommandUnitId)) {
+      const nextUnitId = deployment.units[0]?.id ?? '';
+      if (nextUnitId !== selectedCommandUnitId) setSelectedCommandUnitId(nextUnitId);
+      setMapPickTarget(undefined);
+      setPickedMapPoint(undefined);
+      setCommandEndpoints(undefined);
     }
   }, [deployment.units, deployment.tacticalGraphics, selectedCommandUnitId]);
 
@@ -99,11 +108,11 @@ export function Simulation3DEditVer0Page() {
     setPickedMapPoint({ target: mapPickTarget, position, revision: pickRevisionRef.current });
     setMapPickTarget(undefined);
   }, [mapPickTarget]);
-  const commandPoints = useMemo(() => commandEndpoints ? {
+  const commandPoints = useMemo(() => commandEndpoints && deployment.units.some(unit => unit.id === selectedCommandUnitId) ? {
     ...commandEndpoints,
     active: mapPickTarget,
     onSelect: selectCommandPoint,
-  } : undefined, [commandEndpoints, mapPickTarget, selectCommandPoint]);
+  } : undefined, [commandEndpoints, deployment.units, mapPickTarget, selectCommandPoint, selectedCommandUnitId]);
   const start = () => {
     const issue = validateVer0Commands(deployment, commands);
     if (issue) { setError(issue); return; }
@@ -136,7 +145,7 @@ export function Simulation3DEditVer0Page() {
       />
       <div className="pointer-events-none absolute left-4 top-4 z-30 rounded border border-primary/50 bg-surface/90 px-3 py-2 backdrop-blur">
         <p className="font-data-mono text-[10px] text-primary">LIVE COMMAND PLAN</p>
-        <p className="mt-1 text-xs text-on-surface">할당된 DRAW·전술과업·ACTION을 시간순으로 실행 중</p>
+        <p className="mt-1 text-xs text-on-surface">할당된 ACTION을 지정한 위치·표적·경로·범위로 실행 중</p>
       </div>
     </div>
     <PlaybackControls
@@ -152,7 +161,7 @@ export function Simulation3DEditVer0Page() {
     <header className="flex h-[76px] shrink-0 items-center justify-between gap-5 border-b border-outline-variant bg-surface-container-high px-5">
       <div className="flex items-center gap-3">
         <span className="flex h-10 w-10 items-center justify-center rounded border border-secondary/50 bg-secondary/10"><Icon name="edit_location_alt" className="text-secondary" filled /></span>
-        <div><h1 className="text-lg font-semibold text-primary">Mil-Simulator 3D EDIT (ver0)</h1><p className="mt-0.5 text-xs text-on-surface-variant">배치 → DRAW·전술과업·ACTION 할당 → START 실행</p></div>
+        <div><h1 className="text-lg font-semibold text-primary">Mil-Simulator 3D EDIT (ver0)</h1><p className="mt-0.5 text-xs text-on-surface-variant">배치/DRAW 표시 → ACTION 입력·할당 → START 실행</p></div>
       </div>
       <div className="flex items-center gap-2">
         <span className="rounded border border-outline-variant px-3 py-2 font-data-mono text-[10px] text-on-surface-variant">유닛 {deployment.units.length} · 도형 {deployment.tacticalGraphics.length} · 명령 {commands.length}</span>

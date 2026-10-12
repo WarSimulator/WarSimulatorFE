@@ -95,6 +95,10 @@ const PHASE_LINE_DRAWS_OCCLUDED_SEGMENTS = true;
 const ACTION_OVERLAY_INTERVAL_MS = 75;
 
 const FREEHAND_SAMPLE_PIXELS = 6;
+const TOUCH_PLACEMENT_TAP_PIXELS = 12;
+const PEN_PLACEMENT_TAP_PIXELS = 8;
+const PLACEMENT_TAP_MAX_DURATION_MS = 1_200;
+const NATIVE_CLICK_SUPPRESSION_MS = 750;
 
 const FIRE_ACTIONS = new Set(['Engage', 'Continue to Engage', 'Fight', 'Ambush', 'Disrupt', 'Destroy']);
 const AREA_ACTIONS = new Set(['Establish Security', 'Establish Presence', 'Confirm Control', 'Contain', 'Block', 'Clear', 'Seize']);
@@ -147,6 +151,40 @@ function freehandScreenPosition(map: Map3DNode, bounds: DOMRect, clientX: number
   const metersPerDegree = 111_320;
   const longitudeScale = metersPerDegree * Math.max(0.01, Math.cos(target.lat * Math.PI / 180));
   return [target.lng + eastMeters / longitudeScale, target.lat + northMeters / metersPerDegree];
+}
+
+/** Projects a geographic ground point back to the screen for Pencil hit testing. */
+function mapPositionScreenPoint(map: Map3DNode, bounds: DOMRect, position: Position3D): { x: number; y: number } | undefined {
+  const target = map.center;
+  if (!target || !bounds.width || !bounds.height) return undefined;
+  const range = map.range ?? 1000;
+  const tilt = (map.tilt ?? 0) * Math.PI / 180;
+  const heading = (map.heading ?? 0) * Math.PI / 180;
+  const verticalFov = (map.fov ?? 45) * Math.PI / 180;
+  const tanVertical = Math.tan(verticalFov / 2);
+  const tanHorizontal = tanVertical * bounds.width / bounds.height;
+  const sinTilt = Math.sin(tilt), cosTilt = Math.cos(tilt);
+  const sinHeading = Math.sin(heading), cosHeading = Math.cos(heading);
+  const forward = { x: sinHeading * sinTilt, y: cosHeading * sinTilt, z: -cosTilt };
+  const right = { x: cosHeading, y: -sinHeading, z: 0 };
+  const up = { x: sinHeading * cosTilt, y: cosHeading * cosTilt, z: sinTilt };
+  const metersPerDegree = 111_320;
+  const longitudeScale = metersPerDegree * Math.max(0.01, Math.cos(target.lat * Math.PI / 180));
+  const ground = {
+    x: (position.lng - target.lng) * longitudeScale,
+    y: (position.lat - target.lat) * metersPerDegree,
+    z: 0,
+  };
+  const camera = { x: -forward.x * range, y: -forward.y * range, z: -forward.z * range };
+  const ray = { x: ground.x - camera.x, y: ground.y - camera.y, z: ground.z - camera.z };
+  const depth = ray.x * forward.x + ray.y * forward.y + ray.z * forward.z;
+  if (depth <= 0) return undefined;
+  const screenX = (ray.x * right.x + ray.y * right.y + ray.z * right.z) / depth;
+  const screenY = (ray.x * up.x + ray.y * up.y + ray.z * up.z) / depth;
+  return {
+    x: bounds.left + (screenX / tanHorizontal + 1) * bounds.width / 2,
+    y: bounds.top + (1 - screenY / tanVertical) * bounds.height / 2,
+  };
 }
 
 export function loadGoogleMaps(apiKey: string) {
@@ -602,6 +640,17 @@ export function Google3DTacticalMap({ runtime, playbackRef, units, result, deplo
   const liveEditRef = useRef(liveEdit);
   const drawPointsRef = useRef<[number, number][]>([]);
   const freehandPointerRef = useRef<{ id: number; x: number; y: number } | undefined>(undefined);
+  const placementPointerRef = useRef<{
+    id: number;
+    pointerType: string;
+    x: number;
+    y: number;
+    startedAt: number;
+    moved: boolean;
+    cancelled: boolean;
+    axisSource?: { unitId: string; position: Position3D };
+  } | undefined>(undefined);
+  const suppressMapClickUntilRef = useRef(0);
   const axisSourceUnitIdRef = useRef<string | undefined>(undefined);
   const axisNodesRef = useRef(new Map<string, { line: HTMLElement; arrow: HTMLElement; graphic: TacticalGraphic; start?: [number, number] }>());
   const editingVertexRef = useRef<number | undefined>(undefined);
@@ -699,6 +748,107 @@ export function Google3DTacticalMap({ runtime, playbackRef, units, result, deplo
     freehandPointerRef.current = undefined;
     if (event.currentTarget.hasPointerCapture(event.pointerId)) event.currentTarget.releasePointerCapture(event.pointerId);
   };
+  const isPencilEditMode = (editor: LiveEdit | undefined) => Boolean(
+    editor && editor.editingEnabled !== false && (
+      editor.relocatingUnitId
+      || editor.mode.type === 'place'
+      || (editor.mode.type === 'draw' && editor.mode.graphicType === 'axis')
+    ),
+  );
+  const getAxisSourceFromPointer = (event: React.PointerEvent<HTMLDivElement>) => {
+    const path = event.nativeEvent.composedPath();
+    for (const [unitId, marker] of liveMarkersRef.current) {
+      if (path.includes(marker)) return { unitId, position: marker.position };
+    }
+    for (const [unitId, marker] of markersRef.current) {
+      if (path.includes(marker)) return { unitId, position: marker.position };
+    }
+    // Google Maps 3D can retarget Pencil pointer events to the map host even
+    // when its later gmp-click identifies the marker. Use screen proximity as
+    // a deterministic fallback so the first Axis point still selects a unit.
+    const map = mapRef.current;
+    const container = containerRef.current;
+    if (!map || !container) return undefined;
+    const bounds = container.getBoundingClientRect();
+    const hitRadius = event.pointerType === 'pen' ? 32 : 44;
+    let nearest: { unitId: string; position: Position3D; distance: number } | undefined;
+    const consider = (unitId: string, marker: Marker3DNode) => {
+      const screen = mapPositionScreenPoint(map, bounds, marker.position);
+      if (!screen) return;
+      const distance = Math.hypot(event.clientX - screen.x, event.clientY - screen.y);
+      if (distance <= hitRadius && (!nearest || distance < nearest.distance)) nearest = { unitId, position: marker.position, distance };
+    };
+    liveMarkersRef.current.forEach((marker, unitId) => consider(unitId, marker));
+    markersRef.current.forEach((marker, unitId) => {
+      if (!liveEditRef.current?.hiddenBaseUnitIds.includes(unitId)) consider(unitId, marker);
+    });
+    return nearest ? { unitId: nearest.unitId, position: nearest.position } : undefined;
+  };
+  const beginPointerPlacement = (event: React.PointerEvent<HTMLDivElement>) => {
+    const editor = liveEditRef.current;
+    if ((event.pointerType !== 'touch' && event.pointerType !== 'pen') || !isPencilEditMode(editor)) return;
+    if (!event.isPrimary) {
+      if (placementPointerRef.current) placementPointerRef.current.cancelled = true;
+      return;
+    }
+    placementPointerRef.current = {
+      id: event.pointerId,
+      pointerType: event.pointerType,
+      x: event.clientX,
+      y: event.clientY,
+      startedAt: performance.now(),
+      moved: false,
+      cancelled: false,
+      axisSource: editor?.mode.type === 'draw' && editor.mode.graphicType === 'axis' && drawPointsRef.current.length === 0
+        ? getAxisSourceFromPointer(event)
+        : undefined,
+    };
+  };
+  const continuePointerPlacement = (event: React.PointerEvent<HTMLDivElement>) => {
+    const active = placementPointerRef.current;
+    if (!active || active.id !== event.pointerId) return;
+    const threshold = active.pointerType === 'pen' ? PEN_PLACEMENT_TAP_PIXELS : TOUCH_PLACEMENT_TAP_PIXELS;
+    if (Math.hypot(event.clientX - active.x, event.clientY - active.y) > threshold) active.moved = true;
+  };
+  const cancelPointerPlacement = (event: React.PointerEvent<HTMLDivElement>) => {
+    if (placementPointerRef.current?.id === event.pointerId) placementPointerRef.current = undefined;
+  };
+  const endPointerPlacement = (event: React.PointerEvent<HTMLDivElement>) => {
+    const active = placementPointerRef.current;
+    if (!active || active.id !== event.pointerId) return;
+    placementPointerRef.current = undefined;
+    if (active.cancelled || active.moved || performance.now() - active.startedAt > PLACEMENT_TAP_MAX_DURATION_MS) return;
+    const editor = liveEditRef.current;
+    const map = mapRef.current;
+    const container = containerRef.current;
+    if (!isPencilEditMode(editor) || !editor || !map || !container) return;
+    if (editor.mode.type === 'draw' && editor.mode.graphicType === 'axis' && drawPointsRef.current.length === 0) {
+      if (!active.axisSource || !selectAxisSource(active.axisSource.unitId, active.axisSource.position)) return;
+      suppressMapClickUntilRef.current = performance.now() + NATIVE_CLICK_SUPPRESSION_MS;
+      return;
+    }
+    const point = freehandScreenPosition(map, container.getBoundingClientRect(), event.clientX, event.clientY);
+    if (!point) return;
+    const position = { lng: point[0], lat: point[1] };
+    // A successful Pointer Event tap is often followed by a synthetic gmp-click
+    // on iPadOS. Suppress it so Pencil/touch places exactly one item.
+    suppressMapClickUntilRef.current = performance.now() + NATIVE_CLICK_SUPPRESSION_MS;
+    if (editor.relocatingUnitId) editor.onMoveUnit(editor.relocatingUnitId, position);
+    else if (editor.mode.type === 'place') {
+      if (editor.mode.item.kind === 'unit') editor.onPlaceUnit(editor.mode.item, position);
+      else editor.onPlaceObjective(position);
+    } else if (editor.mode.type === 'draw' && editor.mode.graphicType === 'axis' && drawPointsRef.current.length === 1) {
+      const [sourceLng, sourceLat] = drawPointsRef.current[0];
+      if (Math.hypot((position.lng - sourceLng) * Math.cos(sourceLat * Math.PI / 180), position.lat - sourceLat) < 0.000001) {
+        setGraphicError('출발 유닛과 다른 도착 지점을 선택하세요.');
+        return;
+      }
+      setGraphicError('');
+      drawPointsRef.current = [drawPointsRef.current[0], [position.lng, position.lat]];
+      setDrawPointCount(2);
+      finishDrawingRef.current();
+    }
+  };
   const selectAxisSource = (unitId: string, position: Position3D) => {
     const editor = liveEditRef.current;
     if (!editor || editor.editingEnabled === false) return false;
@@ -787,6 +937,7 @@ export function Google3DTacticalMap({ runtime, playbackRef, units, result, deplo
         map.style.width = '100%';
         map.style.height = '100%';
         map.addEventListener('gmp-click', event => {
+          if (performance.now() < suppressMapClickUntilRef.current) return;
           const editor = liveEditRef.current;
           const position = (event as MapClickEvent).position;
           if (!editor || editor.editingEnabled === false || !position || !Number.isFinite(position.lng) || !Number.isFinite(position.lat)) return;
@@ -916,6 +1067,7 @@ export function Google3DTacticalMap({ runtime, playbackRef, units, result, deplo
           marker.append(template);
           marker.addEventListener('gmp-click', event => {
             event.stopPropagation();
+            if (performance.now() < suppressMapClickUntilRef.current) return;
             if (selectAxisSource(unit.id, marker.position)) return;
             if (liveEditRef.current?.editingEnabled !== false) liveEditRef.current?.onSelectUnit(unit.id);
             onSelectUnit(unit.id);
@@ -973,6 +1125,7 @@ export function Google3DTacticalMap({ runtime, playbackRef, units, result, deplo
       if (!canEdit || liveEdit.relocatingUnitId || (liveEdit.mode.type !== 'select' && !(liveEdit.mode.type === 'draw' && liveEdit.mode.graphicType === 'axis' && drawPointCount === 0))) marker.style.pointerEvents = 'none';
       marker.addEventListener('gmp-click', event => {
         event.stopPropagation();
+        if (performance.now() < suppressMapClickUntilRef.current) return;
         if (selectAxisSource(unit.id, marker.position)) return;
         if (liveEditRef.current?.editingEnabled !== false) liveEditRef.current?.onSelectUnit(unit.id);
       });
@@ -1216,7 +1369,14 @@ export function Google3DTacticalMap({ runtime, playbackRef, units, result, deplo
   const selectedMovable = Boolean(liveEdit?.selectedUnitId && (liveEdit.units.some(unit => unit.id === liveEdit.selectedUnitId) || deployment?.units.some(unit => unit.id === liveEdit.selectedUnitId) || liveEdit.objectives.some(objective => objective.id === liveEdit.selectedUnitId)));
   return (
     <section className="relative flex-1 overflow-hidden bg-[#101418]" style={editingEnabled ? { '--palette-width': 'min(380px, calc(100vw - 32px))' } as CSSProperties : undefined}>
-      <div ref={containerRef} className="absolute inset-0" />
+      <div
+        ref={containerRef}
+        className="absolute inset-0"
+        onPointerDownCapture={beginPointerPlacement}
+        onPointerMoveCapture={continuePointerPlacement}
+        onPointerUpCapture={endPointerPlacement}
+        onPointerCancelCapture={cancelPointerPlacement}
+      />
       {isFreehandMode && <div
         className="absolute inset-0 z-[15] cursor-crosshair touch-none"
         aria-label="자유선 그리기 영역"
@@ -1229,6 +1389,9 @@ export function Google3DTacticalMap({ runtime, playbackRef, units, result, deplo
       {atomicActionVisuals && ready && <AtomicActionPlaybackOverlay result={result} deployment={deployment} simulationTime={runtime.simulationTime} selectedUnitId={runtime.selectedUnitId} onSelectUnit={onSelectUnit} />}
       {editingEnabled && liveEdit && <>
         <SymbolPalette mode={liveEdit.mode} onModeChange={liveEdit.onModeChange} isOpen={liveEdit.paletteOpen} onToggle={liveEdit.onTogglePalette} compact />
+        {(liveEdit.mode.type === 'place' || liveEdit.relocatingUnitId) && <div className="pointer-events-none absolute bottom-5 left-4 z-20 rounded border border-secondary/50 bg-surface/90 px-3 py-2 font-data-mono text-xs text-secondary shadow">
+          지도 위치를 클릭하거나 탭하세요 · Apple Pencil 지원
+        </div>}
         {graphicError && <p role="alert" className="absolute left-4 top-16 z-30 max-w-lg rounded bg-surface/95 p-3 text-sm text-error">{graphicError}</p>}
         {liveEdit.mode.type === 'select' && liveEdit.selectedUnitId && <div className="absolute bottom-5 left-4 z-30 flex gap-2">
           {selectedMovable && <button type="button" className={`rounded border px-3 py-2 font-data-mono text-xs shadow ${liveEdit.relocatingUnitId ? 'border-secondary bg-secondary text-on-secondary' : 'border-outline-variant bg-surface/90 text-on-surface'}`} onClick={() => liveEdit.onSetRelocatingUnit(liveEdit.relocatingUnitId ? undefined : liveEdit.selectedUnitId)}>{liveEdit.relocatingUnitId ? '이동할 지도 위치 클릭' : '선택 항목 이동'}</button>}

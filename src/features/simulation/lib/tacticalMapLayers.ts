@@ -48,6 +48,21 @@ export function addDeploymentSourcesAndLayers(map: MapLibreMap) {
     paint: { 'fill-color': ['get', 'color'], 'fill-opacity': 0.16 },
   });
   map.addLayer({
+    id: 'action-area-fill', type: 'fill', source: ACTION_EFFECT_SOURCE_ID,
+    filter: ['==', ['get', 'kind'], 'action-area'],
+    paint: { 'fill-color': ['get', 'color'], 'fill-opacity': 0.14 },
+  });
+  map.addLayer({
+    id: 'action-area-line', type: 'line', source: ACTION_EFFECT_SOURCE_ID,
+    filter: ['==', ['get', 'kind'], 'action-area'],
+    paint: { 'line-color': ['get', 'color'], 'line-width': 2.5, 'line-opacity': 0.85, 'line-dasharray': [3, 2] },
+  });
+  map.addLayer({
+    id: 'action-bearing-line', type: 'line', source: ACTION_EFFECT_SOURCE_ID,
+    filter: ['==', ['get', 'kind'], 'action-bearing'],
+    paint: { 'line-color': ['get', 'color'], 'line-width': 3, 'line-opacity': 0.9, 'line-dasharray': [2, 1] },
+  });
+  map.addLayer({
     id: 'security-boundary-line', type: 'line', source: ACTION_EFFECT_SOURCE_ID,
     filter: ['==', ['get', 'kind'], 'security-boundary'],
     paint: { 'line-color': ['get', 'color'], 'line-width': 2.5, 'line-opacity': 0.78, 'line-dasharray': [3, 2] },

@@ -44,6 +44,8 @@ type DeploymentMapProps = {
   commandPoints?: {
     from: SimulationResultPosition;
     to: SimulationResultPosition;
+    kind: 'movement' | 'target';
+    targetLabel?: string;
     active?: 'from' | 'to';
     onSelect: (position: SimulationResultPosition) => void;
   };
@@ -332,14 +334,18 @@ export function DeploymentMap({ deployment, selectedEntityId, mode, onChange, on
 
   useEffect(() => {
     if (!mapRef.current || !isMapReady) return;
-    const points = commandPoints ? [
-      { kind: 'from', label: commandPoints.active === 'from' ? 'FROM · 선택 중' : 'FROM', position: commandPoints.from },
-      { kind: 'to', label: commandPoints.active === 'to' ? 'TO · 선택 중' : 'TO', position: commandPoints.to },
-    ] as const : [];
+    const points = commandPoints
+      ? commandPoints.kind === 'movement'
+        ? [
+            { kind: 'from', label: commandPoints.active === 'from' ? 'FROM · 선택 중' : 'FROM', position: commandPoints.from },
+            { kind: 'to', label: commandPoints.active === 'to' ? 'TO · 선택 중' : 'TO', position: commandPoints.to },
+          ] as const
+        : [{ kind: 'to', label: commandPoints.active === 'to' ? `${commandPoints.targetLabel ?? '대상'} · 선택 중` : commandPoints.targetLabel ?? '대상', position: commandPoints.to }] as const
+      : [];
     (mapRef.current.getSource(COMMAND_POINT_SOURCE_ID) as GeoJSONSource | undefined)?.setData({
       type: 'FeatureCollection',
       features: [
-        ...(commandPoints ? [{
+        ...(commandPoints?.kind === 'movement' ? [{
           type: 'Feature' as const,
           properties: { kind: 'connection', label: '' },
           geometry: { type: 'LineString' as const, coordinates: [

@@ -33,7 +33,7 @@ export const router = createBrowserRouter([
       { path: '/simulations/3d', element: <SimulationFinalPage mapMode="3d" /> },
       { path: '/simulations/3d/live-edit', element: <SimulationFinalPage mapMode="3d" liveEditMode /> },
       { path: '/simulations/3d/report', element: <SimulationFinalPage mapMode="3d" reportMode /> },
-      { path: '/simulations/3d-demo', element: <SimulationFinalPage mapMode="3d" demoMode /> },
+      { path: '/simulations/3d-demo', element: <SimulationFinalPage mapMode="3d" demoMode liveEditMode /> },
       { path: '/simulations/3d-demo-cesium', element: <SimulationFinalPage mapMode="cesium" demoMode liveEditMode /> },
       { path: '/simulations/3d-demo-maplibre', loader: ({ request }) => loadCoaPlannerAutoStart(request), element: <SimulationFinalPage mapMode="maplibre" demoMode liveEditMode /> },
       { path: '/simulations/3d/edit', element: <SimulationSetupPage editorMapMode="3d" /> },

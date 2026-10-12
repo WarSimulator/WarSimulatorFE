@@ -6,8 +6,7 @@ export { destinationPoint } from '@atlas/atomic-actions';
 
 type ObservationSectorProperties = { actionSequence: number; actor: string; target: string; targetInRange: boolean; opacity: number };
 
-// Temporary simulator policy: planner sensor ranges are not yet authoritative.
-// Keep Observe coverage readable and consistent across imported plan versions.
+// Fallback for imported planner results that do not carry an authoritative range.
 export const FIXED_OBSERVATION_RANGE_METERS = 4_000;
 
 export function buildObservationSector(effect: ObservationEffect, opacity = 0.1, idSuffix = ''): GeoJSON.Feature<GeoJSON.Polygon, ObservationSectorProperties> {
@@ -40,12 +39,13 @@ export function toObservationSectorFeatures(
       const elapsed = simulationTime - effect.startTime;
       const unitId = result.actionEffects?.find(action => action.actionSequence === effect.actionSequence)?.unitId;
       const origin = getUnitPositionAtTime(unitId ?? effect.actor, simulationTime, result, deployment) ?? effect.origin;
+      const rangeMeters = Number.isFinite(effect.rangeMeters) ? effect.rangeMeters : FIXED_OBSERVATION_RANGE_METERS;
       const liveEffect = {
         ...effect,
         origin,
-        rangeMeters: FIXED_OBSERVATION_RANGE_METERS,
-        displayRangeMeters: FIXED_OBSERVATION_RANGE_METERS,
-        targetInRange: effect.targetDistanceMeters <= FIXED_OBSERVATION_RANGE_METERS,
+        rangeMeters,
+        displayRangeMeters: rangeMeters,
+        targetInRange: effect.targetDistanceMeters <= rangeMeters,
         direction: effect.direction + Math.sin(elapsed * Math.PI / 2) * effect.fovDegrees * 0.1,
       };
       return [buildObservationSector(liveEffect, 0.3)];

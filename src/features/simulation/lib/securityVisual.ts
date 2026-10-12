@@ -18,9 +18,9 @@ function arc(center: SecurityVisualPosition, radiusMeters: number, startDegrees:
   ));
 }
 
-export function buildSecurityVisual(center: SecurityVisualPosition, elapsedSeconds: number, progress: number) {
+export function buildSecurityVisual(center: SecurityVisualPosition, elapsedSeconds: number, progress: number, requestedRadiusMeters = 200) {
   const intro = 1 - Math.pow(1 - Math.min(1, progress / 0.28), 3);
-  const fieldRadiusMeters = 55 + 145 * intro;
+  const fieldRadiusMeters = Math.max(20, requestedRadiusMeters) * (.275 + .725 * intro);
   const pulsePhase = (elapsedSeconds * 0.55) % 1;
   const pulseRadiusMeters = 24 + (fieldRadiusMeters - 24) * pulsePhase;
   const rotationDegrees = elapsedSeconds * 32;

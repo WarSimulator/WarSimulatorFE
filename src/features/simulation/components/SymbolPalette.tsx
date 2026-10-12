@@ -43,6 +43,12 @@ export function SymbolPalette({ mode, onModeChange, isOpen, onToggle, unitsOnly 
   const [drawCategory, setDrawCategory] = useState('all');
   const [category, setCategory] = useState('all');
   const [page, setPage] = useState(0);
+  const [touchInput, setTouchInput] = useState(() => typeof navigator !== 'undefined' && navigator.maxTouchPoints > 0);
+  useEffect(() => {
+    const updateTouchInput = () => setTouchInput(navigator.maxTouchPoints > 0);
+    window.addEventListener('pointerdown', updateTouchInput, { once: true });
+    return () => window.removeEventListener('pointerdown', updateTouchInput);
+  }, []);
   const categories = useMemo(() => [...new Set(symbolCatalog.map(item => item.category))].sort(), []);
   const filtered = useMemo(() => {
     const words = query.trim().toLowerCase().split(/\s+/).filter(Boolean);
@@ -114,7 +120,7 @@ export function SymbolPalette({ mode, onModeChange, isOpen, onToggle, unitsOnly 
             className={`${buttonClass} ${paletteTab === tab.id ? 'border-secondary bg-secondary/10 text-secondary' : ''}`}
             onClick={() => { setPaletteTab(tab.id); onModeChange({ type: 'select' }); }}>{tab.label}</button>)}
         </div>}
-        <p className="font-data-mono text-[10px] text-on-surface-variant">{unitsOnly ? '유닛을 선택한 뒤 3D 지도의 배치할 지점을 클릭하세요.' : paletteTab === 'symbols' ? 'Drag to map, or select then click map.' : '도형 카드를 선택한 뒤 지도에 그리세요. 전술 과업은 번호 순서대로 클릭하세요.'}</p>
+        <p className="font-data-mono text-[10px] text-on-surface-variant">{unitsOnly ? '유닛을 선택한 뒤 3D 지도의 배치할 지점을 클릭하거나 탭하세요.' : paletteTab === 'symbols' ? touchInput ? '심볼을 선택한 뒤 지도를 손가락이나 Apple Pencil로 탭하세요.' : 'Drag to map, or select then click map.' : '도형 카드를 선택한 뒤 지도에 그리세요. 전술 과업은 번호 순서대로 클릭하세요.'}</p>
       </div>
       <div hidden={paletteTab !== 'symbols'} className={`min-h-0 flex-1 space-y-3 overflow-y-auto overscroll-contain ${compact ? 'p-3' : 'p-4'}`} aria-label="심볼 목록">
         <p role="status" className="font-data-mono text-[10px] text-outline">{filtered.length.toLocaleString()} symbols · Page {currentPage + 1}/{pageCount}</p>
@@ -126,7 +132,7 @@ export function SymbolPalette({ mode, onModeChange, isOpen, onToggle, unitsOnly 
             const selected = mode.type === 'place' && mode.item.kind === 'unit' && mode.item.unitType === item.unitType;
             const parts = definition.label.split(' / ');
             return (
-              <button key={definition.id} draggable={!unitsOnly} aria-pressed={selected} title={`${definition.label}\n${getSymbolCategoryLabel(definition.category)}\n${item.sidc}`} className={`flex w-full min-w-0 items-center rounded border bg-surface text-left hover:border-secondary ${compact ? 'gap-2 p-2' : 'gap-3 p-3'} ${unitsOnly ? 'cursor-pointer' : 'cursor-grab active:cursor-grabbing'} ${selected ? 'border-secondary bg-secondary/10' : 'border-outline-variant'}`} onClick={() => onModeChange({ type: 'place', item })} onDragStart={unitsOnly ? undefined : event => dragSymbol(event, definition)}>
+              <button key={definition.id} draggable={!unitsOnly && !touchInput} aria-pressed={selected} title={`${definition.label}\n${getSymbolCategoryLabel(definition.category)}\n${item.sidc}`} className={`touch-manipulation flex w-full min-w-0 items-center rounded border bg-surface text-left hover:border-secondary ${compact ? 'gap-2 p-2' : 'gap-3 p-3'} ${unitsOnly || touchInput ? 'cursor-pointer' : 'cursor-grab active:cursor-grabbing'} ${selected ? 'border-secondary bg-secondary/10' : 'border-outline-variant'}`} onClick={() => onModeChange({ type: 'place', item })} onDragStart={unitsOnly || touchInput ? undefined : event => dragSymbol(event, definition)}>
                 <span className={`flex shrink-0 items-center justify-center rounded bg-slate-100 p-1 [&>span]:max-w-full [&_svg]:h-auto [&_svg]:max-w-full ${compact ? 'h-11 w-11 [&_svg]:max-h-9' : 'h-14 w-14 [&_svg]:max-h-12'}`}><MilitarySymbol sidc={item.sidc} size={compact ? 28 : 34} standard={item.symbolStandard} /></span>
                 <span className="min-w-0">
                   <span className={`block break-words font-data-mono text-on-surface ${compact ? 'text-[11px] leading-tight' : 'text-[13px]'}`}>{parts.at(-1)}</span>
@@ -143,7 +149,7 @@ export function SymbolPalette({ mode, onModeChange, isOpen, onToggle, unitsOnly 
         </div>
         {!unitsOnly && <section className="space-y-2 border-t border-outline-variant pt-3">
           <h3 className="font-label-caps text-[10px] text-outline">TACTICAL OBJECTS</h3>
-          <button draggable className={`${buttonClass} flex w-full items-center gap-2`} onClick={() => onModeChange({ type: 'place', item: { kind: 'objective', label: 'Objective' } })} onDragStart={event => { event.dataTransfer.effectAllowed = 'copy'; event.dataTransfer.setData('application/atlas-palette-item', JSON.stringify({ kind: 'objective', label: 'Objective' })); }}><ObjectiveSymbol size={28} />Objective</button>
+          <button type="button" draggable={!touchInput} className={`${buttonClass} touch-manipulation flex w-full items-center gap-2`} onClick={() => onModeChange({ type: 'place', item: { kind: 'objective', label: 'Objective' } })} onDragStart={touchInput ? undefined : event => { event.dataTransfer.effectAllowed = 'copy'; event.dataTransfer.setData('application/atlas-palette-item', JSON.stringify({ kind: 'objective', label: 'Objective' })); }}><ObjectiveSymbol size={28} />Objective</button>
         </section>}
       </div>
       <div hidden={paletteTab !== 'draw'} className={`min-h-0 flex-1 overflow-y-auto overscroll-contain ${compact ? 'space-y-3 p-3' : 'space-y-4 p-4'}`} aria-label="DRAW 및 전술 과업 목록">

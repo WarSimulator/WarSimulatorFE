@@ -6,9 +6,10 @@ import { Icon } from '../../../components/layout/Icon';
 import type { DeploymentObjective, DeploymentSetup, DeploymentUnit, SimulationResult, SimulationResultPosition, SimulationRuntimeState, SimulationUnit, TacticalGraphic } from '../../../types';
 import { create3DTerrainMapStyle, createDefaultMapStyle, DEFAULT_MAP_CENTER, DEFAULT_MAP_ZOOM, getMapStyleUrl } from '../lib/mapConfig';
 import { getLngLat } from '../lib/position';
+import { useTacticalTaskLayer } from '../hooks/useTacticalTaskLayer';
 import { ensureAxisArrowImage, ensureExplosionFrameImages, ensureMilitarySymbolImage, ensureObjectiveImage, EXPLOSION_FRAME_COUNT, getExplosionFrameImageId, getMilitarySymbolImageId } from '../lib/militarySymbolRegistry';
 import { getTrackPositionsAtTime, isUnitEliminated } from '../lib/playback';
-import { toObservationSectorFeatures } from '../lib/observation';
+import { destinationPoint, toObservationSectorFeatures } from '../lib/observation';
 import { toTacticalGraphicAxisArrowFeatures, toTacticalGraphicFeatureCollection } from '../lib/tacticalGraphics';
 import { resolvePlanReference } from '../lib/planReferenceMapping';
 import { buildSecurityVisual } from '../lib/securityVisual';
@@ -159,12 +160,13 @@ function toObjectiveFeatures(deployment?: DeploymentSetup): GeoJSON.FeatureColle
 }
 
 type ActionEffectFeatureProperties = {
-  kind: 'action-line' | 'action-marker' | 'fire-vfx' | 'security-sector' | 'security-boundary' | 'security-pulse';
+  kind: 'action-line' | 'action-marker' | 'action-area' | 'action-bearing' | 'fire-vfx' | 'security-sector' | 'security-boundary' | 'security-pulse';
   color: string;
   radius: number;
   opacity?: number;
   action: string;
   imageId?: string;
+  intensity?: number;
 };
 
 const FIRE_ACTIONS = new Set(['Disrupt', 'Engage', 'Fight', 'Continue to Engage', 'Ambush', 'Contain']);
@@ -207,10 +209,16 @@ function toActionEffectFeatures(
     const actionColor = ACTION_COLORS[effect.action] ?? DEFAULT_ACTION_COLOR;
     const origin = positions.find((position) => position.unitId === effect.unitId || position.actor === effect.actor)?.position ?? effect.origin;
     if (!origin) continue;
+    const targetPosition = directTarget ?? (target
+      ? positions.find((position) => position.unitId === target || position.actor === target)?.position ?? resolvePlanReference(deployment, target)
+      : origin);
+    if (!targetPosition) continue;
+    const radiusMeters = Number(effect.parameters.radiusMeters ?? 0);
+    const intensity = Math.max(10, Math.min(100, Number(effect.parameters.intensity ?? 70)));
     if (effect.action === 'Establish Security') {
       const elapsed = simulationTime - effect.startTime;
       const progress = elapsed / Math.max(0.01, effect.endTime - effect.startTime);
-      const visual = buildSecurityVisual(origin, elapsed, progress);
+      const visual = buildSecurityVisual(targetPosition, elapsed, progress, radiusMeters || 1_000);
       visual.sectors.forEach((coordinates, index) => features.push({
         type: 'Feature', id: `security-sector-${effect.actionSequence}-${index}`,
         properties: { kind: 'security-sector', color: actionColor, radius: 0, action: effect.action },
@@ -231,13 +239,29 @@ function toActionEffectFeatures(
     // Plans target stable unit IDs (for example, "blue-main-tank"), while
     // tracks also carry a human-readable designation. Resolve either form
     // against the live playback position before falling back to map references.
-    const targetPosition = directTarget ?? (target
-      ? positions.find((position) => position.unitId === target || position.actor === target)?.position ?? resolvePlanReference(deployment, target)
-      : origin);
-    if (!targetPosition) continue;
+    if (radiusMeters > 0) {
+      const ring = Array.from({ length: 49 }, (_, index) => destinationPoint(
+        targetPosition.longitude, targetPosition.latitude, index * 360 / 48, radiusMeters,
+      ));
+      features.push({
+        type: 'Feature', id: `action-area-${effect.actionSequence}`,
+        properties: { kind: 'action-area', color: actionColor, radius: radiusMeters, action: effect.action, intensity },
+        geometry: { type: 'Polygon', coordinates: [ring] },
+      });
+    }
+    const bearing = Number(effect.parameters.bearing);
+    if (Number.isFinite(bearing)) {
+      const length = Number(effect.parameters.rangeMeters ?? (radiusMeters || 1_000));
+      const end = destinationPoint(origin.longitude, origin.latitude, bearing, Math.max(50, length));
+      features.push({
+        type: 'Feature', id: `action-bearing-${effect.actionSequence}`,
+        properties: { kind: 'action-bearing', color: actionColor, radius: 0, action: effect.action, intensity },
+        geometry: { type: 'LineString', coordinates: [[origin.longitude, origin.latitude], end] },
+      });
+    }
     const isFireLine = FIRE_ACTIONS.has(effect.action);
     const color = isFireLine ? '#ff4d4f' : actionColor;
-    features.push({ type: 'Feature', id: `action-line-${effect.actionSequence}`, properties: { kind: 'action-line', color, radius: 0, action: effect.action }, geometry: { type: 'LineString', coordinates: [[origin.longitude, origin.latitude], [targetPosition.longitude, targetPosition.latitude]] } });
+    features.push({ type: 'Feature', id: `action-line-${effect.actionSequence}`, properties: { kind: 'action-line', color, radius: 0, action: effect.action, intensity }, geometry: { type: 'LineString', coordinates: [[origin.longitude, origin.latitude], [targetPosition.longitude, targetPosition.latitude]] } });
     if (isFireLine && showFireVfx) {
       const progress = Math.max(0, Math.min(1, (simulationTime - effect.startTime) / Math.max(0.01, effect.endTime - effect.startTime)));
       const frame = Math.floor(progress * EXPLOSION_FRAME_COUNT * 2) % EXPLOSION_FRAME_COUNT;
@@ -248,7 +272,7 @@ function toActionEffectFeatures(
       });
     } else if (!isFireLine) {
       const elapsed = (simulationTime - effect.startTime) / Math.max(0.01, effect.endTime - effect.startTime);
-      features.push({ type: 'Feature', id: `action-marker-${effect.actionSequence}`, properties: { kind: 'action-marker', color, radius: 12 + Math.round(elapsed * 16), action: effect.action }, geometry: { type: 'Point', coordinates: [targetPosition.longitude, targetPosition.latitude] } });
+      features.push({ type: 'Feature', id: `action-marker-${effect.actionSequence}`, properties: { kind: 'action-marker', color, radius: (12 + Math.round(elapsed * 16)) * intensity / 70, action: effect.action, intensity }, geometry: { type: 'Point', coordinates: [targetPosition.longitude, targetPosition.latitude] } });
     }
   }
   return { type: 'FeatureCollection', features };
@@ -278,13 +302,18 @@ export function TacticalMap({
     objectives: [...deployment.objectives, ...revisedObjectives],
     tacticalGraphics: [...deployment.tacticalGraphics, ...revisedTacticalGraphics],
   } : undefined, [deployment, hiddenBaseUnitIds, revisedObjectives, revisedTacticalGraphics, revisedUnits]);
-  const tacticalGraphicFeatures = useMemo(() => toTacticalGraphicFeatureCollection(displayDeployment), [displayDeployment]);
+  const tacticalGraphicFeatures = useMemo(() => {
+    const collection = toTacticalGraphicFeatureCollection(displayDeployment);
+    return { ...collection, features: collection.features.filter(feature => feature.properties?.type !== 'mil-task') };
+  }, [displayDeployment]);
   const axisArrowFeatures = useMemo(() => toTacticalGraphicAxisArrowFeatures(displayDeployment), [displayDeployment]);
   const objectiveFeatures = useMemo(() => toObjectiveFeatures(displayDeployment), [displayDeployment]);
   const unitById = useMemo(() => new Map(units.map(unit => [unit.id, unit])), [units]);
   const hiddenBaseUnitIdSet = useMemo(() => new Set(hiddenBaseUnitIds), [hiddenBaseUnitIds]);
   const revisedUnitIdSet = useMemo(() => new Set(revisedUnits.map(unit => unit.id)), [revisedUnits]);
   const revisedUnitFeatures = useMemo(() => toRevisedUnitFeatures(revisedUnits, terrain3D), [revisedUnits, terrain3D]);
+  const tacticalTaskGraphics = useMemo(() => displayDeployment?.tacticalGraphics ?? [], [displayDeployment]);
+  const taskRenderError = useTacticalTaskLayer(mapRef, mapReady, tacticalTaskGraphics);
 
   useEffect(() => {
     if (!containerRef.current || mapRef.current) {
@@ -391,6 +420,13 @@ export function TacticalMap({
           ?.setData(toObservationSectorFeatures(result, simulationTime, displayDeployment));
         (map.getSource(ACTION_EFFECT_SOURCE_ID) as GeoJSONSource | undefined)
           ?.setData(toActionEffectFeatures(result, simulationTime, displayDeployment, terrain3D, positions));
+        (map.getSource(GRAPHICS_SOURCE_ID) as GeoJSONSource | undefined)?.setData({
+          type: 'FeatureCollection',
+          features: [
+            ...(runtime.tacticalLayers.controlLines ? tacticalGraphicFeatures.features : []),
+            ...(runtime.tacticalLayers.routes ? toRouteFeatures(result, simulationTime).features : []),
+          ],
+        });
         lastTime = simulationTime;
         lastUpdate = timestamp;
       }
@@ -398,7 +434,7 @@ export function TacticalMap({
     };
     frame = requestAnimationFrame(tick);
     return () => cancelAnimationFrame(frame);
-  }, [clock, displayDeployment, hiddenBaseUnitIdSet, mapReady, result, revisedUnitFeatures, revisedUnitIdSet, terrain3D, unitById, units]);
+  }, [clock, displayDeployment, hiddenBaseUnitIdSet, mapReady, result, revisedUnitFeatures, revisedUnitIdSet, runtime.tacticalLayers.controlLines, runtime.tacticalLayers.routes, tacticalGraphicFeatures.features, terrain3D, unitById, units]);
 
   useEffect(() => {
     if (!mapReady || !mapRef.current) {
@@ -471,6 +507,12 @@ export function TacticalMap({
             <p className="font-label-caps text-label-caps text-error">MAP UNAVAILABLE</p>
             <p className="mt-2 font-body-base text-body-base text-on-surface-variant">Unable to load tactical map source.</p>
           </div>
+        </div>
+      )}
+
+      {taskRenderError && !mapError && (
+        <div role="alert" className="absolute left-6 top-20 z-20 max-w-lg rounded border border-error/50 bg-surface/90 px-3 py-2 text-xs text-error">
+          {taskRenderError}
         </div>
       )}
 
