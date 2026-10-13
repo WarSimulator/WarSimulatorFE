@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { Icon } from '../../../components/layout/Icon';
 import { buildFinalSimulation, saveFinalSimulation } from '../lib/finalSimulation';
 import demoOffensive from '../../../../plan/ver1/offensive.json';
@@ -29,11 +29,14 @@ function demoFile(name: string, payload: unknown) {
 
 export function SimulationFinalPage({ mapMode = '2d', reportMode = false, demoMode = false, liveEditMode = false }: { mapMode?: '2d' | '3d' | 'cesium' | 'maplibre'; reportMode?: boolean; demoMode?: boolean; liveEditMode?: boolean }) {
   const navigate = useNavigate();
-  const autoStart = new URLSearchParams(window.location.search).get('coaPlannerAutoStart') === '1';
-  const autoStartHandled = useRef(false);
-  const [files, setFiles] = useState<SelectedFiles>(() => autoStart
-    ? { blueForce: demoFile('offensive.json', demoOffensive), redForce: demoFile('defensive.json', demoDefensive), deployment: demoFile('unit.json', demoDeployment) }
-    : {});
+  const [searchParams] = useSearchParams();
+  const autoStartFromPlanner = demoMode && searchParams.get('coaPlannerAutoStart') === '1';
+  const autoStartStarted = useRef(false);
+  const [files, setFiles] = useState<SelectedFiles>(() => autoStartFromPlanner ? {
+    blueForce: demoFile('offensive.json', demoOffensive),
+    redForce: demoFile('defensive.json', demoDefensive),
+    deployment: demoFile('unit.json', demoDeployment),
+  } : {});
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const ready = Boolean(files.blueForce && files.redForce && files.deployment);
@@ -47,8 +50,8 @@ export function SimulationFinalPage({ mapMode = '2d', reportMode = false, demoMo
 
   const start = async () => {
     if (!files.blueForce || !files.redForce || !files.deployment) return;
-    const simulationWindow = autoStart ? null : window.open('about:blank', '_blank', 'popup=yes,width=1400,height=900');
-    if (!autoStart && !simulationWindow) {
+    const simulationWindow = autoStartFromPlanner ? null : window.open('about:blank', '_blank', 'popup=yes,width=1400,height=900');
+    if (!autoStartFromPlanner && !simulationWindow) {
       setError('시뮬레이터 화면을 열 수 없습니다. 이 사이트의 팝업을 허용한 뒤 다시 실행해 주세요.');
       return;
     }
@@ -63,14 +66,12 @@ export function SimulationFinalPage({ mapMode = '2d', reportMode = false, demoMo
       ]);
       const build = await buildFinalSimulation({ blueForce, redForce, withdrawal, deployment }, { mode: reportMode ? 'report' : 'strict' });
       saveFinalSimulation(build);
-      if (autoStart) {
-        navigate(`/simulations/${build.simulationId}/run?view=tactical&window=simulation&map=maplibre&visualization=atomic3d&edit=live`);
-        return;
-      }
-      navigate(`/simulations/${build.simulationId}/run?view=analysis${demoMode ? '&visualization=atomic3d' : ''}`);
-      if (simulationWindow) {
-        simulationWindow.location.href = new URL(`/simulations/${build.simulationId}/run?view=tactical&window=simulation${is3D ? `&map=${mapMode}` : ''}${demoMode ? '&visualization=atomic3d' : ''}${liveEditMode ? '&edit=live' : ''}`, window.location.origin).href;
-        simulationWindow.focus();
+      if (autoStartFromPlanner) {
+        navigate(`/simulations/${build.simulationId}/run?view=tactical&map=maplibre&visualization=atomic3d&edit=live`);
+      } else {
+        navigate(`/simulations/${build.simulationId}/run?view=analysis${demoMode ? '&visualization=atomic3d' : ''}`);
+        simulationWindow!.location.href = new URL(`/simulations/${build.simulationId}/run?view=tactical&window=simulation${is3D ? `&map=${mapMode}` : ''}${demoMode ? '&visualization=atomic3d' : ''}${liveEditMode ? '&edit=live' : ''}`, window.location.origin).href;
+        simulationWindow!.focus();
       }
     } catch (caught) {
       simulationWindow?.close();
@@ -80,10 +81,10 @@ export function SimulationFinalPage({ mapMode = '2d', reportMode = false, demoMo
   };
 
   useEffect(() => {
-    if (!autoStart || !ready || autoStartHandled.current) return;
-    autoStartHandled.current = true;
+    if (!autoStartFromPlanner || !ready || autoStartStarted.current) return;
+    autoStartStarted.current = true;
     void start();
-  }, [autoStart, ready]);
+  }, [autoStartFromPlanner, ready]);
 
   return <div className="mx-auto flex h-full max-w-[1440px] flex-col gap-6 overflow-y-auto p-container-padding">
     <header className="border-b border-outline-variant pb-4">
