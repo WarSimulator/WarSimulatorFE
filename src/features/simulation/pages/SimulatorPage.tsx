@@ -149,8 +149,12 @@ export function SimulatorPage() {
   const addLiveGraphic = useCallback((graphic: TacticalGraphic) => {
     setLiveObjects(current => ({ ...current, tacticalGraphics: [...current.tacticalGraphics, graphic] }));
     setSelectedLiveUnitId(graphic.id);
-    setLiveEditorMode({ type: 'select' });
-  }, []);
+    // MapLibre publishes the first point before the drag is complete. Keep its
+    // Freehand session active until DeploymentMap's explicit completion button.
+    if (mapMode !== 'maplibre' || graphic.type !== 'freehand') {
+      setLiveEditorMode({ type: 'select' });
+    }
+  }, [mapMode]);
 
   const updateLiveGraphic = useCallback((graphic: TacticalGraphic) => {
     setLiveObjects(current => ({ ...current, tacticalGraphics: current.tacticalGraphics.map(item => item.id === graphic.id ? graphic : item) }));
