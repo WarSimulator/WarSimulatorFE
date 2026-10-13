@@ -1,3 +1,4 @@
+import { MapEnvironmentControls } from './MapEnvironmentControls';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import * as maplibregl from 'maplibre-gl';
 import type { GeoJSONSource, Map as MapLibreMap } from 'maplibre-gl';
@@ -488,6 +489,7 @@ export function TacticalMap({
   return (
     <section className="relative flex-1 overflow-hidden bg-[#161616]">
       <div ref={containerRef} className="absolute inset-0" />
+      {terrain3D && <MapEnvironmentControls map={mapReady ? mapRef.current : null} />}
       <div className="pointer-events-none absolute inset-0 bg-surface/15 mix-blend-multiply" />
       <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_center,transparent_0%,rgba(18,18,18,0.5)_100%)]" />
 

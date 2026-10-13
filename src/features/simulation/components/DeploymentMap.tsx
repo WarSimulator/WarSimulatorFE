@@ -1,3 +1,4 @@
+import { MapEnvironmentControls } from './MapEnvironmentControls';
 import { createUuid } from '../lib/uuid';
 import { GraphicRotationHandle, UnitRotationHandle } from './GraphicRotationHandle';
 import { useTaskDrawing } from '../hooks/useTaskDrawing';
@@ -181,6 +182,8 @@ export function DeploymentMap({ deployment, selectedEntityId, mode, onChange, on
   const deploymentRef = useRef(deployment);
   const isSyncingDrawRef = useRef(false);
   const lastDrawSignatureRef = useRef('');
+  const activeDrawTypeRef = useRef<string | null>(null);
+  const [drawPointCount, setDrawPointCount] = useState(0);
   const dragUnitIdRef = useRef<string | null>(null);
   const dragObjectiveIdRef = useRef<string | null>(null);
   const freehandGraphicIdRef = useRef<string | null>(null);
@@ -404,6 +407,11 @@ export function DeploymentMap({ deployment, selectedEntityId, mode, onChange, on
   useEffect(() => {
     if (!drawRef.current || !mapRef.current || !isMapReady) return;
     const draw = drawRef.current;
+    const drawingType = mode.type === 'draw' ? mode.graphicType : null;
+    // Re-rendering the palette or callbacks must not restart an unfinished shape.
+    if (drawingType && activeDrawTypeRef.current === drawingType) return;
+    activeDrawTypeRef.current = drawingType;
+    setDrawPointCount(0);
     if (mode.type === 'draw' && mode.graphicType !== 'freehand') {
       draw.changeMode(DRAW_MODE_BY_TYPE[mode.graphicType]);
     } else if (mode.type === 'append-geometry') {
@@ -478,6 +486,7 @@ export function DeploymentMap({ deployment, selectedEntityId, mode, onChange, on
       onSelectEntity(undefined);
     };
     const handleSelection = (event: { features: DrawFeature[] }) => {
+      if (mode.type !== 'select' && mode.type !== 'append-geometry') return;
       const id = event.features[0]?.properties?.id ?? event.features[0]?.id;
       if (id) onSelectEntity(String(id));
     };
@@ -486,11 +495,21 @@ export function DeploymentMap({ deployment, selectedEntityId, mode, onChange, on
       on: (type: string, listener: (event: unknown) => void) => void;
       off: (type: string, listener: (event: unknown) => void) => void;
     };
+    const handleRender = () => {
+      if (mode.type !== 'draw' || mode.graphicType === 'freehand') return;
+      const draft = draw.getAll().features.find(feature => !deploymentRef.current.tacticalGraphics.some(graphic => graphic.id === String(feature.id)));
+      const count = draft?.geometry.type === 'LineString'
+        ? draft.geometry.coordinates.length - 1
+        : draft?.geometry.type === 'Polygon' ? (draft.geometry.coordinates[0]?.length ?? 0) - 2 : 0;
+      setDrawPointCount(Math.max(0, count));
+    };
+    drawEventMap.on('draw.render', handleRender);
     drawEventMap.on('draw.create', handleCreate as (event: unknown) => void);
     drawEventMap.on('draw.update', handleUpdate as (event: unknown) => void);
     drawEventMap.on('draw.delete', handleDelete as (event: unknown) => void);
     drawEventMap.on('draw.selectionchange', handleSelection as (event: unknown) => void);
     return () => {
+      drawEventMap.off('draw.render', handleRender);
       drawEventMap.off('draw.create', handleCreate as (event: unknown) => void);
       drawEventMap.off('draw.update', handleUpdate as (event: unknown) => void);
       drawEventMap.off('draw.delete', handleDelete as (event: unknown) => void);
@@ -527,7 +546,7 @@ export function DeploymentMap({ deployment, selectedEntityId, mode, onChange, on
         return;
       }
 
-      if (mode.type === 'place' || mode.type === 'draw-task' || commandPoints?.active) return;
+      if (mode.type !== 'select' || commandPoints?.active) return;
       const features = map.queryRenderedFeatures(event.point, { layers: ['deployment-units', 'deployment-objectives'] });
       const feature = features[0];
       if (!feature?.properties?.id) return;
@@ -593,16 +612,30 @@ export function DeploymentMap({ deployment, selectedEntityId, mode, onChange, on
 
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
-      if (event.key !== 'Escape' || (event.target as HTMLElement)?.closest('input,textarea,select')) return;
+      if ((event.target as HTMLElement)?.closest('input,textarea,select')) return;
+      if (mode.type === 'draw' && mode.graphicType !== 'freehand' && event.key === 'Enter') {
+        event.preventDefault();
+        event.stopImmediatePropagation();
+        if (drawPointCount >= (mode.graphicType === 'area' ? 3 : 2)) {
+          drawRef.current?.changeMode('simple_select');
+          onModeChange({ type: 'select' });
+        }
+        return;
+      }
+      if (event.key !== 'Escape') return;
+      if (mode.type === 'draw' || mode.type === 'draw-task') {
+        event.preventDefault();
+        event.stopImmediatePropagation();
+      }
       setRotationId(undefined); setRotationPreview(null); setUnitRotationPreview(null);
       if (mode.type === 'draw') drawRef.current?.trash();
       else drawRef.current?.changeMode('simple_select');
       onSelectEntity(undefined);
       onModeChange({ type: 'select' });
     };
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [mode.type, onModeChange, onSelectEntity]);
+    window.addEventListener('keydown', handleKeyDown, true);
+    return () => window.removeEventListener('keydown', handleKeyDown, true);
+  }, [mode, drawPointCount, onModeChange, onSelectEntity]);
 
   const createDroppedEntity = (item: DeploymentPaletteItem, lng: number, lat: number) => {
     if (item.kind === 'unit') {
@@ -723,6 +756,7 @@ export function DeploymentMap({ deployment, selectedEntityId, mode, onChange, on
   return (
     <section className="relative h-full min-w-0 flex-1" onDragOver={(event) => event.preventDefault()} onDrop={handleDrop}>
       <div ref={mapContainerRef} className="h-full w-full bg-surface-container-lowest" />
+      {terrain3D && <MapEnvironmentControls map={isMapReady ? mapRef.current : null} />}
       {rotationUnit && mapRef.current && <UnitRotationHandle map={mapRef.current} graphic={rotationUnit} onPreview={setUnitRotationPreview} onCommit={unit => {
         const current = deploymentRef.current;
         onChange({ ...current, units: current.units.map(item => item.id === unit.id ? { ...item, symbolRotation: unit.symbolRotation } : item) });
@@ -738,6 +772,11 @@ export function DeploymentMap({ deployment, selectedEntityId, mode, onChange, on
         {modeLabel}
       </div>
       {(taskRenderError || taskEditError) && <p role="alert" className="absolute left-[var(--map-controls-left)] top-20 z-30 max-w-lg bg-surface p-2 text-xs text-error">{taskRenderError || taskEditError}</p>}
+      {mode.type === 'draw' && mode.graphicType !== 'freehand' && <div className="absolute left-[var(--map-controls-left)] top-20 z-30 max-w-sm space-y-2 rounded border border-secondary bg-surface p-3 text-xs text-on-surface">
+        <p>지도를 클릭하여 기준점을 추가하세요. 유닛 위에도 그릴 수 있습니다.</p>
+        <p>기준점 {drawPointCount}개 · 최소 {mode.graphicType === 'area' ? 3 : 2}개</p>
+        <div className="flex gap-3"><button disabled={drawPointCount < (mode.graphicType === 'area' ? 3 : 2)} onClick={finishDrawing} className="text-secondary disabled:opacity-40">완료 (Enter)</button><button onClick={() => { drawRef.current?.trash(); onSelectEntity(undefined); onModeChange({ type: 'select' }); }}>취소 (Esc)</button></div>
+      </div>}
       {taskDrawing.task && <div className="absolute left-[var(--map-controls-left)] top-20 z-30 max-w-sm space-y-2 rounded border border-secondary bg-surface p-3 text-xs text-on-surface">
         <p>{taskLabel(taskDrawing.task)}</p><p>기준점 {taskDrawing.count} / {taskDrawing.task.minPoints === taskDrawing.task.maxPoints ? taskDrawing.task.maxPoints : `${taskDrawing.task.minPoints}–${taskDrawing.task.maxPoints}`} · 미리보기 번호 순서대로 클릭</p>
         <div className="flex gap-3"><button disabled={taskDrawing.saving || taskDrawing.count < taskDrawing.task.minPoints} onClick={() => void taskDrawing.finish()} className="text-secondary disabled:opacity-40">완료 (Enter)</button><button disabled={taskDrawing.saving || !taskDrawing.count} onClick={taskDrawing.undo}>마지막 점 취소</button><button onClick={() => onModeChange({ type: 'select' })}>취소 (Esc)</button></div>
@@ -756,11 +795,7 @@ export function DeploymentMap({ deployment, selectedEntityId, mode, onChange, on
         >
           Recenter
         </button>
-        {mode.type === 'draw' && (
-          <button className="rounded border border-secondary bg-secondary/10 px-3 py-2 font-data-mono text-[11px] text-secondary hover:bg-secondary/20" onClick={finishDrawing}>
-            Finish
-          </button>
-        )}
+
         <button
           className="rounded border border-error/60 bg-surface-container px-3 py-2 font-data-mono text-[11px] text-error disabled:cursor-not-allowed disabled:opacity-40"
           disabled={!selectedEntityId}

@@ -124,3 +124,17 @@ export function buildReplanSnapshot(options: BuildReplanSnapshotOptions): Replan
     replan: { sourceSimulationId: simulationId, simulationTime, savedAt, voiceTranscript: options.voiceTranscript?.trim() ?? '', unitStates, changes },
   };
 }
+
+/** Capture base deployment at REVISION entry without turning untouched units into overrides. */
+export function buildRevisionDeployment(options: Pick<BuildReplanSnapshotOptions, 'deployment' | 'result' | 'simulationTime' | 'getUnitState'>): DeploymentSetup {
+  const snapshot = buildReplanSnapshot({
+    ...options,
+    liveUnits: [], hiddenBaseUnitIds: [], liveObjectives: [], liveTacticalGraphics: [],
+  });
+  return {
+    ...options.deployment,
+    units: snapshot.units,
+    objectives: snapshot.objectives,
+    tacticalGraphics: snapshot.tacticalGraphics,
+  };
+}

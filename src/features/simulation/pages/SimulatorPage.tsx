@@ -22,7 +22,7 @@ import { UnitListPanel } from '../components/UnitListPanel';
 import { SimulationCompatibilityReport } from '../components/SimulationCompatibilityReport';
 import { SelectedUnitActionCard } from '../components/SelectedUnitActionCard';
 import type { DeploymentEditorMode, DeploymentObjective, DeploymentPaletteItem, DeploymentSetup, DeploymentUnit, SimulationRuntimeState, TacticalGraphic } from '../../../types';
-import { buildReplanSnapshot, type ReplanSnapshot } from '../lib/replanSnapshot';
+import { buildReplanSnapshot, buildRevisionDeployment, type ReplanSnapshot } from '../lib/replanSnapshot';
 import { useRevisionSpeech } from '../hooks/useRevisionSpeech';
 
 const Cesium3DTacticalMap = lazy(() => import('../components/Cesium3DTacticalMap').then(module => ({ default: module.Cesium3DTacticalMap })));
@@ -75,6 +75,7 @@ export function SimulatorPage() {
   const [selectedUnitCardOpen, setSelectedUnitCardOpen] = useState(false);
 
   const [replanSnapshot, setReplanSnapshot] = useState<ReplanSnapshot>();
+  const [revisionDeployment, setRevisionDeployment] = useState<DeploymentSetup>();
 
   const lastFrameTimeRef = useRef<number | undefined>(undefined);
   const runtimeRef = useRef(runtime);
@@ -245,6 +246,26 @@ export function SimulatorPage() {
     setExitDialogOpen(true);
   };
 
+  const toggleRevision = useCallback(() => {
+    if (!revision.active) {
+      // Pause the authoritative clock before capturing the editor's base deployment.
+      updateRuntime({ isPlaying: false });
+      if (deployment) {
+        setRevisionDeployment(buildRevisionDeployment({
+          deployment,
+          result: simulationResult,
+          simulationTime: runtimeRef.current.simulationTime,
+          getUnitState: (unitId, time) => agentRuntime.getState(unitId, time),
+        }));
+      }
+      setSelectedLiveUnitId(undefined);
+      setRelocatingUnitId(undefined);
+      setLiveEditorMode({ type: 'select' });
+    }
+    revision.toggle();
+  }, [agentRuntime, deployment, revision, simulationResult, updateRuntime]);
+  const mapDeployment = revision.active ? revisionDeployment ?? deployment : deployment;
+
   const createReplan = useCallback(() => {
     if (!deployment) return;
     updateRuntime({ isPlaying: false });
@@ -371,7 +392,7 @@ export function SimulatorPage() {
         runtime={runtime}
         onExit={requestExit}
         onReplan={liveEditMode && !isAnalysisView ? createReplan : undefined}
-        onRevision={liveEditMode && !isAnalysisView ? revision.toggle : undefined}
+        onRevision={liveEditMode && !isAnalysisView ? toggleRevision : undefined}
         revisionActive={revision.active}
         revisionListening={revision.listening}
         revisionStatus={revision.status}
@@ -415,7 +436,7 @@ export function SimulatorPage() {
               playbackRef={runtimeRef}
               units={rosterUnits}
               result={simulationResult}
-              deployment={deployment}
+              deployment={mapDeployment}
               onSelectUnit={selectUnit}
               atomicActionVisuals={atomicActionVisuals}
               liveEdit={liveEditMode ? {
@@ -449,7 +470,7 @@ export function SimulatorPage() {
               playbackRef={runtimeRef}
               units={rosterUnits}
               result={simulationResult}
-              deployment={deployment}
+              deployment={mapDeployment}
               onSelectUnit={selectUnit}
               atomicActionVisuals={atomicActionVisuals}
               liveEdit={liveEditMode ? {
@@ -483,7 +504,7 @@ export function SimulatorPage() {
               playbackRef={runtimeRef}
               units={rosterUnits}
               result={simulationResult}
-              deployment={deployment}
+              deployment={mapDeployment}
               onSelectUnit={selectUnit}
               liveEdit={liveEditMode ? {
                 editingEnabled: revision.active,

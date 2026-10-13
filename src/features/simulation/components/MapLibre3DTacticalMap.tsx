@@ -73,7 +73,7 @@ export function MapLibre3DTacticalMap({ runtime, playbackRef, units, result, dep
   }, [displayDeployment, liveEdit]);
 
   if (liveEdit?.editingEnabled && displayDeployment) {
-    return <section className="relative min-w-0 flex-1 overflow-hidden" style={{ '--map-controls-left': '72px', '--palette-width': 'min(380px, calc(100vw - 32px))' } as CSSProperties}>
+    return <section className="relative min-w-0 flex-1 overflow-hidden" style={{ '--environment-controls-right': liveEdit.selectedUnitId ? '332px' : '56px', '--map-controls-left': liveEdit.paletteOpen ? 'calc(var(--palette-width) + 32px)' : '72px', '--palette-width': 'min(380px, calc(100vw - 32px))' } as CSSProperties}>
       <DeploymentMap
         deployment={displayDeployment}
         selectedEntityId={liveEdit.selectedUnitId}

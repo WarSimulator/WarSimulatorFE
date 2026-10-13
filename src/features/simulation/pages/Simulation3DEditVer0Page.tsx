@@ -170,7 +170,7 @@ export function Simulation3DEditVer0Page() {
       </div>
     </header>
     {error && <div role="alert" className="shrink-0 border-b border-error/40 bg-error/10 px-5 py-2 text-xs text-error">{error}</div>}
-    <div className="relative min-h-0 flex-1" style={{ '--palette-width': 'min(590px, calc(100vw - 680px))', '--map-controls-left': paletteOpen ? 'calc(var(--palette-width) + 32px)' : '72px' } as CSSProperties}>
+    <div className="relative min-h-0 flex-1" style={{ '--environment-controls-right': '412px', '--palette-width': 'min(590px, calc(100vw - 680px))', '--map-controls-left': paletteOpen ? 'calc(var(--palette-width) + 32px)' : '72px' } as CSSProperties}>
       <DeploymentMap deployment={deployment} selectedEntityId={selectedEntityId} mode={mode} terrain3D commandPoints={commandPoints}
         onChange={setDeployment} onSelectEntity={entityId => {
           setSelectedEntityId(entityId);
