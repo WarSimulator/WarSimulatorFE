@@ -1,3 +1,4 @@
+import type { OperationMapConfig } from '../lib/localOperationMap';
 import { MapEnvironmentControls } from './MapEnvironmentControls';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import * as maplibregl from 'maplibre-gl';
@@ -37,7 +38,14 @@ type TacticalMapProps = {
   revisedObjectives?: DeploymentObjective[];
   revisedTacticalGraphics?: TacticalGraphic[];
   hiddenBaseUnitIds?: string[];
+  operationMap?: OperationMapConfig;
+  benchmark?: { style: maplibregl.StyleSpecification; bounds?: maplibregl.LngLatBoundsLike; onReady: (map: MapLibreMap) => void; onError?: (message: string) => void };
 };
+
+const EMPTY_UNITS: DeploymentUnit[] = [];
+const EMPTY_OBJECTIVES: DeploymentObjective[] = [];
+const EMPTY_GRAPHICS: TacticalGraphic[] = [];
+const EMPTY_IDS: string[] = [];
 
 function getMapCenter(result: SimulationResult): [number, number] {
   const positions = result.unitTracks.flatMap((track) => {
@@ -280,8 +288,8 @@ function toActionEffectFeatures(
 }
 
 export function TacticalMap({
-  runtime, playbackRef, units, result, deployment, onSelectUnit, terrain3D = false,
-  revisedUnits = [], revisedObjectives = [], revisedTacticalGraphics = [], hiddenBaseUnitIds = [],
+  runtime, playbackRef, units, result, deployment, onSelectUnit, terrain3D = false, benchmark, operationMap,
+  revisedUnits = EMPTY_UNITS, revisedObjectives = EMPTY_OBJECTIVES, revisedTacticalGraphics = EMPTY_GRAPHICS, hiddenBaseUnitIds = EMPTY_IDS,
 }: TacticalMapProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<MapLibreMap | null>(null);
@@ -324,14 +332,17 @@ export function TacticalMap({
     setMapReady(false);
     const map = new maplibregl.Map({
       container: containerRef.current,
-      style: terrain3D ? create3DTerrainMapStyle() : getMapStyleUrl() ?? createDefaultMapStyle(),
+      style: operationMap?.style ?? benchmark?.style ?? (terrain3D ? create3DTerrainMapStyle() : getMapStyleUrl() ?? createDefaultMapStyle()),
+      maxBounds: operationMap?.bounds ?? benchmark?.bounds,
+      renderWorldCopies: !operationMap,
       center: mapCenter,
       zoom: mapZoom,
-      attributionControl: false,
+      attributionControl: benchmark || operationMap ? { compact: true } : false,
       pitch: terrain3D ? 60 : 0,
       bearing: terrain3D ? -12 : 0,
       maxPitch: terrain3D ? 85 : 60,
-      canvasContextAttributes: terrain3D ? { antialias: true } : undefined,
+      pixelRatio: terrain3D ? Math.min(window.devicePixelRatio || 1, 1.5) : undefined,
+      canvasContextAttributes: terrain3D ? { antialias: false } : undefined,
     });
 
     mapRef.current = map;
@@ -347,6 +358,7 @@ export function TacticalMap({
           ...units.flatMap((unit) => (unit.sidc ? [ensureMilitarySymbolImage(map, unit.sidc, unit.symbolStandard, terrain3D)] : [])),
           ...revisedUnits.map(unit => ensureMilitarySymbolImage(map, unit.sidc, unit.symbolStandard, terrain3D)),
         ]);
+        if (mapRef.current !== map) return;
         addDeploymentSourcesAndLayers(map);
         const geographicPositions = units.flatMap((unit) => unit.geographicPosition ? [[unit.geographicPosition.longitude, unit.geographicPosition.latitude] as [number, number]] : []);
         if (geographicPositions.length > 1) {
@@ -357,13 +369,17 @@ export function TacticalMap({
           map.fitBounds(bounds, { padding: 70, maxZoom: 15, duration: 0 });
         }
         setMapReady(true);
+        benchmark?.onReady(map);
       } catch (error) {
+        if (mapRef.current !== map) return;
         console.error(error);
         setMapError(true);
       }
     };
 
-    const handleError = () => {
+    const handleError = (event: maplibregl.ErrorEvent) => {
+      if (mapRef.current !== map) return;
+      benchmark?.onError?.(event.error?.message ?? '지도 데이터 오류');
       setMapError(true);
     };
 
@@ -409,7 +425,7 @@ export function TacticalMap({
       // Build and submit one coherent playback snapshot at 20 Hz. Previously
       // the collections were rebuilt at display refresh rate and then serialized
       // just to discard most frames, which stalled the main thread on 3D terrain.
-      if (simulationTime !== lastTime && (!isPlaying || timestamp - lastUpdate >= updateIntervalMs)) {
+      if (map.getSource(UNIT_SOURCE_ID) && simulationTime !== lastTime && (!isPlaying || timestamp - lastUpdate >= updateIntervalMs)) {
         const positions = getTrackPositionsAtTime(result, simulationTime);
         const unitFeatures = toUnitFeatures(result, units, simulationTime, terrain3D, positions, unitById).features
           .filter(feature => !hiddenBaseUnitIdSet.has(String(feature.properties?.id)) && !revisedUnitIdSet.has(String(feature.properties?.id)));
@@ -438,7 +454,7 @@ export function TacticalMap({
   }, [clock, displayDeployment, hiddenBaseUnitIdSet, mapReady, result, revisedUnitFeatures, revisedUnitIdSet, runtime.tacticalLayers.controlLines, runtime.tacticalLayers.routes, tacticalGraphicFeatures.features, terrain3D, unitById, units]);
 
   useEffect(() => {
-    if (!mapReady || !mapRef.current) {
+    if (!mapReady || !mapRef.current?.getLayer('deployment-units')) {
       return;
     }
 
@@ -460,7 +476,7 @@ export function TacticalMap({
   }, [axisArrowFeatures, clock, mapReady, objectiveFeatures, result, runtime.tacticalLayers.controlLines, runtime.tacticalLayers.labels, runtime.tacticalLayers.routes, tacticalGraphicFeatures, terrain3D]);
 
   useEffect(() => {
-    if (!mapReady || !mapRef.current?.isStyleLoaded()) {
+    if (!mapReady || !mapRef.current?.getLayer('deployment-units')) {
       return;
     }
 
@@ -518,9 +534,9 @@ export function TacticalMap({
         </div>
       )}
 
-      <div className="absolute bottom-3 right-3 z-10 rounded border border-outline-variant bg-surface/80 px-2 py-1 font-data-mono text-[9px] text-outline">
+      {!operationMap && <div className="absolute bottom-3 right-3 z-10 rounded border border-outline-variant bg-surface/80 px-2 py-1 font-data-mono text-[9px] text-outline">
         © OpenStreetMap contributors
-      </div>
+      </div>}
     </section>
   );
 }

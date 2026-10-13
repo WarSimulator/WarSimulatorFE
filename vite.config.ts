@@ -1,4 +1,6 @@
 import { defineConfig } from 'vite';
+// @ts-expect-error Test relay is a small Node-only module.
+import { mapBenchmarkProxy } from './scripts/map-benchmark-proxy.mjs';
 import react from '@vitejs/plugin-react';
 import { viteStaticCopy } from 'vite-plugin-static-copy';
 
@@ -10,6 +12,7 @@ export default defineConfig({
   define: { CESIUM_BASE_URL: JSON.stringify(`/${cesiumBaseUrl}/`) },
   plugins: [
     react(),
+    mapBenchmarkProxy(),
     viteStaticCopy({
       targets: [
         { src: `${cesiumSource}/ThirdParty`, dest: cesiumBaseUrl, rename: { stripBase: 4 } },

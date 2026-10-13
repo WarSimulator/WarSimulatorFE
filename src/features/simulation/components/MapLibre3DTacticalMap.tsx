@@ -1,5 +1,6 @@
-import { useCallback, useMemo, type CSSProperties } from 'react';
+import { useCallback, useMemo, useState, type CSSProperties } from 'react';
 import type { DeploymentSetup, SimulationResult, SimulationRuntimeState, SimulationUnit } from '../../../types';
+import { createLocalOperationMapStyle, OPERATION_MAP_BOUNDS, operationValidationError } from '../lib/localOperationMap';
 import { getLngLat } from '../lib/position';
 import type { LiveEdit } from './Google3DTacticalMap';
 import { DeploymentMap } from './DeploymentMap';
@@ -15,13 +16,30 @@ type Props = {
   deployment?: DeploymentSetup;
   onSelectUnit: (unitId: string) => void;
   liveEdit?: LiveEdit;
+  localOperationRegion?: boolean;
 };
 
 function same(first: unknown, second: unknown) {
   return JSON.stringify(first) === JSON.stringify(second);
 }
 
-export function MapLibre3DTacticalMap({ runtime, playbackRef, units, result, deployment, onSelectUnit, liveEdit }: Props) {
+export function MapLibre3DTacticalMap({ runtime, playbackRef, units, result, deployment, onSelectUnit, liveEdit, localOperationRegion = false }: Props) {
+  const operationMap = useMemo(() => localOperationRegion ? { style: createLocalOperationMapStyle(), bounds: OPERATION_MAP_BOUNDS } : undefined, [localOperationRegion]);
+  const [editorError, setEditorError] = useState('');
+  const [editorVersion, setEditorVersion] = useState(0);
+  const validateEdit = useCallback((next: DeploymentSetup) => {
+    const error = localOperationRegion ? operationValidationError(next) : "";
+    setEditorError(error);
+    if (error) {
+      // Restore Draw's transient geometry and drag positions from accepted state.
+      setEditorVersion(version => version + 1);
+      liveEdit?.onModeChange({ type: 'select' });
+    }
+    return !error;
+  }, [liveEdit, localOperationRegion]);
+  const changeProperties = useCallback((next: DeploymentSetup) => {
+    if (validateEdit(next)) liveEdit?.onChangeDeployment(next);
+  }, [liveEdit, validateEdit]);
   const displayDeployment = useMemo<DeploymentSetup | undefined>(() => deployment ? {
     ...deployment,
     units: [
@@ -34,6 +52,8 @@ export function MapLibre3DTacticalMap({ runtime, playbackRef, units, result, dep
 
   const changeEditorDeployment = useCallback((next: DeploymentSetup) => {
     if (!displayDeployment || !liveEdit) return;
+    if (next.units === displayDeployment.units && next.objectives === displayDeployment.objectives && next.tacticalGraphics === displayDeployment.tacticalGraphics) return;
+    if (!validateEdit(next)) return;
     const previousIds = new Set([
       ...displayDeployment.units.map(item => item.id),
       ...displayDeployment.objectives.map(item => item.id),
@@ -70,11 +90,13 @@ export function MapLibre3DTacticalMap({ runtime, playbackRef, units, result, dep
       if (!previous) liveEdit.onAddGraphic(graphic);
       else if (!same(previous, graphic)) liveEdit.onUpdateGraphic(graphic);
     }
-  }, [displayDeployment, liveEdit]);
+  }, [displayDeployment, liveEdit, validateEdit]);
 
   if (liveEdit?.editingEnabled && displayDeployment) {
     return <section className="relative min-w-0 flex-1 overflow-hidden" style={{ '--environment-controls-right': liveEdit.selectedUnitId ? '332px' : '56px', '--map-controls-left': liveEdit.paletteOpen ? 'calc(var(--palette-width) + 32px)' : '72px', '--palette-width': 'min(380px, calc(100vw - 32px))' } as CSSProperties}>
       <DeploymentMap
+        key={editorVersion}
+        operationMap={operationMap}
         deployment={displayDeployment}
         selectedEntityId={liveEdit.selectedUnitId}
         mode={liveEdit.mode}
@@ -83,11 +105,12 @@ export function MapLibre3DTacticalMap({ runtime, playbackRef, units, result, dep
         onModeChange={liveEdit.onModeChange}
         terrain3D
       />
+      {editorError && <div role="alert" className="absolute bottom-4 left-4 right-4 z-40 rounded border border-error bg-surface/95 p-3 text-xs text-error">{editorError}</div>}
       <SymbolPalette mode={liveEdit.mode} onModeChange={liveEdit.onModeChange} isOpen={liveEdit.paletteOpen} onToggle={liveEdit.onTogglePalette} />
       {liveEdit.selectedUnitId && <UnitPropertiesPanel
         deployment={displayDeployment}
         selectedEntityId={liveEdit.selectedUnitId}
-        onChange={liveEdit.onChangeDeployment}
+        onChange={changeProperties}
         onModeChange={liveEdit.onModeChange}
         onClearSelection={() => liveEdit.onSelectUnit(undefined)}
       />}
@@ -96,6 +119,7 @@ export function MapLibre3DTacticalMap({ runtime, playbackRef, units, result, dep
   }
 
   return <TacticalMap
+    operationMap={operationMap}
     runtime={runtime}
     playbackRef={playbackRef}
     units={units}

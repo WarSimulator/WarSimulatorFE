@@ -75,7 +75,16 @@ export function SimulatorHeader({ runtime, onTabChange, onWorldClockCountryChang
       </div>
       <div className="flex items-center gap-4">
         {onReplan && <button type="button" onClick={onReplan} className="flex items-center gap-2 rounded border border-primary bg-primary/10 px-4 py-1.5 font-label-caps text-label-caps font-bold text-primary transition-colors hover:bg-primary/20"><Icon name="restart_alt" className="text-[18px]" />REPLAN</button>}
-        {onRevision && <button type="button" onClick={onRevision} title={revisionStatus} className={`flex items-center gap-2 rounded border px-4 py-1.5 font-label-caps text-label-caps font-bold transition-colors ${revisionActive ? 'border-error bg-error/15 text-error hover:bg-error/25' : 'border-secondary bg-secondary/10 text-secondary hover:bg-secondary/20'}`}><Icon name={revisionListening ? 'mic' : 'edit'} className="text-[18px]" />{revisionActive ? 'REVISION ACTIVE' : 'REVISION'}{revisionListening && <span className="h-2 w-2 animate-pulse rounded-full bg-error" />}</button>}
+        {onRevision && <button type="button" onClick={onRevision} title={revisionStatus} className={`flex shrink-0 items-center gap-2 rounded border px-4 py-1.5 font-label-caps text-label-caps font-bold transition-colors ${revisionActive ? 'border-error bg-error/15 text-error hover:bg-error/25' : 'border-secondary bg-secondary/10 text-secondary hover:bg-secondary/20'}`}>
+          <span aria-hidden="true" className="flex h-[18px] w-[18px] shrink-0 items-center justify-center">
+            <Icon name={revisionListening ? 'mic' : 'edit'} className="text-[18px]" />
+          </span>
+          <span className="relative whitespace-nowrap">
+            <span aria-hidden="true" className="invisible">REVISION ACTIVE</span>
+            <span className="absolute inset-0">{revisionActive ? 'REVISION ACTIVE' : 'REVISION'}</span>
+          </span>
+          <span aria-hidden="true" className={`h-2 w-2 shrink-0 rounded-full bg-error ${revisionListening ? 'animate-pulse' : 'invisible'}`} />
+        </button>}
         <span className="flex items-center gap-2 font-data-mono text-[11px] text-secondary">
           <span className="h-1.5 w-1.5 rounded-full bg-secondary" />
           SIMULATION READY

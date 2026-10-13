@@ -1,3 +1,4 @@
+import type { OperationMapConfig } from '../lib/localOperationMap';
 import { MapEnvironmentControls } from './MapEnvironmentControls';
 import { createUuid } from '../lib/uuid';
 import { GraphicRotationHandle, UnitRotationHandle } from './GraphicRotationHandle';
@@ -42,6 +43,7 @@ type DeploymentMapProps = {
   onSelectEntity: (entityId?: string) => void;
   onModeChange: (mode: DeploymentEditorMode) => void;
   terrain3D?: boolean;
+  operationMap?: OperationMapConfig;
   commandPoints?: {
     from: SimulationResultPosition;
     to: SimulationResultPosition;
@@ -175,7 +177,7 @@ function graphicToDrawFeature(graphic: TacticalGraphic): DrawFeature {
   };
 }
 
-export function DeploymentMap({ deployment, selectedEntityId, mode, onChange, onSelectEntity, onModeChange, terrain3D = false, commandPoints }: DeploymentMapProps) {
+export function DeploymentMap({ deployment, selectedEntityId, mode, onChange, onSelectEntity, onModeChange, terrain3D = false, commandPoints, operationMap }: DeploymentMapProps) {
   const mapContainerRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<MapLibreMap | null>(null);
   const drawRef = useRef<MapboxDraw | null>(null);
@@ -230,13 +232,16 @@ export function DeploymentMap({ deployment, selectedEntityId, mode, onChange, on
 
     const map = new maplibregl.Map({
       container: mapContainerRef.current,
-      style: terrain3D ? create3DTerrainMapStyle() : getMapStyleUrl() ?? createDefaultMapStyle(),
+      style: operationMap?.style ?? (terrain3D ? create3DTerrainMapStyle() : getMapStyleUrl() ?? createDefaultMapStyle()),
+      maxBounds: operationMap?.bounds,
+      renderWorldCopies: !operationMap,
       center: deployment.mapView?.center ?? DEFAULT_MAP_CENTER,
       zoom: deployment.mapView?.zoom ?? DEFAULT_MAP_ZOOM,
       pitch: terrain3D ? 60 : 0,
       bearing: terrain3D ? -12 : 0,
       maxPitch: terrain3D ? 85 : 60,
-      canvasContextAttributes: terrain3D ? { antialias: true } : undefined,
+      pixelRatio: terrain3D ? Math.min(window.devicePixelRatio || 1, 1.5) : undefined,
+      canvasContextAttributes: terrain3D ? { antialias: false } : undefined,
     });
     const draw = new MapboxDraw({
       displayControlsDefault: false,
@@ -326,14 +331,25 @@ export function DeploymentMap({ deployment, selectedEntityId, mode, onChange, on
   }, []);
 
   useEffect(() => {
-    if (!mapRef.current || !isMapReady) return;
-    void Promise.all(deployment.units.map((unit) => ensureMilitarySymbolImage(mapRef.current!, unit.sidc, unit.symbolStandard, terrain3D))).then(() => {
-      (mapRef.current?.getSource(UNIT_SOURCE_ID) as GeoJSONSource | undefined)?.setData(toUnitFeatures(displayDeployment, terrain3D));
+    const map = mapRef.current;
+    if (!map || !isMapReady) return;
+    let cancelled = false;
+    void Promise.all(displayDeployment.units.map(unit => ensureMilitarySymbolImage(map, unit.sidc, unit.symbolStandard, terrain3D))).then(() => {
+      if (!cancelled) (map.getSource(UNIT_SOURCE_ID) as GeoJSONSource | undefined)?.setData(toUnitFeatures(displayDeployment, terrain3D));
     });
+    return () => { cancelled = true; };
+  }, [displayDeployment.units, isMapReady, terrain3D]);
+
+  useEffect(() => {
+    if (!mapRef.current || !isMapReady) return;
     (mapRef.current.getSource(OBJECTIVE_SOURCE_ID) as GeoJSONSource | undefined)?.setData(toObjectiveFeatures(deployment));
+  }, [deployment.objectives, isMapReady]);
+
+  useEffect(() => {
+    if (!mapRef.current || !isMapReady) return;
     (mapRef.current.getSource(GRAPHICS_SOURCE_ID) as GeoJSONSource | undefined)?.setData(toGraphicFeatureCollection(displayDeployment));
     (mapRef.current.getSource(AXIS_ARROW_SOURCE_ID) as GeoJSONSource | undefined)?.setData(toAxisArrowFeatures(displayDeployment));
-  }, [deployment, displayDeployment, isMapReady, terrain3D]);
+  }, [displayDeployment.tacticalGraphics, isMapReady]);
 
   useEffect(() => {
     if (!mapRef.current || !isMapReady) return;
@@ -521,6 +537,12 @@ export function DeploymentMap({ deployment, selectedEntityId, mode, onChange, on
     if (!mapRef.current || !isMapReady) return;
     const map = mapRef.current;
 
+    if (mode.type !== 'draw' || mode.graphicType !== 'freehand') {
+      freehandGraphicIdRef.current = null;
+      freehandCoordinatesRef.current = [];
+      map.dragPan.enable();
+    }
+
     const handleMouseDown = (event: maplibregl.MapMouseEvent) => {
       if (mode.type === 'draw' && mode.graphicType === 'freehand') {
         event.preventDefault();
@@ -538,7 +560,7 @@ export function DeploymentMap({ deployment, selectedEntityId, mode, onChange, on
               id,
               type: 'freehand',
               name: DEFAULT_GRAPHIC_NAME.freehand,
-              geometry: { type: 'LineString', coordinates: [coordinate] },
+              geometry: { type: 'LineString', coordinates: [coordinate, coordinate] },
             },
           ],
         });
@@ -590,9 +612,15 @@ export function DeploymentMap({ deployment, selectedEntityId, mode, onChange, on
     };
     const handleMouseUp = () => {
       if (freehandGraphicIdRef.current) {
+        const id = freehandGraphicIdRef.current;
+        if (freehandCoordinatesRef.current.length < 2) {
+          const current = deploymentRef.current;
+          onChange({ ...current, tacticalGraphics: current.tacticalGraphics.filter(graphic => graphic.id !== id) });
+          onSelectEntity(undefined);
+        }
         freehandGraphicIdRef.current = null;
         freehandCoordinatesRef.current = [];
-        onModeChange({ type: 'select' });
+        // Stay in Freehand until the user explicitly finishes drawing.
       }
       dragUnitIdRef.current = null;
       dragObjectiveIdRef.current = null;
@@ -606,7 +634,8 @@ export function DeploymentMap({ deployment, selectedEntityId, mode, onChange, on
       map.off('mousedown', handleMouseDown);
       map.off('mousemove', handleMouseMove);
       map.off('mouseup', handleMouseUp);
-      map.dragPan.enable();
+      // Deployment updates rebind these listeners during a stroke.
+      if (!freehandGraphicIdRef.current) map.dragPan.enable();
     };
   }, [commandPoints?.active, deployment, isMapReady, mode, onChange, onSelectEntity]);
 
@@ -738,6 +767,9 @@ export function DeploymentMap({ deployment, selectedEntityId, mode, onChange, on
   }, [commandPoints?.active, isMapReady, mode.type, onSelectEntity, onModeChange]);
 
   const finishDrawing = () => {
+    freehandGraphicIdRef.current = null;
+    freehandCoordinatesRef.current = [];
+    mapRef.current?.dragPan.enable();
     drawRef.current?.changeMode('simple_select');
     onModeChange({ type: 'select' });
   };
@@ -772,6 +804,10 @@ export function DeploymentMap({ deployment, selectedEntityId, mode, onChange, on
         {modeLabel}
       </div>
       {(taskRenderError || taskEditError) && <p role="alert" className="absolute left-[var(--map-controls-left)] top-20 z-30 max-w-lg bg-surface p-2 text-xs text-error">{taskRenderError || taskEditError}</p>}
+      {mode.type === 'draw' && mode.graphicType === 'freehand' && <div className="absolute left-[var(--map-controls-left)] top-20 z-30 max-w-sm space-y-2 rounded border border-secondary bg-surface p-3 text-xs text-on-surface">
+        <p>지도를 누른 채 드래그하여 자유선을 그리세요. 끝나면 그리기 완료를 누르세요.</p>
+        <button type="button" onClick={finishDrawing} className="text-secondary">그리기 완료</button>
+      </div>}
       {mode.type === 'draw' && mode.graphicType !== 'freehand' && <div className="absolute left-[var(--map-controls-left)] top-20 z-30 max-w-sm space-y-2 rounded border border-secondary bg-surface p-3 text-xs text-on-surface">
         <p>지도를 클릭하여 기준점을 추가하세요. 유닛 위에도 그릴 수 있습니다.</p>
         <p>기준점 {drawPointCount}개 · 최소 {mode.graphicType === 'area' ? 3 : 2}개</p>

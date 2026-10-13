@@ -1,0 +1,28 @@
+{
+  "bounds": [
+    127.15,
+    38.25,
+    127.75,
+    38.7
+  ],
+  "maxZoom": 13,
+  "terrainMaxZoom": 12,
+  "terrainEncoding": "terrarium",
+  "baseUrl": "https://build.protomaps.com/20261012.pmtiles",
+  "terrainUrls": [
+    "https://download.mapterhorn.com/planet.pmtiles",
+    "https://tiles.mapterhorn.com/{z}/{x}/{y}.webp"
+  ],
+  "summary": {
+    "base": {
+      "tiles": 316,
+      "bytes": 4054406
+    },
+    "terrain": {
+      "tiles": 106,
+      "bytes": 13277414
+    }
+  },
+  "generatedAt": "2026-10-13T06:12:52.629Z",
+  "attribution": "© OpenStreetMap contributors · Protomaps · Mapterhorn"
+}

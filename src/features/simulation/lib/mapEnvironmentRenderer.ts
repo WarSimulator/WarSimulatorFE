@@ -3,12 +3,14 @@ import { surfaceCoverage, type MapEnvironment } from './mapEnvironment';
 
 const SURFACE = 'environment-surface';
 const PARTICLES = 'environment-precipitation';
-const GRID = 72;
+const GRID = 48;
+const SAMPLE_ROWS_PER_BATCH = 4;
+const PRECIPITATION_FRAME_MS = 1000 / 30;
 const MAX_PARTICLES = 1800;
 const clamp = (value: number, min: number, max: number) => Math.max(min, Math.min(max, value));
 
 /** Custom 3D particles in geographic space, sharing the map camera and depth buffer. */
-function precipitationLayer(map: MapLibreMap, read: () => MapEnvironment): CustomLayerInterface & { refreshTerrain: () => void } {
+function precipitationLayer(map: MapLibreMap, read: () => MapEnvironment, elevationAt: (coordinate: MercatorCoordinate) => number): CustomLayerInterface & { refreshTerrain: () => void } {
   let program: WebGLProgram | null = null;
   let buffer: WebGLBuffer | null = null;
   let position = 0;
@@ -25,8 +27,12 @@ function precipitationLayer(map: MapLibreMap, read: () => MapEnvironment): Custo
   const matrix = new Float32Array(16);
   let elapsed = 0;
   let previousTime = 0;
+  let repaintTimer: ReturnType<typeof setTimeout> | undefined;
+  let vertexCount = 0;
+  let vertexSettings = '';
   for (let i = 0; i < seeds.length; i++) seeds[i] = Math.random();
   const relocate = () => {
+    previousTime = 0;
     anchor = MercatorCoordinate.fromLngLat(map.getCenter());
     meters = anchor.meterInMercatorCoordinateUnits();
     span = clamp(40075016 * Math.cos(map.getCenter().lat * Math.PI / 180) / 2 ** map.getZoom() * 2, 300, 18000);
@@ -36,7 +42,7 @@ function precipitationLayer(map: MapLibreMap, read: () => MapEnvironment): Custo
     const heights = new Float32Array(size * size);
     for (let y = 0; y < size; y++) for (let x = 0; x < size; x++) {
       const coord = new MercatorCoordinate(anchor.x + (x / (size - 1) - 0.5) * span * meters, anchor.y + (y / (size - 1) - 0.5) * span * meters);
-      heights[y * size + x] = map.queryTerrainElevation(coord.toLngLat()) ?? 0;
+      heights[y * size + x] = elevationAt(coord);
     }
     for (let i = 0; i < MAX_PARTICLES; i++) {
       const x = Math.round(seeds[i * 3] * (size - 1));
@@ -84,13 +90,15 @@ function precipitationLayer(map: MapLibreMap, read: () => MapEnvironment): Custo
         if (!gl.getProgramParameter(program, gl.LINK_STATUS)) throw new Error(gl.getProgramInfoLog(program) ?? '날씨 렌더러 연결 오류');
         buffer = gl.createBuffer();
         if (!buffer) throw new Error('날씨 버퍼를 생성할 수 없습니다.');
+        gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
+        gl.bufferData(gl.ARRAY_BUFFER, vertices.byteLength, gl.DYNAMIC_DRAW);
         position = gl.getAttribLocation(program, 'a_position');
         matrixLocation = gl.getUniformLocation(program, 'u_matrix');
         snowLocation = gl.getUniformLocation(program, 'u_snow');
         sizeLocation = gl.getUniformLocation(program, 'u_size');
         colorLocation = gl.getUniformLocation(program, 'u_color');
         relocate();
-        map.on('moveend', relocate);
+
       } catch (error) {
         if (buffer) gl.deleteBuffer(buffer);
         if (program) gl.deleteProgram(program);
@@ -102,25 +110,33 @@ function precipitationLayer(map: MapLibreMap, read: () => MapEnvironment): Custo
       const settings = read();
       if (!program || !buffer || settings.weather === 'clear' || document.hidden) { previousTime = 0; return; }
       const now = performance.now();
-      elapsed += previousTime ? Math.min((now - previousTime) / 1000, 0.05) : 0;
-      previousTime = now;
       const snow = settings.weather === 'snow';
-      const count = settings.intensity * 600;
-      const height = clamp(span * 0.3, 120, 2800);
-      const speed = height * (snow ? 0.07 : 0.6);
-      for (let i = 0; i < count; i++) {
-        const x = (seeds[i * 3] - 0.5) * span;
-        const y = (seeds[i * 3 + 1] - 0.5) * span;
-        const z = ground[i] + ((seeds[i * 3 + 2] * height - elapsed * speed) % height + height) % height;
-        const offset = i * (snow ? 3 : 6);
-        vertices[offset] = x + (snow ? Math.sin(elapsed + i) * span * 0.002 : 0);
-        vertices[offset + 1] = y;
-        vertices[offset + 2] = z;
-        if (!snow) {
-          vertices[offset + 3] = x + height * 0.002;
-          vertices[offset + 4] = y;
-          vertices[offset + 5] = z + height * 0.025;
+      const settingsKey = `${settings.weather}:${settings.intensity}`;
+      const updateVertices = !previousTime || settingsKey !== vertexSettings || now - previousTime >= PRECIPITATION_FRAME_MS;
+      if (updateVertices) {
+        elapsed += previousTime ? Math.min((now - previousTime) / 1000, 0.05) : 0;
+        previousTime = now;
+        vertexSettings = settingsKey;
+        const count = settings.intensity * 600;
+        const height = clamp(span * 0.3, 120, 2800);
+        const speed = height * (snow ? 0.07 : 0.6);
+        for (let i = 0; i < count; i++) {
+          const x = (seeds[i * 3] - 0.5) * span;
+          const y = (seeds[i * 3 + 1] - 0.5) * span;
+          const z = ground[i] + ((seeds[i * 3 + 2] * height - elapsed * speed) % height + height) % height;
+          const offset = i * (snow ? 3 : 6);
+          vertices[offset] = x + (snow ? Math.sin(elapsed + i) * span * 0.002 : 0);
+          vertices[offset + 1] = y;
+          vertices[offset + 2] = z;
+          if (!snow) {
+            vertices[offset + 3] = x + height * 0.002;
+            vertices[offset + 4] = y;
+            vertices[offset + 5] = z + height * 0.025;
+          }
         }
+        vertexCount = count * (snow ? 1 : 2);
+        gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
+        gl.bufferSubData(gl.ARRAY_BUFFER, 0, vertices.subarray(0, vertexCount * 3));
       }
       // Translate in double precision before the GPU upload to avoid geographic jitter.
       const projection = input.defaultProjectionData.mainMatrix;
@@ -136,20 +152,23 @@ function precipitationLayer(map: MapLibreMap, read: () => MapEnvironment): Custo
       gl.uniform1f(sizeLocation, (snow ? 3.5 : 1) * Math.min(window.devicePixelRatio, 2));
       gl.uniform4f(colorLocation, snow ? 0.94 : 0.63, snow ? 0.97 : 0.78, 1, settings.time === 'night' ? 0.65 : 0.8);
       gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
-      gl.bufferData(gl.ARRAY_BUFFER, vertices.subarray(0, count * (snow ? 3 : 6)), gl.DYNAMIC_DRAW);
+
       gl.enableVertexAttribArray(position);
       gl.vertexAttribPointer(position, 3, gl.FLOAT, false, 0, 0);
       gl.enable(gl.BLEND);
       gl.blendFunc(gl.ONE, gl.ONE_MINUS_SRC_ALPHA);
       gl.enable(gl.DEPTH_TEST);
       gl.depthMask(false);
-      gl.drawArrays(snow ? gl.POINTS : gl.LINES, 0, count * (snow ? 1 : 2));
+      gl.drawArrays(snow ? gl.POINTS : gl.LINES, 0, vertexCount);
       gl.disableVertexAttribArray(position);
       gl.depthMask(true);
-      map.triggerRepaint();
+      if (!repaintTimer) repaintTimer = setTimeout(() => {
+        repaintTimer = undefined;
+        if (read().weather !== 'clear' && !document.hidden) map.triggerRepaint();
+      }, Math.max(0, PRECIPITATION_FRAME_MS - (now - previousTime)));
     },
     onRemove(_map, gl) {
-      map.off('moveend', relocate);
+      clearTimeout(repaintTimer);
       if (buffer) gl.deleteBuffer(buffer);
       if (program) gl.deleteProgram(program);
     },
@@ -167,14 +186,22 @@ export function attachMapEnvironment(map: MapLibreMap, initial: MapEnvironment) 
   const elevations = new Float32Array(GRID * GRID);
   let spacing = 1;
   let surfaceReady = false;
+  let sampleGeneration = 0;
+  let sampleTimer: ReturnType<typeof setTimeout> | undefined;
+  let sampledLeft = 0, sampledTop = 0, sampledStep = 1;
   const style = map.getStyle();
   const originalSky = style.sky;
   const originalPaint = style.layers.filter(layer => layer.id === 'osm' || layer.id === 'terrain-hillshade').map(layer => ({ id: layer.id, paint: { ...layer.paint } }));
-  const before = style.layers.find(layer => layer.id !== 'osm' && layer.id !== 'terrain-hillshade')?.id;
+  const before = style.layers.find(layer => layer.id.startsWith('deployment-') || layer.id.startsWith('task-'))?.id;
   const center = map.getCenter();
   map.addSource(SURFACE, { type: 'canvas', canvas, animate: false, coordinates: [[center.lng - 0.01, center.lat + 0.01], [center.lng + 0.01, center.lat + 0.01], [center.lng + 0.01, center.lat - 0.01], [center.lng - 0.01, center.lat - 0.01]] });
   map.addLayer({ id: SURFACE, type: 'raster', source: SURFACE, paint: { 'raster-opacity': 0.9, 'raster-fade-duration': 0 } }, before);
-  const particles = precipitationLayer(map, () => settings);
+  const particles = precipitationLayer(map, () => settings, coordinate => {
+    if (!surfaceReady) return 0;
+    const x = clamp(Math.round((coordinate.x - sampledLeft) / sampledStep), 0, GRID - 1);
+    const y = clamp(Math.round((coordinate.y - sampledTop) / sampledStep), 0, GRID - 1);
+    return elevations[y * GRID + x] || 0;
+  });
   try { map.addLayer(particles); }
   catch (error) { map.removeLayer(SURFACE); map.removeSource(SURFACE); throw error; }
 
@@ -211,26 +238,46 @@ export function attachMapEnvironment(map: MapLibreMap, initial: MapEnvironment) 
     const half = clamp(Math.max(Math.abs(southeast.x - northwest.x), Math.abs(southeast.y - northwest.y)) / scale * 0.6, 250, 40000) * scale;
     const left = middle.x - half, top = middle.y - half;
     const step = half * 2 / (GRID - 1);
-    spacing = step / scale;
-    for (let y = 0; y < GRID; y++) for (let x = 0; x < GRID; x++) {
-      elevations[y * GRID + x] = map.queryTerrainElevation(new MercatorCoordinate(left + x * step, top + y * step).toLngLat()) ?? NaN;
-    }
-    const coord = (x: number, y: number): [number, number] => {
-      const point = new MercatorCoordinate(x, y).toLngLat();
-      return [point.lng, point.lat];
+    const generation = ++sampleGeneration;
+    const sampled = new Float32Array(GRID * GRID);
+    let row = 0;
+    const sampleBatch = () => {
+      sampleTimer = undefined;
+      if (disposed || generation !== sampleGeneration || settings.weather === 'clear') return;
+      const endRow = Math.min(row + SAMPLE_ROWS_PER_BATCH, GRID);
+      for (; row < endRow; row++) for (let x = 0; x < GRID; x++) {
+        sampled[row * GRID + x] = map.queryTerrainElevation(new MercatorCoordinate(left + x * step, top + row * step).toLngLat()) ?? NaN;
+      }
+      if (row < GRID) { sampleTimer = setTimeout(sampleBatch, 0); return; }
+      elevations.set(sampled);
+      sampledLeft = left; sampledTop = top; sampledStep = step;
+      spacing = step / scale;
+      const coord = (x: number, y: number): [number, number] => {
+        const point = new MercatorCoordinate(x, y).toLngLat();
+        return [point.lng, point.lat];
+      };
+      (map.getSource(SURFACE) as CanvasSource).setCoordinates([coord(left, top), coord(left + half * 2, top), coord(left + half * 2, top + half * 2), coord(left, top + half * 2)]);
+      surfaceReady = true;
+      particles.refreshTerrain();
+      paintSurface();
     };
-    (map.getSource(SURFACE) as CanvasSource).setCoordinates([coord(left, top), coord(left + half * 2, top), coord(left + half * 2, top + half * 2), coord(left, top + half * 2)]);
-    surfaceReady = true;
-    particles.refreshTerrain();
-    paintSurface();
+    sampleBatch();
+  };
+  const cancelSampling = () => {
+    clearTimeout(timer); timer = undefined;
+    clearTimeout(sampleTimer); sampleTimer = undefined;
+    sampleGeneration++;
   };
   const scheduleSurface = () => {
-    if (!timer && !disposed) timer = setTimeout(sampleSurface, 250);
+    if (disposed || settings.weather === 'clear' || map.isMoving()) return;
+    cancelSampling();
+    timer = setTimeout(sampleSurface, 250);
   };
   const onSourceData = (event: { sourceId?: string; isSourceLoaded?: boolean }) => {
     if (event.sourceId === 'terrainSource' && event.isSourceLoaded) scheduleSurface();
   };
   const onVisibility = () => { if (!document.hidden) map.triggerRepaint(); };
+  map.on('movestart', cancelSampling);
   map.on('moveend', scheduleSurface);
   map.on('sourcedata', onSourceData);
   map.on('terrain', scheduleSurface);
@@ -253,7 +300,8 @@ export function attachMapEnvironment(map: MapLibreMap, initial: MapEnvironment) 
       map.setPaintProperty('terrain-hillshade', 'hillshade-highlight-color', night ? '#41516a' : '#c9d2b0');
     }
     map.setLayoutProperty(SURFACE, 'visibility', settings.weather === 'clear' ? 'none' : 'visible');
-    paintSurface();
+    if (settings.weather === 'clear') cancelSampling();
+    else paintSurface();
     if (previousWeather !== settings.weather || !surfaceReady) scheduleSurface();
     map.triggerRepaint();
   };
@@ -262,7 +310,8 @@ export function attachMapEnvironment(map: MapLibreMap, initial: MapEnvironment) 
     update,
     destroy() {
       disposed = true;
-      clearTimeout(timer);
+      cancelSampling();
+      map.off('movestart', cancelSampling);
       map.off('moveend', scheduleSurface);
       map.off('sourcedata', onSourceData);
       map.off('terrain', scheduleSurface);

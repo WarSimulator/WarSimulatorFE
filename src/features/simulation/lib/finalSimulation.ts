@@ -12,6 +12,7 @@ import type {
   SimulationTrackSegment,
   SimulationUnitTrack,
 } from '../../../types';
+import { assertOperationCoordinates, assertOperationDeployment, assertOperationResult, OperationRegionError } from './localOperationMap';
 import { FIXED_OBSERVATION_RANGE_METERS } from './observation';
 import { createSidc } from './sidc';
 import { ForcePlanError, parseForcePlan, parseForcePlanForReport, type ImportedStep, type PlanIssue } from './forcePlan';
@@ -57,7 +58,7 @@ export type FinalSimulationInputs = {
 };
 
 export type FinalSimulationBuild = StoredFinalRun & { simulationId: string };
-export type FinalSimulationBuildOptions = { mode?: 'strict' | 'report' };
+export type FinalSimulationBuildOptions = { mode?: 'strict' | 'report'; localOperationRegion?: boolean };
 
 const actionNames: Record<string, string> = {
   move: 'Move', observe: 'Observe', engage: 'Engage', continue_to_engage: 'Continue to Engage',
@@ -352,6 +353,7 @@ async function requestRoadRoute(
 export async function buildFinalSimulation(inputs: FinalSimulationInputs, options: FinalSimulationBuildOptions = {}): Promise<FinalSimulationBuild> {
   const reportMode = options.mode === 'report';
   const deployment = normalizeDeployment(inputs.deployment);
+  if (options.localOperationRegion) assertOperationDeployment(deployment);
   const runTimestamp = Date.now();
   const simulationId = `final-${runTimestamp}`;
   // The same source deployment may be uploaded repeatedly while iterating on plans.
@@ -513,12 +515,14 @@ export async function buildFinalSimulation(inputs: FinalSimulationInputs, option
         };
       } else try {
         const route = await requestRoadRoute(origin, destination, waypoints, routingProfile(parameters));
+        if (options.localOperationRegion) assertOperationCoordinates(route.coordinates.map(point => [point.longitude, point.latitude]), `도로 경로 ${unit.designation}`);
         keyframes = distributeRouteKeyframes(route.coordinates, start, end);
         routing = {
           generatedBy: 'Road routing', provider: route.provider, moveDuration: end - start, timingMode: 'distance-weighted',
           roadDistanceMeters: route.distanceMeters, roadDurationSeconds: route.durationSeconds,
         };
       } catch (error) {
+        if (error instanceof OperationRegionError) throw error;
         routing = {
           generatedBy: 'Straight-line fallback', provider: routingServiceUrl(), moveDuration: end - start, timingMode: 'linear',
           fallbackReason: error instanceof Error ? error.message : 'Road route unavailable',
@@ -574,8 +578,10 @@ export async function buildFinalSimulation(inputs: FinalSimulationInputs, option
     executedActionCount: actionEffects.length, skippedActionCount: skippedActions.size,
     fallbackActionCount: fallbackActions.size, entries: reportEntries,
   } : undefined;
-  return { simulationId, deployment, result: { schemaVersion: '1.0', planIndex: 0, deploymentId: deployment.id, startTime, endTime, unitTracks, observationEffects, actionEffects, events: events.sort((a, b) => a.time - b.time) },
+  const build: FinalSimulationBuild = { simulationId, deployment, result: { schemaVersion: '1.0', planIndex: 0, deploymentId: deployment.id, startTime, endTime, unitTracks, observationEffects, actionEffects, events: events.sort((a, b) => a.time - b.time) },
     planCounts: { blueForce: grouped.blueForce.length, redForce: grouped.redForce.length, withdrawal: grouped.withdrawal.length }, report: compatibilityReport };
+  if (options.localOperationRegion) assertOperationResult(build.result);
+  return build;
 }
 
 function loadRuns(): Record<string, StoredFinalRun> {

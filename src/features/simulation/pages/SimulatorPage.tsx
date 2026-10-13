@@ -1,3 +1,4 @@
+import { operationValidationError } from '../lib/localOperationMap';
 import { createUuid } from '../lib/uuid';
 import { lazy, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
@@ -76,6 +77,14 @@ export function SimulatorPage() {
 
   const [replanSnapshot, setReplanSnapshot] = useState<ReplanSnapshot>();
   const [revisionDeployment, setRevisionDeployment] = useState<DeploymentSetup>();
+
+  const operationError = useMemo(() => {
+    if (mapMode !== 'maplibre') return '';
+    return operationValidationError(deployment, simulationResult) || operationValidationError({
+      id: 'revision', name: 'Revision', mettTcDocumentId: '', units: liveUnits,
+      objectives: liveObjects.objectives, tacticalGraphics: liveObjects.tacticalGraphics,
+    });
+  }, [deployment, liveObjects, liveUnits, mapMode, simulationResult]);
 
   const lastFrameTimeRef = useRef<number | undefined>(undefined);
   const runtimeRef = useRef(runtime);
@@ -175,11 +184,12 @@ export function SimulatorPage() {
   }, []);
   // This ref is the authoritative clock. React receives display snapshots only.
   const updateRuntime = useCallback((change: Partial<typeof runtime>) => {
+    if (operationError && change.isPlaying) return;
     const next = { ...runtimeRef.current, ...change };
     runtimeRef.current = next;
     setRuntime(next);
     publishRuntime(next);
-  }, [publishRuntime]);
+  }, [operationError, publishRuntime]);
   const selectedUnit = useMemo(
     () => getSimulationResultUnit(
       simulationResult,
@@ -287,7 +297,7 @@ export function SimulatorPage() {
   }, [agentRuntime, deployment, hiddenBaseUnitIds, liveObjects, liveUnits, revision, simulationId, simulationResult, updateRuntime]);
 
   useEffect(() => {
-    if (!runtime.isPlaying || isAnalysisView) {
+    if (!runtime.isPlaying || isAnalysisView || operationError) {
       lastFrameTimeRef.current = undefined;
       return;
     }
@@ -330,7 +340,7 @@ export function SimulatorPage() {
     return () => {
       window.cancelAnimationFrame(animationFrameId);
     };
-  }, [agentRuntime, isAnalysisView, publishRuntime, runtime.isPlaying, simulationResult]);
+  }, [agentRuntime, isAnalysisView, operationError, publishRuntime, runtime.isPlaying, simulationResult]);
 
   const selectUnit = useCallback((selectedUnitId: string) => {
     updateRuntime({ selectedUnitId });
@@ -385,6 +395,11 @@ export function SimulatorPage() {
     window.addEventListener('popstate', handlePopState);
     return () => window.removeEventListener('popstate', handlePopState);
   }, []);
+
+  if (operationError) return <div role="alert" className="flex h-screen flex-col items-center justify-center gap-4 bg-surface p-8 text-on-surface">
+    <p className="text-error">{operationError}</p>
+    <button className="rounded border border-outline-variant px-4 py-2 text-sm" onClick={() => navigate('/simulations/3d-demo-maplibre')}>작전 파일 다시 선택</button>
+  </div>;
 
   return (
     <div className="flex h-screen w-screen flex-col overflow-hidden bg-surface text-on-surface">
@@ -500,6 +515,7 @@ export function SimulatorPage() {
                 onDeleteUnit: deleteLiveUnit,
               } : undefined}
             /> : mapMode === 'maplibre' ? <MapLibre3DTacticalMap
+              localOperationRegion
               runtime={runtime}
               playbackRef={runtimeRef}
               units={rosterUnits}
