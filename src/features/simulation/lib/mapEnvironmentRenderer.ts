@@ -6,52 +6,30 @@ const PARTICLES = 'environment-precipitation';
 const GRID = 48;
 const SAMPLE_ROWS_PER_BATCH = 4;
 const PRECIPITATION_FRAME_MS = 1000 / 30;
-const MAX_PARTICLES = 1800;
+const MAX_PARTICLES = 4200;
+const PARTICLE_COUNTS = [0, 900, 2200, MAX_PARTICLES] as const;
+const PRECIPITATION_MARGIN = 1.15;
 const clamp = (value: number, min: number, max: number) => Math.max(min, Math.min(max, value));
 
-/** Custom 3D particles in geographic space, sharing the map camera and depth buffer. */
-function precipitationLayer(map: MapLibreMap, read: () => MapEnvironment, elevationAt: (coordinate: MercatorCoordinate) => number): CustomLayerInterface & { refreshTerrain: () => void } {
+/** Screen-covering particles; ground accumulation is rendered separately in geographic space. */
+function precipitationLayer(map: MapLibreMap, read: () => MapEnvironment): CustomLayerInterface {
   let program: WebGLProgram | null = null;
   let buffer: WebGLBuffer | null = null;
   let position = 0;
-  let matrixLocation: WebGLUniformLocation | null = null;
+  let particleScale = 0;
   let snowLocation: WebGLUniformLocation | null = null;
   let sizeLocation: WebGLUniformLocation | null = null;
   let colorLocation: WebGLUniformLocation | null = null;
-  let anchor = MercatorCoordinate.fromLngLat(map.getCenter());
-  let meters = anchor.meterInMercatorCoordinateUnits();
-  let span = 1000;
   const seeds = new Float32Array(MAX_PARTICLES * 3);
-  const ground = new Float32Array(MAX_PARTICLES);
-  const vertices = new Float32Array(MAX_PARTICLES * 6);
-  const matrix = new Float32Array(16);
+  const vertices = new Float32Array(MAX_PARTICLES * 4);
   let elapsed = 0;
   let previousTime = 0;
   let repaintTimer: ReturnType<typeof setTimeout> | undefined;
   let vertexCount = 0;
   let vertexSettings = '';
   for (let i = 0; i < seeds.length; i++) seeds[i] = Math.random();
-  const relocate = () => {
-    previousTime = 0;
-    anchor = MercatorCoordinate.fromLngLat(map.getCenter());
-    meters = anchor.meterInMercatorCoordinateUnits();
-    span = clamp(40075016 * Math.cos(map.getCenter().lat * Math.PI / 180) / 2 ** map.getZoom() * 2, 300, 18000);
-    if (read().weather === 'clear') return;
-    // Sample a small height grid once per camera/terrain change, not per particle per frame.
-    const size = 20;
-    const heights = new Float32Array(size * size);
-    for (let y = 0; y < size; y++) for (let x = 0; x < size; x++) {
-      const coord = new MercatorCoordinate(anchor.x + (x / (size - 1) - 0.5) * span * meters, anchor.y + (y / (size - 1) - 0.5) * span * meters);
-      heights[y * size + x] = elevationAt(coord);
-    }
-    for (let i = 0; i < MAX_PARTICLES; i++) {
-      const x = Math.round(seeds[i * 3] * (size - 1));
-      const y = Math.round(seeds[i * 3 + 1] * (size - 1));
-      ground[i] = heights[y * size + x];
-    }
-  };
   return {
-    id: PARTICLES, type: 'custom', renderingMode: '3d', refreshTerrain: relocate,
+    id: PARTICLES, type: 'custom', renderingMode: '2d',
     onAdd(_map, gl) {
       const shaders: WebGLShader[] = [];
       try {
@@ -68,21 +46,31 @@ function precipitationLayer(map: MapLibreMap, read: () => MapEnvironment, elevat
         if (!program) throw new Error('날씨 렌더러를 생성할 수 없습니다.');
         gl.attachShader(program, compile(gl.VERTEX_SHADER, `
           attribute vec3 a_position;
-          uniform mat4 u_matrix;
+          attribute float a_scale;
           uniform float u_size;
-          void main() { gl_Position = u_matrix * vec4(a_position, 1.0); gl_PointSize = u_size; }
+          void main() { gl_Position = vec4(a_position, 1.0); gl_PointSize = u_size * a_scale; }
         `));
         gl.attachShader(program, compile(gl.FRAGMENT_SHADER, `
           precision mediump float;
           uniform float u_snow;
           uniform vec4 u_color;
           void main() {
-            float alpha = 1.0;
+            vec2 point = gl_PointCoord - vec2(0.5);
+            float alpha;
             if (u_snow > 0.5) {
-              float d = length(gl_PointCoord - vec2(0.5));
-              alpha = 1.0 - smoothstep(0.12, 0.5, d);
-              if (alpha < 0.01) discard;
+              float distanceFromCenter = length(point);
+              float softFlake = 1.0 - smoothstep(0.18, 0.5, distanceFromCenter);
+              float brightCore = 1.0 - smoothstep(0.0, 0.2, distanceFromCenter);
+              alpha = max(softFlake * 0.78, brightCore);
+            } else {
+              // A screen-space streak remains visible on high-DPI tablets,
+              // unlike WebGL lines which are commonly clamped to one pixel.
+              float across = abs(point.x + point.y * 0.18);
+              float streak = 1.0 - smoothstep(0.035, 0.12, across);
+              float ends = 1.0 - smoothstep(0.30, 0.5, abs(point.y));
+              alpha = streak * ends;
             }
+            if (alpha < 0.015) discard;
             gl_FragColor = vec4(u_color.rgb * u_color.a * alpha, u_color.a * alpha);
           }
         `));
@@ -93,12 +81,10 @@ function precipitationLayer(map: MapLibreMap, read: () => MapEnvironment, elevat
         gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
         gl.bufferData(gl.ARRAY_BUFFER, vertices.byteLength, gl.DYNAMIC_DRAW);
         position = gl.getAttribLocation(program, 'a_position');
-        matrixLocation = gl.getUniformLocation(program, 'u_matrix');
+        particleScale = gl.getAttribLocation(program, 'a_scale');
         snowLocation = gl.getUniformLocation(program, 'u_snow');
         sizeLocation = gl.getUniformLocation(program, 'u_size');
         colorLocation = gl.getUniformLocation(program, 'u_color');
-        relocate();
-
       } catch (error) {
         if (buffer) gl.deleteBuffer(buffer);
         if (program) gl.deleteProgram(program);
@@ -106,7 +92,7 @@ function precipitationLayer(map: MapLibreMap, read: () => MapEnvironment, elevat
         throw error;
       } finally { shaders.forEach(shader => gl.deleteShader(shader)); }
     },
-    render(gl, input) {
+    render(gl) {
       const settings = read();
       if (!program || !buffer || settings.weather === 'clear' || document.hidden) { previousTime = 0; return; }
       const now = performance.now();
@@ -117,51 +103,50 @@ function precipitationLayer(map: MapLibreMap, read: () => MapEnvironment, elevat
         elapsed += previousTime ? Math.min((now - previousTime) / 1000, 0.05) : 0;
         previousTime = now;
         vertexSettings = settingsKey;
-        const count = settings.intensity * 600;
-        const height = clamp(span * 0.3, 120, 2800);
-        const speed = height * (snow ? 0.07 : 0.6);
+        const count = PARTICLE_COUNTS[settings.intensity];
         for (let i = 0; i < count; i++) {
-          const x = (seeds[i * 3] - 0.5) * span;
-          const y = (seeds[i * 3 + 1] - 0.5) * span;
-          const z = ground[i] + ((seeds[i * 3 + 2] * height - elapsed * speed) % height + height) % height;
-          const offset = i * (snow ? 3 : 6);
-          vertices[offset] = x + (snow ? Math.sin(elapsed + i) * span * 0.002 : 0);
+          const fieldSize = PRECIPITATION_MARGIN * 2;
+          const fall = elapsed * (snow ? 0.22 : 1.05);
+          const wind = elapsed * (snow ? 0.035 : 0.16);
+          const baseX = seeds[i * 3] * fieldSize - PRECIPITATION_MARGIN;
+          const x = ((baseX + wind + PRECIPITATION_MARGIN) % fieldSize + fieldSize) % fieldSize - PRECIPITATION_MARGIN;
+          const y = PRECIPITATION_MARGIN - ((seeds[i * 3 + 1] * fieldSize + fall) % fieldSize);
+          const offset = i * 4;
+          vertices[offset] = x + (snow ? Math.sin(elapsed * 1.4 + i) * 0.008 : 0);
           vertices[offset + 1] = y;
-          vertices[offset + 2] = z;
-          if (!snow) {
-            vertices[offset + 3] = x + height * 0.002;
-            vertices[offset + 4] = y;
-            vertices[offset + 5] = z + height * 0.025;
-          }
+          vertices[offset + 2] = 0;
+          vertices[offset + 3] = 0.48 + ((i * 0.61803398875) % 1) * 1.02;
         }
-        vertexCount = count * (snow ? 1 : 2);
+        vertexCount = count;
         gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
-        gl.bufferSubData(gl.ARRAY_BUFFER, 0, vertices.subarray(0, vertexCount * 3));
-      }
-      // Translate in double precision before the GPU upload to avoid geographic jitter.
-      const projection = input.defaultProjectionData.mainMatrix;
-      for (let row = 0; row < 4; row++) {
-        matrix[row] = projection[row] * meters;
-        matrix[4 + row] = projection[4 + row] * meters;
-        matrix[8 + row] = projection[8 + row] * meters;
-        matrix[12 + row] = projection[row] * anchor.x + projection[4 + row] * anchor.y + projection[12 + row];
+        gl.bufferSubData(gl.ARRAY_BUFFER, 0, vertices.subarray(0, vertexCount * 4));
       }
       gl.useProgram(program);
-      gl.uniformMatrix4fv(matrixLocation, false, matrix);
       gl.uniform1f(snowLocation, snow ? 1 : 0);
-      gl.uniform1f(sizeLocation, (snow ? 3.5 : 1) * Math.min(window.devicePixelRatio, 2));
-      gl.uniform4f(colorLocation, snow ? 0.94 : 0.63, snow ? 0.97 : 0.78, 1, settings.time === 'night' ? 0.65 : 0.8);
+      const pixelRatio = Math.min(window.devicePixelRatio, 2);
+      gl.uniform1f(sizeLocation, (snow ? 3.2 + settings.intensity * 0.55 : 6.5 + settings.intensity * 1.6) * pixelRatio);
+      gl.uniform4f(
+        colorLocation,
+        snow ? 0.98 : 0.62,
+        snow ? 0.99 : 0.84,
+        1,
+        snow ? (settings.time === 'night' ? 0.82 : 0.88) : (settings.time === 'night' ? 0.76 : 0.84),
+      );
       gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
 
       gl.enableVertexAttribArray(position);
-      gl.vertexAttribPointer(position, 3, gl.FLOAT, false, 0, 0);
+      gl.vertexAttribPointer(position, 3, gl.FLOAT, false, 16, 0);
+      gl.enableVertexAttribArray(particleScale);
+      gl.vertexAttribPointer(particleScale, 1, gl.FLOAT, false, 16, 12);
       gl.enable(gl.BLEND);
       gl.blendFunc(gl.ONE, gl.ONE_MINUS_SRC_ALPHA);
-      gl.enable(gl.DEPTH_TEST);
+      gl.disable(gl.DEPTH_TEST);
       gl.depthMask(false);
-      gl.drawArrays(snow ? gl.POINTS : gl.LINES, 0, vertexCount);
+      gl.drawArrays(gl.POINTS, 0, vertexCount);
       gl.disableVertexAttribArray(position);
+      gl.disableVertexAttribArray(particleScale);
       gl.depthMask(true);
+      gl.enable(gl.DEPTH_TEST);
       if (!repaintTimer) repaintTimer = setTimeout(() => {
         repaintTimer = undefined;
         if (read().weather !== 'clear' && !document.hidden) map.triggerRepaint();
@@ -188,7 +173,6 @@ export function attachMapEnvironment(map: MapLibreMap, initial: MapEnvironment) 
   let surfaceReady = false;
   let sampleGeneration = 0;
   let sampleTimer: ReturnType<typeof setTimeout> | undefined;
-  let sampledLeft = 0, sampledTop = 0, sampledStep = 1;
   const style = map.getStyle();
   const originalSky = style.sky;
   const originalPaint = style.layers.filter(layer => layer.id === 'osm' || layer.id === 'terrain-hillshade').map(layer => ({ id: layer.id, paint: { ...layer.paint } }));
@@ -196,12 +180,7 @@ export function attachMapEnvironment(map: MapLibreMap, initial: MapEnvironment) 
   const center = map.getCenter();
   map.addSource(SURFACE, { type: 'canvas', canvas, animate: false, coordinates: [[center.lng - 0.01, center.lat + 0.01], [center.lng + 0.01, center.lat + 0.01], [center.lng + 0.01, center.lat - 0.01], [center.lng - 0.01, center.lat - 0.01]] });
   map.addLayer({ id: SURFACE, type: 'raster', source: SURFACE, paint: { 'raster-opacity': 0.9, 'raster-fade-duration': 0 } }, before);
-  const particles = precipitationLayer(map, () => settings, coordinate => {
-    if (!surfaceReady) return 0;
-    const x = clamp(Math.round((coordinate.x - sampledLeft) / sampledStep), 0, GRID - 1);
-    const y = clamp(Math.round((coordinate.y - sampledTop) / sampledStep), 0, GRID - 1);
-    return elevations[y * GRID + x] || 0;
-  });
+  const particles = precipitationLayer(map, () => settings);
   try { map.addLayer(particles); }
   catch (error) { map.removeLayer(SURFACE); map.removeSource(SURFACE); throw error; }
 
@@ -250,7 +229,6 @@ export function attachMapEnvironment(map: MapLibreMap, initial: MapEnvironment) 
       }
       if (row < GRID) { sampleTimer = setTimeout(sampleBatch, 0); return; }
       elevations.set(sampled);
-      sampledLeft = left; sampledTop = top; sampledStep = step;
       spacing = step / scale;
       const coord = (x: number, y: number): [number, number] => {
         const point = new MercatorCoordinate(x, y).toLngLat();
@@ -258,7 +236,6 @@ export function attachMapEnvironment(map: MapLibreMap, initial: MapEnvironment) 
       };
       (map.getSource(SURFACE) as CanvasSource).setCoordinates([coord(left, top), coord(left + half * 2, top), coord(left + half * 2, top + half * 2), coord(left, top + half * 2)]);
       surfaceReady = true;
-      particles.refreshTerrain();
       paintSurface();
     };
     sampleBatch();
